@@ -1,0 +1,15 @@
+{{/* 定义名为 "content" 的模板块 */}}
+{{ define "content" }}
+<article>
+  <h3>使用 atproto 登录</h3> {{/* 翻译标题 */}}
+  {{/* 表单的 action 需要在 Go 后端生成或硬编码 */}}
+  <form method="post" action="{{ .URLs.OAuthLogin }}">
+      <p>提供您的 handle 或 DID 以授权现有 PDS 帐户。
+      <br>您也可以提供 PDS/入口 URL (例如, <code>https://pds.example.com</code>)。</p> {{/* 翻译文本 */}}
+    <fieldset role="group">
+      <input name="username" id="username" placeholder="handle.example.com" style="font-family: monospace,monospace;" required>
+      <input type="submit" value="登录"> {{/* 翻译按钮文本 */}}
+    </fieldset>
+  </form>
+</article>
+{{ end }}

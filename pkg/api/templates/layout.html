@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh"> {{/* 修改语言为中文 */}}
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="origin-when-cross-origin">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.purple.min.css">
+  <title>atproto OAuth Web 服务示例</title> {{/* 翻译标题 */}}
+</head>
+<body>
+<header>
+  <hgroup>
+    <h1>atproto OAuth Web 服务示例</h1> {{/* 翻译标题 */}}
+    {{/* 假设传递的数据结构有一个 User 字段，且 User 包含 Handle 字段 */}}
+    {{ if .User }}
+      <p>你好 <span style="font-family: monospace,monospace;">@{{ .User.Handle }}</span>！</p> {{/* 翻译问候语 */}}
+    {{ end }}
+  </hgroup>
+  <nav>
+    <ul>
+    {{ if .User }}
+      {{/* 假设传递的数据结构包含一个 URLs 映射或结构体 */}}
+      <li><a href="{{ .URLs.BskyPost }}">创建帖子</a></li> {{/* 翻译链接文本 */}}
+      <li><a href="{{ .URLs.OAuthRefresh }}">刷新令牌</a></li> {{/* 翻译链接文本 */}}
+      <li><a href="{{ .URLs.OAuthLogout }}">登出</a></li> {{/* 翻译链接文本 */}}
+    {{ else }}
+      <li><a href="{{ .URLs.OAuthLogin }}">登录</a></li> {{/* 翻译链接文本 */}}
+    {{ end }}
+      <li><a href="https://github.com/bluesky-social/cookbook">代码</a></li>
+    </ul>
+  </nav>
+</header>
+<main>
+  <section class="content">
+    {{/* 假设传递的数据结构有一个 Messages 字段 (字符串切片) */}}
+    {{ range .Messages }}
+      <article>{{ . }}</article>
+    {{ end }}
+    {{/* 定义内容块，子模板可以覆盖它 */}}
+    {{ block "content" . }}
+        {{/* 如果子模板没有定义 "content"，这里可以放默认内容 */}}
+    {{ end }}
+  </section>
+</main>
+</body>
+</html>
+
+{{/* 需要一个空的 "content" 定义，以便子模板可以覆盖它 */}}
+{{ define "content" }}{{ end }}
