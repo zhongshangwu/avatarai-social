@@ -6,7 +6,7 @@ toolchain go1.24.2
 
 require (
 	github.com/adrg/xdg v0.5.0
-	github.com/bluesky-social/indigo v0.0.0-20250401210623-bfc7f487e4ed
+	github.com/bluesky-social/indigo v0.0.0-20250417233640-6b0010a646ae
 	github.com/go-jose/go-jose/v4 v4.1.0
 	github.com/labstack/echo/v4 v4.11.3
 	github.com/lestrrat-go/jwx/v3 v3.0.0
@@ -42,7 +42,9 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
+	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
@@ -103,7 +105,7 @@ require (
 	github.com/urfave/cli/v2 v2.27.6
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	github.com/whyrusleeping/cbor-gen v0.2.1-0.20241030202151-b7a6831be65e // indirect
+	github.com/whyrusleeping/cbor-gen v0.3.1 // indirect
 	gitlab.com/yawning/secp256k1-voi v0.0.0-20230925100816-f2616030848b // indirect
 	gitlab.com/yawning/tuplehash v0.0.0-20230713102510-df83abbf9a02 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect

@@ -1,0 +1,43 @@
+{
+  "lexicon": 1,
+  "id": "app.vtri.avatar.profile",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Avatar 信息资料",
+      "key": "self",
+      "record": {
+        "type": "object",
+        "properties": {
+          "did": { "type": "string", "format": "did" },
+          "handle": { "type": "string", "format": "handle" },
+          "displayName": {
+            "type": "string",
+            "maxGraphemes": 64,
+            "maxLength": 640
+          },
+          "description": {
+            "type": "string",
+            "description": "个人简介",
+            "maxGraphemes": 256,
+            "maxLength": 2560
+          },
+          "avatar": {
+            "type": "blob",
+            "description": "头像图片",
+            "accept": ["image/png", "image/jpeg"],
+            "maxSize": 1000000
+          },
+          "banner": {
+            "type": "blob",
+            "description": "个人页面背景图片",
+            "accept": ["image/png", "image/jpeg"],
+            "maxSize": 1000000
+          },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}
+

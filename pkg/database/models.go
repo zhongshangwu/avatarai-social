@@ -66,6 +66,9 @@ type Avatar struct { //  真实的人, 人创建的数字化身, 自注册的 Ag
 	Did         string    `gorm:"column:did"`
 	Handle      string    `gorm:"column:handle"`
 	PdsUrl      string    `gorm:"column:pds_url"`
+	DisplayName string    `gorm:"column:display_name"`
+	AvatarCID   string    `gorm:"column:avatar_cid"`
+	Description string    `gorm:"column:description"`
 	IsAster     bool      `gorm:"column:is_aster"`
 	CreatorDid  string    `gorm:"column:creator_did"`
 	LastLoginAt time.Time `gorm:"column:last_login_at"`

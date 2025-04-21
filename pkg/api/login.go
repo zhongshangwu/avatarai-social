@@ -12,8 +12,6 @@ import (
 	"net/url"
 	"time"
 
-	comatproto "github.com/bluesky-social/indigo/api/atproto"
-	"github.com/bluesky-social/indigo/xrpc"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -111,11 +109,14 @@ func (a *AvatarAIAPI) HandleOAuthJWKS(c echo.Context) error {
 
 func (a *AvatarAIAPI) HandleOAuthLogin(c echo.Context) error {
 	platform := c.QueryParam("platform")
+	if platform == "" {
+		platform = "web"
+	}
 	log.Info("HandleOAuthLogin", "method", c.Request().Method, "platform", platform)
 	if c.Request().Method == http.MethodGet {
 		data := PageData{
 			User: nil,
-			URLs: map[string]string{"OAuthLogin": "/api/oauth/signin"},
+			URLs: map[string]string{"OAuthLogin": "/api/oauth/signin?platform=" + platform},
 		}
 		return c.Render(http.StatusOK, "layout.html", data)
 	}
@@ -197,6 +198,8 @@ func (a *AvatarAIAPI) HandleOAuthLogin(c echo.Context) error {
 	appURL := utils.GetAPPURL(c)
 	redirectURI := atproto.BuildRedirectURL(appURL, platform)
 	clientID := atproto.BuildClientID(appURL, platform)
+
+	log.Infof("HandleOAuthLogin， clientID: %s, redirectURI: %s", clientID, redirectURI)
 
 	// 提交 OAuth Pushed Authentication Request (PAR)
 	pkceVerifier, state, dpopAuthserverNonce, resp, err := atproto.SendPARAuthRequest(
@@ -437,14 +440,22 @@ type ExchangeTokenRequest struct {
 }
 
 func (a *AvatarAIAPI) HandleOAuthToken(c echo.Context) error {
+	code := c.QueryParam("code")
 	request := ExchangeTokenRequest{}
 	if err := c.Bind(&request); err != nil {
+		log.Errorf("HandleOAuthToken，从请求中获取code失败: %+v", err)
+	}
+	if request.Code != "" {
+		code = request.Code
+	}
+
+	if code == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "无法解析请求",
 		})
 	}
 
-	oauthCode, err := database.GetOAuthCode(a.metaStore.DB, request.Code)
+	oauthCode, err := database.GetOAuthCode(a.metaStore.DB, code)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "无法找到授权码",
@@ -519,17 +530,21 @@ func (a *AvatarAIAPI) HandleOAuthToken(c echo.Context) error {
 }
 
 func (a *AvatarAIAPI) HandleOAuthRefresh(c echo.Context) error {
-	var request struct {
-		RefreshToken string `json:"refresh_token"`
-	}
-	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "无法解析请求",
-		})
+	refreshToken := c.QueryParam("refresh_token")
+	if refreshToken == "" {
+		var request struct {
+			RefreshToken string `json:"refresh_token"`
+		}
+		if err := c.Bind(&request); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": "无法解析请求",
+			})
+		}
+		refreshToken = request.RefreshToken
 	}
 
 	// 验证刷新令牌
-	sessionID, err := utils.ValidateRefreshToken(a.Config, request.RefreshToken)
+	sessionID, err := utils.ValidateRefreshToken(a.Config, refreshToken)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
 			"error": "无效的刷新令牌: " + err.Error(),
@@ -593,7 +608,7 @@ func (a *AvatarAIAPI) HandleOAuthRefresh(c echo.Context) error {
 		})
 	}
 
-	refreshToken, err := utils.GenerateRefreshToken(a.Config, session.ID)
+	refreshToken, err = utils.GenerateRefreshToken(a.Config, session.ID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "生成刷新令牌失败: " + err.Error(),
@@ -633,28 +648,6 @@ func (a *AvatarAIAPI) HandleOAuthLogout(c echo.Context) error {
 	})
 
 	return c.Redirect(http.StatusFound, "/")
-}
-
-func (a *AvatarAIAPI) HandleUserProfile(c echo.Context) error {
-	ac := c.(*utils.AvatarAIContext)
-	avatar := ac.Avatar
-	oauthSession := ac.OauthSession
-	if avatar == nil {
-		return ac.Redirect(http.StatusFound, "/api/oauth/login")
-	}
-
-	xrpcCli := atproto.NewXrpcClient(oauthSession, a.metaStore.DB)
-	authArgs := atproto.GetOauthSessionAuthArgs(oauthSession)
-	var atpSession comatproto.ServerGetSession_Output
-	if err := xrpcCli.Do(c.Request().Context(), authArgs, xrpc.Query, "", "com.atproto.server.getSession", nil, nil, &atpSession); err != nil {
-		return err
-	}
-
-	return ac.JSON(http.StatusOK, map[string]any{
-		"user_did": avatar.Did,
-		"handle":   atpSession.Did,
-		"atp":      atpSession,
-	})
 }
 
 func (a *AvatarAIAPI) HandleBskyPost(c echo.Context) error {
