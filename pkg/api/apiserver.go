@@ -36,7 +36,6 @@ func NewAvatarAIAPI(config *config.SocialConfig, metaStore *database.MetaStore) 
 
 	renderer := NewTemplateRenderer("pkg/api/templates/*.html")
 	e.Renderer = renderer
-
 	return &AvatarAIAPI{
 		Config:    config,
 		echo:      e,
@@ -70,6 +69,13 @@ func (a *AvatarAIAPI) InstallRoutes() {
 	aster.Use(mw.NewRequireAuth(a.metaStore, a.Config))
 	aster.GET("/profile", a.HandleAsterProfile)
 	aster.POST("/mint", a.HandleAsterMint)
+
+	moment := api.Group("/moments")
+	moment.Use(mw.NewRequireAuth(a.metaStore, a.Config))
+	moment.POST("/", a.HandleMomentCreate)
+	moment.GET("/timeline", a.HandleMomentTimeline)
+	moment.GET("/:id", a.HandleMomentDetail)
+	moment.DELETE("/:id", a.HandleMomentDelete)
 }
 
 func (a *AvatarAIAPI) InstallMiddleware() {

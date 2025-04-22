@@ -1,0 +1,31 @@
+{
+  "lexicon": 1,
+  "id": "app.vtri.entity.external",
+  "defs": {
+    "main": {
+      "type": "object",
+      "description": "A representation of some externally linked content (eg, a URL and 'card'), embedded in a vtri record (eg, a moment).",
+      "required": ["external"],
+      "properties": {
+        "external": {
+          "type": "ref",
+          "ref": "#external"
+        }
+      }
+    },
+    "external": {
+      "type": "object",
+      "required": ["uri", "title", "description"],
+      "properties": {
+        "uri": { "type": "string", "format": "uri" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "thumb": {
+          "type": "blob",
+          "accept": ["image/*"],
+          "maxSize": 1000000
+        }
+      }
+    }
+  }
+}

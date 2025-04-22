@@ -110,3 +110,19 @@ type AvatarResponseAPI struct {
 	CreatedAt      time.Time `gorm:"column:created_at"`
 	UpdatedAt      time.Time `gorm:"column:updated_at"`
 }
+
+type Moment struct {
+	URI            string   `gorm:"primaryKey;column:uri"`
+	CID            string   `gorm:"column:cid;not null"`
+	Creator        string   `gorm:"column:creator;not null"`
+	Text           string   `gorm:"column:text;not null"`
+	ReplyRoot      string   `gorm:"column:replyRoot"`
+	ReplyRootCID   string   `gorm:"column:replyRootCid"`
+	ReplyParent    string   `gorm:"column:replyParent"`
+	ReplyParentCID string   `gorm:"column:replyParentCid"`
+	CreatedAt      string   `gorm:"column:createdAt;not null"`
+	IndexedAt      string   `gorm:"column:indexedAt;not null"`
+	SortAt         string   `gorm:"column:sortAt;not null"`
+	Langs          []string `gorm:"type:jsonb;column:langs"`
+	Tags           []string `gorm:"type:jsonb;column:tags"`
+}
