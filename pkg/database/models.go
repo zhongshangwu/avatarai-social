@@ -1,6 +1,8 @@
 package database
 
-import "time"
+import (
+	"time"
+)
 
 type OAuthAuthRequest struct {
 	ID                  uint   `gorm:"primaryKey;autoIncrement:true"`
@@ -15,6 +17,10 @@ type OAuthAuthRequest struct {
 	DpopPrivateJwk      string `gorm:"column:dpop_private_jwk"`
 	Platform            string `gorm:"column:platform"`
 	ReturnURI           string `gorm:"column:return_uri"`
+}
+
+func (OAuthAuthRequest) TableName() string {
+	return "oauth_auth_request"
 }
 
 type OAuthSession struct {
@@ -34,6 +40,10 @@ type OAuthSession struct {
 	ReturnURI           string    `gorm:"column:return_uri"`
 }
 
+func (OAuthSession) TableName() string {
+	return "oauth_session"
+}
+
 type OAuthCode struct {
 	ID             uint      `gorm:"primaryKey;autoIncrement:true"`
 	Code           string    `gorm:"column:code;uniqueIndex"` // 授权码
@@ -44,6 +54,10 @@ type OAuthCode struct {
 	Used           bool      `gorm:"column:used;default:false"` // 是否已使用
 	ExpiresAt      time.Time `gorm:"column:expires_at"`         // 过期时间
 	CreatedAt      time.Time `gorm:"column:created_at"`
+}
+
+func (OAuthCode) TableName() string {
+	return "oauth_code"
 }
 
 type Session struct {
@@ -57,10 +71,10 @@ type Session struct {
 	CreatedAt      time.Time `gorm:"column:created_at"`
 }
 
-// 具备以下能力:
-// 1. bsky chat
-// 2. 提供 mcp server
-// 3. 提供 response api
+func (Session) TableName() string {
+	return "session"
+}
+
 type Avatar struct { //  真实的人, 人创建的数字化身, 自注册的 Agent
 	ID          uint      `gorm:"primaryKey;autoIncrement:true"`
 	Did         string    `gorm:"column:did"`
@@ -74,6 +88,10 @@ type Avatar struct { //  真实的人, 人创建的数字化身, 自注册的 Ag
 	LastLoginAt time.Time `gorm:"column:last_login_at"`
 	UpdatedAt   time.Time `gorm:"column:updated_at"`
 	CreatedAt   time.Time `gorm:"column:created_at"`
+}
+
+func (Avatar) TableName() string {
+	return "avatar"
 }
 
 type AvatarIntegrate struct { // 这个主要是真实用户关联的第三方平台账号, 作为数据来源同步
@@ -112,17 +130,66 @@ type AvatarResponseAPI struct {
 }
 
 type Moment struct {
-	URI            string   `gorm:"primaryKey;column:uri"`
-	CID            string   `gorm:"column:cid;not null"`
-	Creator        string   `gorm:"column:creator;not null"`
-	Text           string   `gorm:"column:text;not null"`
-	ReplyRoot      string   `gorm:"column:replyRoot"`
-	ReplyRootCID   string   `gorm:"column:replyRootCid"`
-	ReplyParent    string   `gorm:"column:replyParent"`
-	ReplyParentCID string   `gorm:"column:replyParentCid"`
-	CreatedAt      string   `gorm:"column:createdAt;not null"`
-	IndexedAt      string   `gorm:"column:indexedAt;not null"`
-	SortAt         string   `gorm:"column:sortAt;not null"`
-	Langs          []string `gorm:"type:jsonb;column:langs"`
-	Tags           []string `gorm:"type:jsonb;column:tags"`
+	URI            string      `gorm:"primaryKey;column:uri"`
+	CID            string      `gorm:"column:cid;not null"`
+	Creator        string      `gorm:"column:creator;not null"`
+	Text           string      `gorm:"column:text;not null"`
+	ReplyRoot      string      `gorm:"column:reply_root"`
+	ReplyRootCID   string      `gorm:"column:reply_root_cid"`
+	ReplyParent    string      `gorm:"column:reply_parent"`
+	ReplyParentCID string      `gorm:"column:reply_parent_cid"`
+	CreatedAt      string      `gorm:"column:created_at;not null"`
+	IndexedAt      string      `gorm:"column:indexed_at;not null"`
+	SortAt         string      `gorm:"column:sort_at;not null"`
+	Langs          StringArray `gorm:"type:jsonb;column:langs"`
+	Tags           StringArray `gorm:"type:jsonb;column:tags"`
+}
+
+func (Moment) TableName() string {
+	return "moment"
+}
+
+type MomentVideo struct {
+	MomentURI string `gorm:"column:moment_uri"`
+	VideoCID  string `gorm:"column:video_cid"`
+	Alt       string `gorm:"column:alt"`
+}
+
+func (MomentVideo) TableName() string {
+	return "moment_video"
+}
+
+type MomentImage struct {
+	MomentURI string `gorm:"column:moment_uri"`
+	Position  int    `gorm:"column:position"`
+	ImageCID  string `gorm:"column:image_cid"`
+	Alt       string `gorm:"column:alt"`
+}
+
+func (MomentImage) TableName() string {
+	return "moment_image"
+}
+
+type MomentExternal struct {
+	MomentURI   string `gorm:"column:moment_uri"`
+	URI         string `gorm:"column:uri"`
+	Title       string `gorm:"column:title"`
+	Description string `gorm:"column:description"`
+	ThumbCID    string `gorm:"column:thumb_cid"`
+}
+
+func (MomentExternal) TableName() string {
+	return "moment_external"
+}
+
+type AtpRecord struct {
+	URI       string `gorm:"column:uri"`
+	CID       string `gorm:"column:cid"`
+	Did       string `gorm:"column:did"`
+	JSON      string `gorm:"column:json"`
+	IndexedAt string `gorm:"column:indexed_at"`
+}
+
+func (AtpRecord) TableName() string {
+	return "atp_record"
 }

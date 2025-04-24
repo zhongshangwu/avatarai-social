@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.bsky.embed.defs",
+  "id": "app.vtri.entity.defs",
   "defs": {
     "aspectRatio": {
       "type": "object",

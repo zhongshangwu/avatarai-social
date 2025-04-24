@@ -20,3 +20,35 @@ func GetAsterByCreatorDid(db *gorm.DB, did string) (*Avatar, error) {
 func CreateAster(db *gorm.DB, aster *Avatar) error {
 	return db.Create(aster).Error
 }
+
+func GetAvatarByHandle(db *gorm.DB, handle string) (*Avatar, error) {
+	var avatar Avatar
+	if err := db.Where("handle = ?", handle).First(&avatar).Error; err != nil {
+		return nil, err
+	}
+	return &avatar, nil
+}
+
+func GetAvatarByID(db *gorm.DB, id uint) (*Avatar, error) {
+	var avatar Avatar
+	if err := db.Where("id = ?", id).First(&avatar).Error; err != nil {
+		return nil, err
+	}
+	return &avatar, nil
+}
+
+func GetAvatarByDID(db *gorm.DB, did string) (*Avatar, error) {
+	var avatar Avatar
+	if err := db.Where("did = ?", did).First(&avatar).Error; err != nil {
+		return nil, err
+	}
+	return &avatar, nil
+}
+
+func GetAvatarsByDIDs(db *gorm.DB, dids []string) ([]*Avatar, error) {
+	var avatars []*Avatar
+	if err := db.Where("did IN ?", dids).Find(&avatars).Error; err != nil {
+		return nil, err
+	}
+	return avatars, nil
+}

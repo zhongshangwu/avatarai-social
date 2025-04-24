@@ -5,15 +5,12 @@ package vtri
 // schema: app.vtri.activity.moment
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 
 	comatprototypes "github.com/bluesky-social/indigo/api/atproto"
 	appbskytypes "github.com/bluesky-social/indigo/api/bsky"
 	"github.com/bluesky-social/indigo/lex/util"
-	cbg "github.com/whyrusleeping/cbor-gen"
 )
 
 func init() {
@@ -37,23 +34,23 @@ type ActivityMoment struct {
 }
 
 type ActivityMoment_Embed struct {
-	EmbedImages   *appbskytypes.EmbedImages
-	EmbedVideo    *appbskytypes.EmbedVideo
-	EmbedExternal *appbskytypes.EmbedExternal
+	EntityImages   *EntityImages
+	EntityVideo    *EntityVideo
+	EntityExternal *EntityExternal
 }
 
 func (t *ActivityMoment_Embed) MarshalJSON() ([]byte, error) {
-	if t.EmbedImages != nil {
-		t.EmbedImages.LexiconTypeID = "app.bsky.embed.images"
-		return json.Marshal(t.EmbedImages)
+	if t.EntityImages != nil {
+		t.EntityImages.LexiconTypeID = "app.vtri.entity.images"
+		return json.Marshal(t.EntityImages)
 	}
-	if t.EmbedVideo != nil {
-		t.EmbedVideo.LexiconTypeID = "app.bsky.embed.video"
-		return json.Marshal(t.EmbedVideo)
+	if t.EntityVideo != nil {
+		t.EntityVideo.LexiconTypeID = "app.vtri.entity.video"
+		return json.Marshal(t.EntityVideo)
 	}
-	if t.EmbedExternal != nil {
-		t.EmbedExternal.LexiconTypeID = "app.bsky.embed.external"
-		return json.Marshal(t.EmbedExternal)
+	if t.EntityExternal != nil {
+		t.EntityExternal.LexiconTypeID = "app.vtri.entity.external"
+		return json.Marshal(t.EntityExternal)
 	}
 	return nil, fmt.Errorf("cannot marshal empty enum")
 }
@@ -64,54 +61,15 @@ func (t *ActivityMoment_Embed) UnmarshalJSON(b []byte) error {
 	}
 
 	switch typ {
-	case "app.bsky.embed.images":
-		t.EmbedImages = new(appbskytypes.EmbedImages)
-		return json.Unmarshal(b, t.EmbedImages)
-	case "app.bsky.embed.video":
-		t.EmbedVideo = new(appbskytypes.EmbedVideo)
-		return json.Unmarshal(b, t.EmbedVideo)
-	case "app.bsky.embed.external":
-		t.EmbedExternal = new(appbskytypes.EmbedExternal)
-		return json.Unmarshal(b, t.EmbedExternal)
-
-	default:
-		return nil
-	}
-}
-
-func (t *ActivityMoment_Embed) MarshalCBOR(w io.Writer) error {
-
-	if t == nil {
-		_, err := w.Write(cbg.CborNull)
-		return err
-	}
-	if t.EmbedImages != nil {
-		return t.EmbedImages.MarshalCBOR(w)
-	}
-	if t.EmbedVideo != nil {
-		return t.EmbedVideo.MarshalCBOR(w)
-	}
-	if t.EmbedExternal != nil {
-		return t.EmbedExternal.MarshalCBOR(w)
-	}
-	return fmt.Errorf("cannot cbor marshal empty enum")
-}
-func (t *ActivityMoment_Embed) UnmarshalCBOR(r io.Reader) error {
-	typ, b, err := util.CborTypeExtractReader(r)
-	if err != nil {
-		return err
-	}
-
-	switch typ {
-	case "app.bsky.embed.images":
-		t.EmbedImages = new(appbskytypes.EmbedImages)
-		return t.EmbedImages.UnmarshalCBOR(bytes.NewReader(b))
-	case "app.bsky.embed.video":
-		t.EmbedVideo = new(appbskytypes.EmbedVideo)
-		return t.EmbedVideo.UnmarshalCBOR(bytes.NewReader(b))
-	case "app.bsky.embed.external":
-		t.EmbedExternal = new(appbskytypes.EmbedExternal)
-		return t.EmbedExternal.UnmarshalCBOR(bytes.NewReader(b))
+	case "app.vtri.entity.images":
+		t.EntityImages = new(EntityImages)
+		return json.Unmarshal(b, t.EntityImages)
+	case "app.vtri.entity.video":
+		t.EntityVideo = new(EntityVideo)
+		return json.Unmarshal(b, t.EntityVideo)
+	case "app.vtri.entity.external":
+		t.EntityExternal = new(EntityExternal)
+		return json.Unmarshal(b, t.EntityExternal)
 
 	default:
 		return nil

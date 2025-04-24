@@ -1,0 +1,31 @@
+# Go binary files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go workspace files
+*.test
+*.out
+
+# Dependency directories
+/vendor/
+Gopkg.lock
+/go.sum
+
+# IDE and editor files
+*.idea/
+*.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# sqlite db
+*.sqlite
+*.db
+
+data/

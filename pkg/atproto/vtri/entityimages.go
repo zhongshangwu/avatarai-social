@@ -5,19 +5,22 @@ package vtri
 // schema: app.vtri.entity.images
 
 import (
-	appbskytypes "github.com/bluesky-social/indigo/api/bsky"
 	"github.com/bluesky-social/indigo/lex/util"
 )
 
-// EntityImages is a "main" in the app.vtri.entity.images schema.
+func init() {
+	util.RegisterType("app.vtri.entity.images#main", &EntityImages{})
+} // EntityImages is a "main" in the app.vtri.entity.images schema.
+// RECORDTYPE: EntityImages
 type EntityImages struct {
-	Images []*EntityImages_Image `json:"images" cborgen:"images"`
+	LexiconTypeID string                `json:"$type,const=app.vtri.entity.images" cborgen:"$type,const=app.vtri.entity.images"`
+	Images        []*EntityImages_Image `json:"images" cborgen:"images"`
 }
 
 // EntityImages_Image is a "image" in the app.vtri.entity.images schema.
 type EntityImages_Image struct {
 	// alt: Alt text description of the image, for accessibility.
-	Alt         string                              `json:"alt" cborgen:"alt"`
-	AspectRatio *appbskytypes.EmbedDefs_AspectRatio `json:"aspectRatio,omitempty" cborgen:"aspectRatio,omitempty"`
-	Image       *util.LexBlob                       `json:"image" cborgen:"image"`
+	Alt         string                  `json:"alt" cborgen:"alt"`
+	AspectRatio *EntityDefs_AspectRatio `json:"aspectRatio,omitempty" cborgen:"aspectRatio,omitempty"`
+	Image       *util.LexBlob           `json:"image" cborgen:"image"`
 }

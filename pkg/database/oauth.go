@@ -91,22 +91,6 @@ func GetSessionByID(db *gorm.DB, id string) (*Session, error) {
 	return &session, nil
 }
 
-func GetAvatarByID(db *gorm.DB, id uint) (*Avatar, error) {
-	var avatar Avatar
-	if err := db.Where("id = ?", id).First(&avatar).Error; err != nil {
-		return nil, err
-	}
-	return &avatar, nil
-}
-
-func GetAvatarByDID(db *gorm.DB, did string) (*Avatar, error) {
-	var avatar Avatar
-	if err := db.Where("did = ?", did).First(&avatar).Error; err != nil {
-		return nil, err
-	}
-	return &avatar, nil
-}
-
 func UpdateOAuthSessionDpopPdsNonce(db *gorm.DB, did string, newNonce string) error {
 	updates := map[string]interface{}{
 		"dpop_pds_nonce": newNonce,

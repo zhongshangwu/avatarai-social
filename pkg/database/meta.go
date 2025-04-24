@@ -17,15 +17,22 @@ func NewMetaStore(db *gorm.DB) *MetaStore {
 func (ms *MetaStore) Init() error {
 	ms.DB.Set("gorm:table_options", "WITHOUT ROWID")
 	return ms.DB.AutoMigrate(
-		&Avatar{},
-		&Session{},
+		&OAuthAuthRequest{},
+		&OAuthSession{},
 		&OAuthCode{},
+		&Session{},
+		&Avatar{},
 		// &AvatarIntegrate{},
 		// &AvatarMCPServer{},
 		// &AvatarBsky{},
 		// &AvatarResponseAPI{},
-		&OAuthAuthRequest{},
-		&OAuthSession{},
+		&Moment{},
+		&MomentImage{},
+		&MomentVideo{},
+		&MomentExternal{},
+
+		// atp
+		&AtpRecord{},
 	)
 }
 

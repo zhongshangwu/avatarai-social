@@ -26,7 +26,7 @@
         },
         "aspectRatio": {
           "type": "ref",
-          "ref": "app.bsky.embed.defs#aspectRatio"
+          "ref": "app.vtri.entity.defs#aspectRatio"
         }
       }
     },

@@ -25,9 +25,9 @@
             "embed": {
               "type": "union",
               "refs": [
-                "app.bsky.embed.images",
-                "app.bsky.embed.video",
-                "app.bsky.embed.external"
+                "app.vtri.entity.images",
+                "app.vtri.entity.video",
+                "app.vtri.entity.external"
               ]
             },
             "langs": {

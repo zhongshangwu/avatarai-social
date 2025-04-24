@@ -5,16 +5,19 @@ package vtri
 // schema: app.vtri.entity.video
 
 import (
-	appbskytypes "github.com/bluesky-social/indigo/api/bsky"
 	"github.com/bluesky-social/indigo/lex/util"
 )
 
-// EntityVideo is a "main" in the app.vtri.entity.video schema.
+func init() {
+	util.RegisterType("app.vtri.entity.video#main", &EntityVideo{})
+} // EntityVideo is a "main" in the app.vtri.entity.video schema.
+// RECORDTYPE: EntityVideo
 type EntityVideo struct {
+	LexiconTypeID string `json:"$type,const=app.vtri.entity.video" cborgen:"$type,const=app.vtri.entity.video"`
 	// alt: Alt text description of the video, for accessibility.
-	Alt         *string                             `json:"alt,omitempty" cborgen:"alt,omitempty"`
-	AspectRatio *appbskytypes.EmbedDefs_AspectRatio `json:"aspectRatio,omitempty" cborgen:"aspectRatio,omitempty"`
-	Captions    []*EntityVideo_Caption              `json:"captions,omitempty" cborgen:"captions,omitempty"`
+	Alt         *string                 `json:"alt,omitempty" cborgen:"alt,omitempty"`
+	AspectRatio *EntityDefs_AspectRatio `json:"aspectRatio,omitempty" cborgen:"aspectRatio,omitempty"`
+	Captions    []*EntityVideo_Caption  `json:"captions,omitempty" cborgen:"captions,omitempty"`
 	// video: The mp4 video file. May be up to 100mb, formerly limited to 50mb.
 	Video *util.LexBlob `json:"video" cborgen:"video"`
 }

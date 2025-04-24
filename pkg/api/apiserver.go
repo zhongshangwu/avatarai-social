@@ -72,10 +72,16 @@ func (a *AvatarAIAPI) InstallRoutes() {
 
 	moment := api.Group("/moments")
 	moment.Use(mw.NewRequireAuth(a.metaStore, a.Config))
-	moment.POST("/", a.HandleMomentCreate)
-	moment.GET("/timeline", a.HandleMomentTimeline)
-	moment.GET("/:id", a.HandleMomentDetail)
-	moment.DELETE("/:id", a.HandleMomentDelete)
+	moment.POST("", a.HandleMomentCreate)
+	moment.GET("/detail", a.HandleMomentDetail)
+
+	feed := api.Group("/feed")
+	feed.Use(mw.NewRequireAuth(a.metaStore, a.Config))
+	feed.GET("", a.HandleMomentFeed)
+
+	blob := api.Group("/blobs")
+	blob.Use(mw.NewRequireAuth(a.metaStore, a.Config))
+	blob.POST("", a.UploadBlobHandler)
 }
 
 func (a *AvatarAIAPI) InstallMiddleware() {

@@ -23,8 +23,16 @@ func main() {
 	if err := genCfg.WriteMapEncodersToFile("pkg/atproto/vtri/cbor_gen.go", "vtri",
 		vtri.AvatarProfile{},
 		vtri.AsterProfile{},
-		vtri.ActivityMoment{},
+		vtri.EntityExternal{},
+		vtri.EntityExternal_External{},
+		vtri.EntityImages{},
+		vtri.EntityImages_Image{},
+		vtri.EntityVideo{},
+		vtri.EntityVideo_Caption{},
 		vtri.ActivityMoment_ReplyRef{},
+		vtri.EntityDefs_AspectRatio{},
+		vtri.ActivityMoment_Embed{},
+		vtri.ActivityMoment{},
 	); err != nil {
 		panic(err)
 	}

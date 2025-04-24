@@ -8,11 +8,15 @@ import (
 	"github.com/bluesky-social/indigo/lex/util"
 )
 
-// EntityExternal is a "main" in the app.vtri.entity.external schema.
-//
+func init() {
+	util.RegisterType("app.vtri.entity.external#main", &EntityExternal{})
+} // EntityExternal is a "main" in the app.vtri.entity.external schema.
 // A representation of some externally linked content (eg, a URL and 'card'), embedded in a vtri record (eg, a moment).
+//
+// RECORDTYPE: EntityExternal
 type EntityExternal struct {
-	External *EntityExternal_External `json:"external" cborgen:"external"`
+	LexiconTypeID string                   `json:"$type,const=app.vtri.entity.external" cborgen:"$type,const=app.vtri.entity.external"`
+	External      *EntityExternal_External `json:"external" cborgen:"external"`
 }
 
 // EntityExternal_External is a "external" in the app.vtri.entity.external schema.
