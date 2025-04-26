@@ -30,6 +30,7 @@ func main() {
 		vtri.EntityVideo{},
 		vtri.EntityVideo_Caption{},
 		vtri.ActivityMoment_ReplyRef{},
+		vtri.EntityRecord{},
 		vtri.EntityDefs_AspectRatio{},
 		vtri.ActivityMoment_Embed{},
 		vtri.ActivityMoment{},

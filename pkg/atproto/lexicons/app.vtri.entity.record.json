@@ -1,0 +1,14 @@
+{
+  "lexicon": 1,
+  "id": "app.vtri.entity.record",
+  "description": "A representation of a record embedded in a vtri record (eg, a moment). For example, a quote-moment, or sharing a feed generator record.",
+  "defs": {
+    "main": {
+      "type": "object",
+      "required": ["record"],
+      "properties": {
+        "record": { "type": "ref", "ref": "com.atproto.repo.strongRef" }
+      }
+    }
+  }
+}

@@ -27,7 +27,8 @@
               "refs": [
                 "app.vtri.entity.images",
                 "app.vtri.entity.video",
-                "app.vtri.entity.external"
+                "app.vtri.entity.external",
+                "app.vtri.entity.record"
               ]
             },
             "langs": {

@@ -37,6 +37,7 @@ type ActivityMoment_Embed struct {
 	EntityImages   *EntityImages
 	EntityVideo    *EntityVideo
 	EntityExternal *EntityExternal
+	EntityRecord   *EntityRecord
 }
 
 func (t *ActivityMoment_Embed) MarshalJSON() ([]byte, error) {
@@ -51,6 +52,10 @@ func (t *ActivityMoment_Embed) MarshalJSON() ([]byte, error) {
 	if t.EntityExternal != nil {
 		t.EntityExternal.LexiconTypeID = "app.vtri.entity.external"
 		return json.Marshal(t.EntityExternal)
+	}
+	if t.EntityRecord != nil {
+		t.EntityRecord.LexiconTypeID = "app.vtri.entity.record"
+		return json.Marshal(t.EntityRecord)
 	}
 	return nil, fmt.Errorf("cannot marshal empty enum")
 }
@@ -70,11 +75,59 @@ func (t *ActivityMoment_Embed) UnmarshalJSON(b []byte) error {
 	case "app.vtri.entity.external":
 		t.EntityExternal = new(EntityExternal)
 		return json.Unmarshal(b, t.EntityExternal)
+	case "app.vtri.entity.record":
+		t.EntityRecord = new(EntityRecord)
+		return json.Unmarshal(b, t.EntityRecord)
 
 	default:
 		return nil
 	}
 }
+
+//func (t *ActivityMoment_Embed) MarshalCBOR(w io.Writer) error {
+//
+//	if t == nil {
+//		_, err := w.Write(cbg.CborNull)
+//		return err
+//	}
+//	if t.EntityImages != nil {
+//		return t.EntityImages.MarshalCBOR(w)
+//	}
+//	if t.EntityVideo != nil {
+//		return t.EntityVideo.MarshalCBOR(w)
+//	}
+//	if t.EntityExternal != nil {
+//		return t.EntityExternal.MarshalCBOR(w)
+//	}
+//	if t.EntityRecord != nil {
+//		return t.EntityRecord.MarshalCBOR(w)
+//	}
+//	return fmt.Errorf("cannot cbor marshal empty enum")
+//}
+//func (t *ActivityMoment_Embed) UnmarshalCBOR(r io.Reader) error {
+//	typ, b, err := util.CborTypeExtractReader(r)
+//	if err != nil {
+//		return err
+//	}
+//
+//	switch typ {
+//	case "app.vtri.entity.images":
+//		t.EntityImages = new(EntityImages)
+//		return t.EntityImages.UnmarshalCBOR(bytes.NewReader(b))
+//	case "app.vtri.entity.video":
+//		t.EntityVideo = new(EntityVideo)
+//		return t.EntityVideo.UnmarshalCBOR(bytes.NewReader(b))
+//	case "app.vtri.entity.external":
+//		t.EntityExternal = new(EntityExternal)
+//		return t.EntityExternal.UnmarshalCBOR(bytes.NewReader(b))
+//	case "app.vtri.entity.record":
+//		t.EntityRecord = new(EntityRecord)
+//		return t.EntityRecord.UnmarshalCBOR(bytes.NewReader(b))
+//
+//	default:
+//		return nil
+//	}
+//}
 
 // ActivityMoment_ReplyRef is a "replyRef" in the app.vtri.activity.moment schema.
 type ActivityMoment_ReplyRef struct {
