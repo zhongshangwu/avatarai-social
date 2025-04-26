@@ -36,10 +36,11 @@ type GetAsterProfileResponse struct {
 }
 
 type UpdateAsterProfileRequest struct {
-	DisplayName  string `json:"displayName"`
-	Description  string `json:"description"`
-	AvatarBase64 string `json:"avatarBase64"`
-	BannerBase64 string `json:"bannerBase64,omitempty"`
+	DisplayName  string        `json:"displayName"`
+	Description  string        `json:"description"`
+	AvatarBlob   *util.LexBlob `json:"avatarBlob"`
+	AvatarBase64 string        `json:"avatarBase64"`
+	BannerBase64 string        `json:"bannerBase64,omitempty"`
 }
 
 func (a *AvatarAIAPI) HandleAsterProfile(c echo.Context) error {
