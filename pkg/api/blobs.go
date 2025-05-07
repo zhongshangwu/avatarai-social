@@ -73,7 +73,7 @@ func (a *AvatarAIAPI) UploadBlobHandler(c echo.Context) error {
 		mediaType = "video"
 	}
 
-	url := fmt.Sprintf("%s/xrpc/com.atproto.sync.getBlob?did=%s&cid=%s",
+	url := fmt.Sprintf("%s/xrpc/com.atproto.sync.?did=%s&cid=%s",
 		oauthSession.PdsUrl, oauthSession.Did, blob.Ref.String())
 
 	// 返回响应

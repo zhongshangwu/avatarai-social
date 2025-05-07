@@ -6,12 +6,9 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"path/filepath"
-	"time"
 )
 
 func MintNFT(ctx context.Context, did string) ([]byte, error) {
-	// 随机选择一个图片
-	rand.Seed(time.Now().UnixNano())
 	imageNum := rand.Intn(10) + 1
 	imagePath := filepath.Join("pkg/mint/fake", fmt.Sprintf("%d.png", imageNum))
 

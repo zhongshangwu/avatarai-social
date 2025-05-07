@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,7 +19,7 @@ import (
 	"github.com/zhongshangwu/avatarai-social/pkg/utils"
 )
 
-type GetAvatarProfileResponse struct {
+type AvatarView struct {
 	Did         string `json:"did"`
 	Handle      string `json:"handle"`
 	DisplayName string `json:"displayName"`
@@ -35,23 +36,6 @@ type UpdateProfileRequest struct {
 	AvatarBase64 string        `json:"avatarBase64"`
 	BannerBase64 string        `json:"bannerBase64,omitempty"`
 }
-
-// type UpdateProfileResponse struct {
-// 	Success bool `json:"success"`
-// 	Profile struct {
-// 		Did         string `json:"did"`
-// 		Handle      string `json:"handle"`
-// 		DisplayName string `json:"displayName"`
-// 		Description string `json:"description"`
-// 		Avatar      string `json:"avatar"`
-// 		Banner      string `json:"banner,omitempty"`
-// 		CreatedAt   string `json:"createdAt,omitempty"`
-// 	}
-// 	Atproto struct {
-// 		URI string `json:"uri"`
-// 		CID string `json:"cid"`
-// 	}
-// }
 
 func (a *AvatarAIAPI) HandleAvatarProfile(c echo.Context) error {
 	ac := c.(*utils.AvatarAIContext)
@@ -76,7 +60,7 @@ func (a *AvatarAIAPI) HandleAvatarProfile(c echo.Context) error {
 	}
 
 	// 构建响应
-	response := GetAvatarProfileResponse{
+	response := AvatarView{
 		Did:         profileData.Did,
 		Handle:      profileData.Handle,
 		DisplayName: profileData.DisplayName,
@@ -100,6 +84,9 @@ func (a *AvatarAIAPI) HandleUpdateAvatarProfile(c echo.Context) error {
 	if err := c.Bind(&updateReq); err != nil {
 		return ac.JSON(http.StatusBadRequest, map[string]string{"error": "无效的请求数据"})
 	}
+
+	reqstr, _ := json.Marshal(updateReq)
+	log.Println("updateReq", string(reqstr))
 
 	xrpcCli := atproto.NewXrpcClient(oauthSession, a.metaStore.DB)
 	authArgs := atproto.GetOauthSessionAuthArgs(oauthSession)
@@ -227,7 +214,7 @@ func (a *AvatarAIAPI) HandleUpdateAvatarProfile(c echo.Context) error {
 			avatar.AvatarCID)
 	}
 
-	response := GetAvatarProfileResponse{
+	response := AvatarView{
 		Did:         avatar.Did,
 		Handle:      avatar.Handle,
 		DisplayName: avatar.DisplayName,

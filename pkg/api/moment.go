@@ -237,18 +237,19 @@ func (a *AvatarAIAPI) HandleMomentCreate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "水合 moments 失败: "+err.Error())
 	}
 
-	feedItems := a.presentMoments(uris, hydrationState)
-	return c.JSON(http.StatusCreated, feedItems[0].Moment)
+	cards := a.presentMoments(uris, hydrationState)
+	return c.JSON(http.StatusCreated, cards[0].Moment)
 }
 
-type FeedItem struct {
+type FeedCard struct {
 	Type   string      `json:"type"`
-	Moment *MomentView `json:"moment"`
+	Moment *MomentView `json:"moment,omitempty"`
+	Avatar *AvatarView `json:"avatar,omitempty"`
 }
 
 type FeedResponse struct {
 	Cursor string      `json:"cursor"`
-	Feed   []*FeedItem `json:"feed"`
+	Feed   []*FeedCard `json:"feed"`
 }
 
 type MomentView struct {
@@ -315,7 +316,7 @@ type RecordView struct {
 }
 
 type MomentFeedResponse struct {
-	Feed   []*FeedItem `json:"feed"`
+	Feed   []*FeedCard `json:"feed"`
 	Cursor string      `json:"cursor,omitempty"`
 }
 
@@ -347,8 +348,8 @@ func (a *AvatarAIAPI) HandleMomentDetail(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "水合 moments 失败: "+err.Error())
 	}
 
-	feedItems := a.presentMoments([]string{uri}, hydrationState)
-	return c.JSON(http.StatusCreated, feedItems[0].Moment)
+	cards := a.presentMoments([]string{uri}, hydrationState)
+	return c.JSON(http.StatusCreated, cards[0].Moment)
 }
 
 func (a *AvatarAIAPI) HandleMomentFeed(c echo.Context) error {
@@ -380,10 +381,10 @@ func (a *AvatarAIAPI) HandleMomentFeed(c echo.Context) error {
 
 	filteredURIs := a.filterBlockedContent(uris, hydrationState, viewerDID)
 
-	feedItems := a.presentMoments(filteredURIs, hydrationState)
+	cards := a.presentMoments(filteredURIs, hydrationState)
 
 	response := &MomentFeedResponse{
-		Feed:   feedItems,
+		Feed:   cards,
 		Cursor: nextCursor,
 	}
 
@@ -549,8 +550,8 @@ func (a *AvatarAIAPI) filterBlockedContent(uris []string, hydrationState map[str
 	return filteredURIs
 }
 
-func (a *AvatarAIAPI) presentMoments(uris []string, hydrationState map[string]interface{}) []*FeedItem {
-	var feedItems []*FeedItem
+func (a *AvatarAIAPI) presentMoments(uris []string, hydrationState map[string]interface{}) []*FeedCard {
+	var cards []*FeedCard
 
 	for _, uri := range uris {
 		data, ok := hydrationState[uri].(map[string]interface{})
@@ -634,11 +635,11 @@ func (a *AvatarAIAPI) presentMoments(uris []string, hydrationState map[string]in
 			IndexedAt: indexedAt,
 		}
 
-		feedItems = append(feedItems, &FeedItem{
+		cards = append(cards, &FeedCard{
 			Type:   "app.vtri.activity.moment#view",
 			Moment: momentView,
 		})
 	}
 
-	return feedItems
+	return cards
 }
