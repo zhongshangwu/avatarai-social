@@ -67,8 +67,9 @@ func (a *AvatarAIAPI) InstallRoutes() {
 
 	aster := api.Group("/aster")
 	aster.Use(mw.NewRequireAuth(a.metaStore, a.Config))
-	aster.GET("/profile", a.HandleAsterProfile)
 	aster.POST("/mint", a.HandleAsterMint)
+	aster.GET("/profile", a.HandleAsterProfile)
+	aster.POST("/responses", a.HandleAsterResponses)
 
 	moment := api.Group("/moments")
 	moment.Use(mw.NewRequireAuth(a.metaStore, a.Config))
