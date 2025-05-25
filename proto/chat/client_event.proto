@@ -1,0 +1,91 @@
+syntax = "proto3";
+package zhongshangwu.avatarai.social;
+
+option go_package = "github.com/zhongshangwu/avatarai-social/proto/chat";
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/descriptor.proto";
+
+enum MessageType {
+  MESSAGE_TYPE_UNSPECIFIED = 0;
+  MESSAGE_TYPE_TEXT = 1;
+  MESSAGE_TYPE_POST = 2;
+  MESSAGE_TYPE_IMAGE = 3;
+  MESSAGE_TYPE_FILE = 4;
+  MESSAGE_TYPE_AUDIO = 5;
+  MESSAGE_TYPE_VIDEO = 6;
+  MESSAGE_TYPE_STICKER = 7;
+  MESSAGE_TYPE_CARD = 8;
+  MESSAGE_TYPE_AI_CHAT = 9;
+  MESSAGE_TYPE_SYSTEM = 10;
+  MESSAGE_TYPE_DELETE = 11;
+  MESSAGE_TYPE_RTC = 12;
+}
+
+message SendMsgEvent {
+  string room_id = 1;
+  MessageType msg_type = 2;
+  oneof body {
+    string payload = 3 [json_name = "body"];
+    AIChatMessageBody ai_chat_body = 4 [json_name = "body"];
+  }
+  string sender_id = 5;
+  string thread_id = 6;
+  string quote_id = 7;
+  string sender_at = 8;
+}
+
+message AIChatMessageItemMessage {
+  string id = 1;
+  string type = 2; // 常量: "message"
+  string role = 3; // 常量: "user"
+
+  message ImageUrl {
+    string url = 1;
+    string detail = 2;
+  }
+
+  repeated Content content = 4;
+
+  message Content {
+    string content = 1;
+    ImageUrl image_url = 2;
+  }
+}
+
+message AIChatMessageItemFunctionCall {
+  message Function {
+    string name = 1;
+    string arguments = 2;
+  }
+  string id = 1;
+  string type = 2; // 常量: "function_call"
+  Function function = 3;
+}
+
+
+message AIChatMessageBody {
+
+  string id = 1;
+  string role = 2;
+  string content = 3;
+  int32 status = 4;
+  int32 interrupt_type = 5;
+  string error = 6;
+
+  message AIChatMessageItem {
+    AIChatMessageItemMessage message = 1;
+    AIChatMessageItemFunctionCall function_call = 2;
+  }
+
+  repeated AIChatMessageItem message_items = 7;
+  google.protobuf.Struct message_metadata = 8; // 消息元数据, 包含 Usage 等
+}
+
+message ClientEvent {
+  string event_id = 1;
+  string event_type = 2;
+  oneof event {
+    SendMsgEvent send_msg = 3 [json_name = "event"];
+  }
+}

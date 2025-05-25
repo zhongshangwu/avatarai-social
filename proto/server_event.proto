@@ -1,0 +1,125 @@
+syntax = "proto3";
+package github.com.zhongshangwu.avatarai.social;
+
+option go_package = "github.com/zhongshangwu/avatarai-social/pkg/communication/types";
+
+import "realtime_events.proto";
+import "omni_response.proto";
+import "conversation.proto";
+import "session.proto";
+
+message OmniSessionCreatedEvent {
+  Session session = 1;
+}
+
+message OmniSessionUpdatedEvent {
+  Session session = 1;
+}
+
+message OmniResponseCreatedEvent { Response response = 1; }
+
+message OmniResponseUsage {
+  int32 prompt_tokens = 1;
+  int32 total_tokens = 2;
+  int32 completion_tokens = 3;
+  int32 cached_tokens = 4;
+}
+
+message OmniResponseDoneEvent {
+  Response response = 1;
+  OmniResponseUsage usage = 2;
+}
+
+message OmniResponseOutputItemAdded {
+  ConversationItem item = 1;
+  int32 output_index = 2;
+  string response_id = 3;
+}
+
+message OmniResponseOutputItemDone {
+  ConversationItem item = 1;
+  int32 output_index = 2;
+  string response_id = 3;
+}
+
+message OmniResponseContentPartAdded {
+  int32 content_index = 1;
+  string item_id = 2;
+  oneof part {
+    Text text = 3;
+    Audio audio = 4;
+  }
+  string response_id = 5;
+  int32 output_index = 6;
+}
+
+
+message OmniResponseContentPartDone {
+  int32 content_index = 1;
+  string item_id = 2;
+  oneof part {
+    Text text = 3;
+    Audio audio = 4;
+  }
+  string response_id = 5;
+  int32 output_index = 6;
+}
+
+message OmniConversationItemCreatedEvent{
+  string previous_item_id = 1;
+  ConversationItem item = 2;
+}
+
+message ResponseOutputEvent {
+  string response_id = 1;
+  string item_id = 2;
+  int32 output_index = 3;
+  int32 content_index = 4;
+  oneof content {
+    ResponseAudioDelta audio_delta = 5;
+    ResponseAudioDone audio_done = 6;
+    ResponseTranscriptDelta transcript_delta = 7;
+    ResponseTranscriptDone transcript_done = 8;
+    ResponseTextDelta text_delta = 9;
+    ResponseTextDone text_done = 10;
+    ResponseFunctionCallArgumentsDelta arguments_delta = 11;
+    ResponseFunctionCallArgumentsDone arguments_done = 12;
+  }
+}
+
+message InputAudioTranscriptionCompletedEvent {
+  string item_id = 1;
+  int32 content_index = 2;
+  string transcript = 3;
+}
+
+message InputAudioTranscriptionFailedEvent {
+  string item_id = 1;
+  int32 content_index = 2;
+  ErrorEvent error = 3;
+}
+
+message OmniServerEvent {
+  string event_id = 1;
+  oneof event {
+    ErrorEvent error = 2;
+    OmniResponseCreatedEvent response_created = 3;
+    OmniResponseDoneEvent response_done = 4;
+    ResponseOutputEvent response_output = 5;
+    OmniConversationItemCreatedEvent item_created = 6;
+    InputAudioTranscriptionCompletedEvent transcription_completed = 7;
+    InputAudioTranscriptionFailedEvent transcription_failed = 8;
+    OmniSessionCreatedEvent session_created = 9;
+    OmniSessionUpdatedEvent session_updated = 10;
+    ConversationItemTruncatedEvent item_truncated = 11;
+    ConversationItemDeletedEvent item_deleted = 12;
+    InputAudioBufferCommittedEvent audio_buffer_commited = 13;
+    InputAudioBufferClearedEvent audio_buffer_cleared = 14;
+    InputAudioBufferSpeechStartedEvent speech_started = 15;
+    InputAudioBufferSpeechStoppedEvent speech_stopped = 16;
+    OmniResponseOutputItemAdded output_item_added = 17;
+    OmniResponseOutputItemDone output_item_done = 18;
+    OmniResponseContentPartAdded content_part_added = 19;
+    OmniResponseContentPartDone content_part_done = 20;
+  }
+}

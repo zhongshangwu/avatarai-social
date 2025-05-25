@@ -1,0 +1,69 @@
+
+syntax = "proto3";
+package step.heimdall.realtimeagent;
+
+option go_package = "gitlab.basemind.com/proto/heimdall/realtimeagent";
+
+import "session.proto";
+import "conversation.proto";
+import "realtime_events.proto";
+import "heimdall/rtcproxy/rtcproxy.proto";
+
+message OmniSessionInitEvent {
+  string session_id = 1;
+  int64 user_id = 2;
+  string meta = 3; // 元数据JSON string, 会存进tracelog
+  int32 app_id = 4;
+}
+
+message OmniSessionUpdateEvent { Session session = 1; }
+
+message OmniSessionCloseEvent {}
+
+message OmniResponseCreateEvent {
+  repeated Modality modalities = 1;
+  string instructions = 2;
+  string voice = 3;
+  float temperature = 4;
+  repeated ConversationItem input = 5;
+  VoiceClone voice_clone = 6;
+  repeated BuiltInTool built_in_tools = 7;
+  ToolCallConfig tool_call = 8;
+  TranscriptOutputControl transcript_output_control = 9;
+  double volume_ratio = 10;
+  double speed_ratio = 11;
+
+  repeated ConversationItem history = 99; // 无状态接口专用，相比于input，是会填充之前的历史
+}
+
+message OmniConversationItemCreateEvent {
+  string previous_item_id = 1;
+  ConversationItem item = 2;
+}
+
+message OmniConversationItemTruncateEvent {
+  int32 audio_end_ms = 1;
+  int32 content_index = 2;
+  string item_id = 3;
+}
+
+message OmniConversationItemDeleteEvent {
+  string item_id = 1;
+}
+
+message OmniClientEvent {
+  string event_id = 1;
+  oneof event {
+    OmniSessionInitEvent session_init = 2;
+    OmniSessionUpdateEvent session_update = 3;
+    InputAudioBufferAppendEvent audio_buffer_append = 4;
+    InputAudioBufferCommitEvent audio_buffer_commit = 5;
+    OmniResponseCreateEvent response_create = 6;
+    ResponseCancelEvent response_cancel = 7;
+    InputAudioBufferClearEvent audio_buffer_clear = 8;
+    OmniConversationItemCreateEvent item_create = 9;
+    OmniConversationItemTruncateEvent item_truncate = 10;
+    OmniConversationItemDeleteEvent item_delete = 11;
+    OmniSessionCloseEvent session_close = 99;
+  }
+}

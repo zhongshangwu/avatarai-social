@@ -3282,3 +3282,12758 @@ func (t *ActivityMoment) UnmarshalCBOR(r io.Reader) (err error) {
 
 	return nil
 }
+func (t *ChatEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{163}); err != nil {
+		return err
+	}
+
+	// t.Event (vtri.ChatEvent_Event) (struct)
+	if len("event") > 1000000 {
+		return xerrors.Errorf("Value in field \"event\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("event"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("event")); err != nil {
+		return err
+	}
+
+	if err := t.Event.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.EventId (string) (string)
+	if len("eventId") > 1000000 {
+		return xerrors.Errorf("Value in field \"eventId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("eventId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("eventId")); err != nil {
+		return err
+	}
+
+	if len(t.EventId) > 1000000 {
+		return xerrors.Errorf("Value in field t.EventId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.EventId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.EventId)); err != nil {
+		return err
+	}
+
+	// t.EventType (string) (string)
+	if len("eventType") > 1000000 {
+		return xerrors.Errorf("Value in field \"eventType\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("eventType"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("eventType")); err != nil {
+		return err
+	}
+
+	if len(t.EventType) > 1000000 {
+		return xerrors.Errorf("Value in field t.EventType was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.EventType))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.EventType)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 9)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Event (vtri.ChatEvent_Event) (struct)
+		case "event":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Event = new(ChatEvent_Event)
+					if err := t.Event.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Event pointer: %w", err)
+					}
+				}
+
+			}
+			// t.EventId (string) (string)
+		case "eventId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.EventId = string(sval)
+			}
+			// t.EventType (string) (string)
+		case "eventType":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.EventType = string(sval)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatEvent_TextMsg) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{162}); err != nil {
+		return err
+	}
+
+	// t.Text (string) (string)
+	if len("text") > 1000000 {
+		return xerrors.Errorf("Value in field \"text\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("text"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("text")); err != nil {
+		return err
+	}
+
+	if len(t.Text) > 1000000 {
+		return xerrors.Errorf("Value in field t.Text was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Text))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Text)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.event#textMsg"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.event#textMsg")); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatEvent_TextMsg) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatEvent_TextMsg{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatEvent_TextMsg: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 5)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Text (string) (string)
+		case "text":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Text = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatEvent_AiChatMsg) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{163}); err != nil {
+		return err
+	}
+
+	// t.Role (string) (string)
+	if len("role") > 1000000 {
+		return xerrors.Errorf("Value in field \"role\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("role"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("role")); err != nil {
+		return err
+	}
+
+	if len(t.Role) > 1000000 {
+		return xerrors.Errorf("Value in field t.Role was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Role))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Role)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.event#aiChatMsg"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.event#aiChatMsg")); err != nil {
+		return err
+	}
+
+	// t.Content ([]*vtri.ChatEvent_AiChatMsg_Content_Elem) (slice)
+	if len("content") > 1000000 {
+		return xerrors.Errorf("Value in field \"content\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("content"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("content")); err != nil {
+		return err
+	}
+
+	if len(t.Content) > 8192 {
+		return xerrors.Errorf("Slice value in field t.Content was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajArray, uint64(len(t.Content))); err != nil {
+		return err
+	}
+	for _, v := range t.Content {
+		if err := v.MarshalCBOR(cw); err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
+func (t *ChatEvent_AiChatMsg) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatEvent_AiChatMsg{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatEvent_AiChatMsg: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 7)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Role (string) (string)
+		case "role":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Role = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Content ([]*vtri.ChatEvent_AiChatMsg_Content_Elem) (slice)
+		case "content":
+
+			maj, extra, err = cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+
+			if extra > 8192 {
+				return fmt.Errorf("t.Content: array too large (%d)", extra)
+			}
+
+			if maj != cbg.MajArray {
+				return fmt.Errorf("expected cbor array")
+			}
+
+			if extra > 0 {
+				t.Content = make([]*ChatEvent_AiChatMsg_Content_Elem, extra)
+			}
+
+			for i := 0; i < int(extra); i++ {
+				{
+					var maj byte
+					var extra uint64
+					var err error
+					_ = maj
+					_ = extra
+					_ = err
+
+					{
+
+						b, err := cr.ReadByte()
+						if err != nil {
+							return err
+						}
+						if b != cbg.CborNull[0] {
+							if err := cr.UnreadByte(); err != nil {
+								return err
+							}
+							t.Content[i] = new(ChatEvent_AiChatMsg_Content_Elem)
+							if err := t.Content[i].UnmarshalCBOR(cr); err != nil {
+								return xerrors.Errorf("unmarshaling t.Content[i] pointer: %w", err)
+							}
+						}
+
+					}
+
+				}
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatEvent_Event) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{181}); err != nil {
+		return err
+	}
+
+	// t.ChatEvent_SendMsgEvent (vtri.ChatEvent_SendMsgEvent) (struct)
+	if len("ChatEvent_SendMsgEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatEvent_SendMsgEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatEvent_SendMsgEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatEvent_SendMsgEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatEvent_SendMsgEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_ErrorEvent (vtri.ChatAiChatStream_ErrorEvent) (struct)
+	if len("ChatAiChatStream_ErrorEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_ErrorEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_ErrorEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_ErrorEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_ErrorEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_FailedEvent (vtri.ChatAiChatStream_FailedEvent) (struct)
+	if len("ChatAiChatStream_FailedEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_FailedEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_FailedEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_FailedEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_FailedEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_CreatedEvent (vtri.ChatAiChatStream_CreatedEvent) (struct)
+	if len("ChatAiChatStream_CreatedEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_CreatedEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_CreatedEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_CreatedEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_CreatedEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_TextDoneEvent (vtri.ChatAiChatStream_TextDoneEvent) (struct)
+	if len("ChatAiChatStream_TextDoneEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_TextDoneEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_TextDoneEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_TextDoneEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_TextDoneEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_CompletedEvent (vtri.ChatAiChatStream_CompletedEvent) (struct)
+	if len("ChatAiChatStream_CompletedEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_CompletedEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_CompletedEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_CompletedEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_CompletedEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_InterruptEvent (vtri.ChatAiChatStream_InterruptEvent) (struct)
+	if len("ChatAiChatStream_InterruptEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_InterruptEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_InterruptEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_InterruptEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_InterruptEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_TextDeltaEvent (vtri.ChatAiChatStream_TextDeltaEvent) (struct)
+	if len("ChatAiChatStream_TextDeltaEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_TextDeltaEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_TextDeltaEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_TextDeltaEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_TextDeltaEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_InProgressEvent (vtri.ChatAiChatStream_InProgressEvent) (struct)
+	if len("ChatAiChatStream_InProgressEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_InProgressEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_InProgressEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_InProgressEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_InProgressEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_IncompleteEvent (vtri.ChatAiChatStream_IncompleteEvent) (struct)
+	if len("ChatAiChatStream_IncompleteEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_IncompleteEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_IncompleteEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_IncompleteEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_IncompleteEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_RefusalDoneEvent (vtri.ChatAiChatStream_RefusalDoneEvent) (struct)
+	if len("ChatAiChatStream_RefusalDoneEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_RefusalDoneEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_RefusalDoneEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_RefusalDoneEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_RefusalDoneEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_RefusalDeltaEvent (vtri.ChatAiChatStream_RefusalDeltaEvent) (struct)
+	if len("ChatAiChatStream_RefusalDeltaEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_RefusalDeltaEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_RefusalDeltaEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_RefusalDeltaEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_RefusalDeltaEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_OutputItemDoneEvent (vtri.ChatAiChatStream_OutputItemDoneEvent) (struct)
+	if len("ChatAiChatStream_OutputItemDoneEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_OutputItemDoneEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_OutputItemDoneEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_OutputItemDoneEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_OutputItemDoneEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_ContentPartDoneEvent (vtri.ChatAiChatStream_ContentPartDoneEvent) (struct)
+	if len("ChatAiChatStream_ContentPartDoneEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_ContentPartDoneEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_ContentPartDoneEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_ContentPartDoneEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_ContentPartDoneEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_OutputItemAddedEvent (vtri.ChatAiChatStream_OutputItemAddedEvent) (struct)
+	if len("ChatAiChatStream_OutputItemAddedEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_OutputItemAddedEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_OutputItemAddedEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_OutputItemAddedEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_OutputItemAddedEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_ContentPartAddedEvent (vtri.ChatAiChatStream_ContentPartAddedEvent) (struct)
+	if len("ChatAiChatStream_ContentPartAddedEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_ContentPartAddedEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_ContentPartAddedEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_ContentPartAddedEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_ContentPartAddedEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_TextAnnotationDeltaEvent (vtri.ChatAiChatStream_TextAnnotationDeltaEvent) (struct)
+	if len("ChatAiChatStream_TextAnnotationDeltaEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_TextAnnotationDeltaEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_TextAnnotationDeltaEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_TextAnnotationDeltaEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_TextAnnotationDeltaEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_ReasoningSummaryPartDoneEvent (vtri.ChatAiChatStream_ReasoningSummaryPartDoneEvent) (struct)
+	if len("ChatAiChatStream_ReasoningSummaryPartDoneEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_ReasoningSummaryPartDoneEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_ReasoningSummaryPartDoneEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_ReasoningSummaryPartDoneEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_ReasoningSummaryPartDoneEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_ReasoningSummaryTextDoneEvent (vtri.ChatAiChatStream_ReasoningSummaryTextDoneEvent) (struct)
+	if len("ChatAiChatStream_ReasoningSummaryTextDoneEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_ReasoningSummaryTextDoneEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_ReasoningSummaryTextDoneEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_ReasoningSummaryTextDoneEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_ReasoningSummaryTextDoneEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_ReasoningSummaryPartAddedEvent (vtri.ChatAiChatStream_ReasoningSummaryPartAddedEvent) (struct)
+	if len("ChatAiChatStream_ReasoningSummaryPartAddedEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_ReasoningSummaryPartAddedEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_ReasoningSummaryPartAddedEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_ReasoningSummaryPartAddedEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_ReasoningSummaryPartAddedEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChatStream_ReasoningSummaryTextDeltaEvent (vtri.ChatAiChatStream_ReasoningSummaryTextDeltaEvent) (struct)
+	if len("ChatAiChatStream_ReasoningSummaryTextDeltaEvent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChatStream_ReasoningSummaryTextDeltaEvent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChatStream_ReasoningSummaryTextDeltaEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChatStream_ReasoningSummaryTextDeltaEvent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChatStream_ReasoningSummaryTextDeltaEvent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatEvent_Event) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatEvent_Event{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatEvent_Event: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 47)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.ChatEvent_SendMsgEvent (vtri.ChatEvent_SendMsgEvent) (struct)
+		case "ChatEvent_SendMsgEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatEvent_SendMsgEvent = new(ChatEvent_SendMsgEvent)
+					if err := t.ChatEvent_SendMsgEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatEvent_SendMsgEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_ErrorEvent (vtri.ChatAiChatStream_ErrorEvent) (struct)
+		case "ChatAiChatStream_ErrorEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_ErrorEvent = new(ChatAiChatStream_ErrorEvent)
+					if err := t.ChatAiChatStream_ErrorEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_ErrorEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_FailedEvent (vtri.ChatAiChatStream_FailedEvent) (struct)
+		case "ChatAiChatStream_FailedEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_FailedEvent = new(ChatAiChatStream_FailedEvent)
+					if err := t.ChatAiChatStream_FailedEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_FailedEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_CreatedEvent (vtri.ChatAiChatStream_CreatedEvent) (struct)
+		case "ChatAiChatStream_CreatedEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_CreatedEvent = new(ChatAiChatStream_CreatedEvent)
+					if err := t.ChatAiChatStream_CreatedEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_CreatedEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_TextDoneEvent (vtri.ChatAiChatStream_TextDoneEvent) (struct)
+		case "ChatAiChatStream_TextDoneEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_TextDoneEvent = new(ChatAiChatStream_TextDoneEvent)
+					if err := t.ChatAiChatStream_TextDoneEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_TextDoneEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_CompletedEvent (vtri.ChatAiChatStream_CompletedEvent) (struct)
+		case "ChatAiChatStream_CompletedEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_CompletedEvent = new(ChatAiChatStream_CompletedEvent)
+					if err := t.ChatAiChatStream_CompletedEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_CompletedEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_InterruptEvent (vtri.ChatAiChatStream_InterruptEvent) (struct)
+		case "ChatAiChatStream_InterruptEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_InterruptEvent = new(ChatAiChatStream_InterruptEvent)
+					if err := t.ChatAiChatStream_InterruptEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_InterruptEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_TextDeltaEvent (vtri.ChatAiChatStream_TextDeltaEvent) (struct)
+		case "ChatAiChatStream_TextDeltaEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_TextDeltaEvent = new(ChatAiChatStream_TextDeltaEvent)
+					if err := t.ChatAiChatStream_TextDeltaEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_TextDeltaEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_InProgressEvent (vtri.ChatAiChatStream_InProgressEvent) (struct)
+		case "ChatAiChatStream_InProgressEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_InProgressEvent = new(ChatAiChatStream_InProgressEvent)
+					if err := t.ChatAiChatStream_InProgressEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_InProgressEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_IncompleteEvent (vtri.ChatAiChatStream_IncompleteEvent) (struct)
+		case "ChatAiChatStream_IncompleteEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_IncompleteEvent = new(ChatAiChatStream_IncompleteEvent)
+					if err := t.ChatAiChatStream_IncompleteEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_IncompleteEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_RefusalDoneEvent (vtri.ChatAiChatStream_RefusalDoneEvent) (struct)
+		case "ChatAiChatStream_RefusalDoneEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_RefusalDoneEvent = new(ChatAiChatStream_RefusalDoneEvent)
+					if err := t.ChatAiChatStream_RefusalDoneEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_RefusalDoneEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_RefusalDeltaEvent (vtri.ChatAiChatStream_RefusalDeltaEvent) (struct)
+		case "ChatAiChatStream_RefusalDeltaEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_RefusalDeltaEvent = new(ChatAiChatStream_RefusalDeltaEvent)
+					if err := t.ChatAiChatStream_RefusalDeltaEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_RefusalDeltaEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_OutputItemDoneEvent (vtri.ChatAiChatStream_OutputItemDoneEvent) (struct)
+		case "ChatAiChatStream_OutputItemDoneEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_OutputItemDoneEvent = new(ChatAiChatStream_OutputItemDoneEvent)
+					if err := t.ChatAiChatStream_OutputItemDoneEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_OutputItemDoneEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_ContentPartDoneEvent (vtri.ChatAiChatStream_ContentPartDoneEvent) (struct)
+		case "ChatAiChatStream_ContentPartDoneEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_ContentPartDoneEvent = new(ChatAiChatStream_ContentPartDoneEvent)
+					if err := t.ChatAiChatStream_ContentPartDoneEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_ContentPartDoneEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_OutputItemAddedEvent (vtri.ChatAiChatStream_OutputItemAddedEvent) (struct)
+		case "ChatAiChatStream_OutputItemAddedEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_OutputItemAddedEvent = new(ChatAiChatStream_OutputItemAddedEvent)
+					if err := t.ChatAiChatStream_OutputItemAddedEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_OutputItemAddedEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_ContentPartAddedEvent (vtri.ChatAiChatStream_ContentPartAddedEvent) (struct)
+		case "ChatAiChatStream_ContentPartAddedEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_ContentPartAddedEvent = new(ChatAiChatStream_ContentPartAddedEvent)
+					if err := t.ChatAiChatStream_ContentPartAddedEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_ContentPartAddedEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_TextAnnotationDeltaEvent (vtri.ChatAiChatStream_TextAnnotationDeltaEvent) (struct)
+		case "ChatAiChatStream_TextAnnotationDeltaEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_TextAnnotationDeltaEvent = new(ChatAiChatStream_TextAnnotationDeltaEvent)
+					if err := t.ChatAiChatStream_TextAnnotationDeltaEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_TextAnnotationDeltaEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_ReasoningSummaryPartDoneEvent (vtri.ChatAiChatStream_ReasoningSummaryPartDoneEvent) (struct)
+		case "ChatAiChatStream_ReasoningSummaryPartDoneEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_ReasoningSummaryPartDoneEvent = new(ChatAiChatStream_ReasoningSummaryPartDoneEvent)
+					if err := t.ChatAiChatStream_ReasoningSummaryPartDoneEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_ReasoningSummaryPartDoneEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_ReasoningSummaryTextDoneEvent (vtri.ChatAiChatStream_ReasoningSummaryTextDoneEvent) (struct)
+		case "ChatAiChatStream_ReasoningSummaryTextDoneEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_ReasoningSummaryTextDoneEvent = new(ChatAiChatStream_ReasoningSummaryTextDoneEvent)
+					if err := t.ChatAiChatStream_ReasoningSummaryTextDoneEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_ReasoningSummaryTextDoneEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_ReasoningSummaryPartAddedEvent (vtri.ChatAiChatStream_ReasoningSummaryPartAddedEvent) (struct)
+		case "ChatAiChatStream_ReasoningSummaryPartAddedEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_ReasoningSummaryPartAddedEvent = new(ChatAiChatStream_ReasoningSummaryPartAddedEvent)
+					if err := t.ChatAiChatStream_ReasoningSummaryPartAddedEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_ReasoningSummaryPartAddedEvent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChatStream_ReasoningSummaryTextDeltaEvent (vtri.ChatAiChatStream_ReasoningSummaryTextDeltaEvent) (struct)
+		case "ChatAiChatStream_ReasoningSummaryTextDeltaEvent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChatStream_ReasoningSummaryTextDeltaEvent = new(ChatAiChatStream_ReasoningSummaryTextDeltaEvent)
+					if err := t.ChatAiChatStream_ReasoningSummaryTextDeltaEvent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChatStream_ReasoningSummaryTextDeltaEvent pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatEvent_SendMsgEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+	fieldCount := 8
+
+	if t.QuoteId == nil {
+		fieldCount--
+	}
+
+	if t.SenderAt == nil {
+		fieldCount--
+	}
+
+	if t.ThreadId == nil {
+		fieldCount--
+	}
+
+	if _, err := cw.Write(cbg.CborEncodeMajorType(cbg.MajMap, uint64(fieldCount))); err != nil {
+		return err
+	}
+
+	// t.Body (vtri.ChatEvent_SendMsgEvent_Body) (struct)
+	if len("body") > 1000000 {
+		return xerrors.Errorf("Value in field \"body\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("body"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("body")); err != nil {
+		return err
+	}
+
+	if err := t.Body.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.event#sendMsgEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.event#sendMsgEvent")); err != nil {
+		return err
+	}
+
+	// t.RoomId (string) (string)
+	if len("roomId") > 1000000 {
+		return xerrors.Errorf("Value in field \"roomId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("roomId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("roomId")); err != nil {
+		return err
+	}
+
+	if len(t.RoomId) > 1000000 {
+		return xerrors.Errorf("Value in field t.RoomId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.RoomId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.RoomId)); err != nil {
+		return err
+	}
+
+	// t.MsgType (int64) (int64)
+	if len("msgType") > 1000000 {
+		return xerrors.Errorf("Value in field \"msgType\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("msgType"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("msgType")); err != nil {
+		return err
+	}
+
+	if t.MsgType >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.MsgType)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.MsgType-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.QuoteId (string) (string)
+	if t.QuoteId != nil {
+
+		if len("quoteId") > 1000000 {
+			return xerrors.Errorf("Value in field \"quoteId\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("quoteId"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("quoteId")); err != nil {
+			return err
+		}
+
+		if t.QuoteId == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.QuoteId) > 1000000 {
+				return xerrors.Errorf("Value in field t.QuoteId was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.QuoteId))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.QuoteId)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.SenderAt (string) (string)
+	if t.SenderAt != nil {
+
+		if len("senderAt") > 1000000 {
+			return xerrors.Errorf("Value in field \"senderAt\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("senderAt"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("senderAt")); err != nil {
+			return err
+		}
+
+		if t.SenderAt == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.SenderAt) > 1000000 {
+				return xerrors.Errorf("Value in field t.SenderAt was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.SenderAt))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.SenderAt)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.SenderId (string) (string)
+	if len("senderId") > 1000000 {
+		return xerrors.Errorf("Value in field \"senderId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("senderId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("senderId")); err != nil {
+		return err
+	}
+
+	if len(t.SenderId) > 1000000 {
+		return xerrors.Errorf("Value in field t.SenderId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.SenderId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.SenderId)); err != nil {
+		return err
+	}
+
+	// t.ThreadId (string) (string)
+	if t.ThreadId != nil {
+
+		if len("threadId") > 1000000 {
+			return xerrors.Errorf("Value in field \"threadId\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("threadId"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("threadId")); err != nil {
+			return err
+		}
+
+		if t.ThreadId == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.ThreadId) > 1000000 {
+				return xerrors.Errorf("Value in field t.ThreadId was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.ThreadId))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.ThreadId)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (t *ChatEvent_SendMsgEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatEvent_SendMsgEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatEvent_SendMsgEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 8)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Body (vtri.ChatEvent_SendMsgEvent_Body) (struct)
+		case "body":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Body = new(ChatEvent_SendMsgEvent_Body)
+					if err := t.Body.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Body pointer: %w", err)
+					}
+				}
+
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.RoomId (string) (string)
+		case "roomId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.RoomId = string(sval)
+			}
+			// t.MsgType (int64) (int64)
+		case "msgType":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.MsgType = int64(extraI)
+			}
+			// t.QuoteId (string) (string)
+		case "quoteId":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.QuoteId = (*string)(&sval)
+				}
+			}
+			// t.SenderAt (string) (string)
+		case "senderAt":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.SenderAt = (*string)(&sval)
+				}
+			}
+			// t.SenderId (string) (string)
+		case "senderId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.SenderId = string(sval)
+			}
+			// t.ThreadId (string) (string)
+		case "threadId":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.ThreadId = (*string)(&sval)
+				}
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatEvent_SendMsgEvent_Body) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{162}); err != nil {
+		return err
+	}
+
+	// t.ChatEvent_TextMsg (vtri.ChatEvent_TextMsg) (struct)
+	if len("ChatEvent_TextMsg") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatEvent_TextMsg\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatEvent_TextMsg"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatEvent_TextMsg")); err != nil {
+		return err
+	}
+
+	if err := t.ChatEvent_TextMsg.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatEvent_AiChatMsg (vtri.ChatEvent_AiChatMsg) (struct)
+	if len("ChatEvent_AiChatMsg") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatEvent_AiChatMsg\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatEvent_AiChatMsg"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatEvent_AiChatMsg")); err != nil {
+		return err
+	}
+
+	if err := t.ChatEvent_AiChatMsg.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatEvent_SendMsgEvent_Body) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatEvent_SendMsgEvent_Body{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatEvent_SendMsgEvent_Body: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 19)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.ChatEvent_TextMsg (vtri.ChatEvent_TextMsg) (struct)
+		case "ChatEvent_TextMsg":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatEvent_TextMsg = new(ChatEvent_TextMsg)
+					if err := t.ChatEvent_TextMsg.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatEvent_TextMsg pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatEvent_AiChatMsg (vtri.ChatEvent_AiChatMsg) (struct)
+		case "ChatEvent_AiChatMsg":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatEvent_AiChatMsg = new(ChatEvent_AiChatMsg)
+					if err := t.ChatEvent_AiChatMsg.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatEvent_AiChatMsg pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatEvent_AiChatMsg_Content_Elem) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{162}); err != nil {
+		return err
+	}
+
+	// t.ChatAiChat_InputMessage (vtri.ChatAiChat_InputMessage) (struct)
+	if len("ChatAiChat_InputMessage") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChat_InputMessage\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChat_InputMessage"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChat_InputMessage")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChat_InputMessage.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChat_FunctionToolCall (vtri.ChatAiChat_FunctionToolCall) (struct)
+	if len("ChatAiChat_FunctionToolCall") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChat_FunctionToolCall\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChat_FunctionToolCall"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChat_FunctionToolCall")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChat_FunctionToolCall.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatEvent_AiChatMsg_Content_Elem) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatEvent_AiChatMsg_Content_Elem{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatEvent_AiChatMsg_Content_Elem: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 27)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.ChatAiChat_InputMessage (vtri.ChatAiChat_InputMessage) (struct)
+		case "ChatAiChat_InputMessage":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChat_InputMessage = new(ChatAiChat_InputMessage)
+					if err := t.ChatAiChat_InputMessage.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChat_InputMessage pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChat_FunctionToolCall (vtri.ChatAiChat_FunctionToolCall) (struct)
+		case "ChatAiChat_FunctionToolCall":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChat_FunctionToolCall = new(ChatAiChat_FunctionToolCall)
+					if err := t.ChatAiChat_FunctionToolCall.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChat_FunctionToolCall pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatMessage) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+	fieldCount := 14
+
+	if t.Deleted == nil {
+		fieldCount--
+	}
+
+	if t.ParentId == nil {
+		fieldCount--
+	}
+
+	if t.QuoteId == nil {
+		fieldCount--
+	}
+
+	if t.RootId == nil {
+		fieldCount--
+	}
+
+	if t.ThreadId == nil {
+		fieldCount--
+	}
+
+	if _, err := cw.Write(cbg.CborEncodeMajorType(cbg.MajMap, uint64(fieldCount))); err != nil {
+		return err
+	}
+
+	// t.Id (string) (string)
+	if len("id") > 1000000 {
+		return xerrors.Errorf("Value in field \"id\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("id"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("id")); err != nil {
+		return err
+	}
+
+	if len(t.Id) > 1000000 {
+		return xerrors.Errorf("Value in field t.Id was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Id))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Id)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.message"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.message")); err != nil {
+		return err
+	}
+
+	// t.RoomId (string) (string)
+	if len("roomId") > 1000000 {
+		return xerrors.Errorf("Value in field \"roomId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("roomId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("roomId")); err != nil {
+		return err
+	}
+
+	if len(t.RoomId) > 1000000 {
+		return xerrors.Errorf("Value in field t.RoomId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.RoomId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.RoomId)); err != nil {
+		return err
+	}
+
+	// t.RootId (string) (string)
+	if t.RootId != nil {
+
+		if len("rootId") > 1000000 {
+			return xerrors.Errorf("Value in field \"rootId\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("rootId"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("rootId")); err != nil {
+			return err
+		}
+
+		if t.RootId == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.RootId) > 1000000 {
+				return xerrors.Errorf("Value in field t.RootId was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.RootId))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.RootId)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.Content (string) (string)
+	if len("content") > 1000000 {
+		return xerrors.Errorf("Value in field \"content\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("content"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("content")); err != nil {
+		return err
+	}
+
+	if len(t.Content) > 1000000 {
+		return xerrors.Errorf("Value in field t.Content was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Content))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Content)); err != nil {
+		return err
+	}
+
+	// t.Deleted (bool) (bool)
+	if t.Deleted != nil {
+
+		if len("deleted") > 1000000 {
+			return xerrors.Errorf("Value in field \"deleted\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("deleted"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("deleted")); err != nil {
+			return err
+		}
+
+		if t.Deleted == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if err := cbg.WriteBool(w, *t.Deleted); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.MsgType (int64) (int64)
+	if len("msgType") > 1000000 {
+		return xerrors.Errorf("Value in field \"msgType\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("msgType"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("msgType")); err != nil {
+		return err
+	}
+
+	if t.MsgType >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.MsgType)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.MsgType-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.QuoteId (string) (string)
+	if t.QuoteId != nil {
+
+		if len("quoteId") > 1000000 {
+			return xerrors.Errorf("Value in field \"quoteId\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("quoteId"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("quoteId")); err != nil {
+			return err
+		}
+
+		if t.QuoteId == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.QuoteId) > 1000000 {
+				return xerrors.Errorf("Value in field t.QuoteId was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.QuoteId))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.QuoteId)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.ParentId (string) (string)
+	if t.ParentId != nil {
+
+		if len("parentId") > 1000000 {
+			return xerrors.Errorf("Value in field \"parentId\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("parentId"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("parentId")); err != nil {
+			return err
+		}
+
+		if t.ParentId == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.ParentId) > 1000000 {
+				return xerrors.Errorf("Value in field t.ParentId was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.ParentId))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.ParentId)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.SenderAt (int64) (int64)
+	if len("senderAt") > 1000000 {
+		return xerrors.Errorf("Value in field \"senderAt\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("senderAt"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("senderAt")); err != nil {
+		return err
+	}
+
+	if t.SenderAt >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.SenderAt)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.SenderAt-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.SenderId (string) (string)
+	if len("senderId") > 1000000 {
+		return xerrors.Errorf("Value in field \"senderId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("senderId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("senderId")); err != nil {
+		return err
+	}
+
+	if len(t.SenderId) > 1000000 {
+		return xerrors.Errorf("Value in field t.SenderId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.SenderId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.SenderId)); err != nil {
+		return err
+	}
+
+	// t.ThreadId (string) (string)
+	if t.ThreadId != nil {
+
+		if len("threadId") > 1000000 {
+			return xerrors.Errorf("Value in field \"threadId\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("threadId"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("threadId")); err != nil {
+			return err
+		}
+
+		if t.ThreadId == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.ThreadId) > 1000000 {
+				return xerrors.Errorf("Value in field t.ThreadId was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.ThreadId))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.ThreadId)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.CreatedAt (int64) (int64)
+	if len("createdAt") > 1000000 {
+		return xerrors.Errorf("Value in field \"createdAt\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("createdAt"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("createdAt")); err != nil {
+		return err
+	}
+
+	if t.CreatedAt >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.CreatedAt)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.CreatedAt-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.UpdatedAt (int64) (int64)
+	if len("updatedAt") > 1000000 {
+		return xerrors.Errorf("Value in field \"updatedAt\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("updatedAt"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("updatedAt")); err != nil {
+		return err
+	}
+
+	if t.UpdatedAt >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.UpdatedAt)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.UpdatedAt-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatMessage) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatMessage{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatMessage: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 9)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Id (string) (string)
+		case "id":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Id = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.RoomId (string) (string)
+		case "roomId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.RoomId = string(sval)
+			}
+			// t.RootId (string) (string)
+		case "rootId":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.RootId = (*string)(&sval)
+				}
+			}
+			// t.Content (string) (string)
+		case "content":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Content = string(sval)
+			}
+			// t.Deleted (bool) (bool)
+		case "deleted":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					maj, extra, err = cr.ReadHeader()
+					if err != nil {
+						return err
+					}
+					if maj != cbg.MajOther {
+						return fmt.Errorf("booleans must be major type 7")
+					}
+
+					var val bool
+					switch extra {
+					case 20:
+						val = false
+					case 21:
+						val = true
+					default:
+						return fmt.Errorf("booleans are either major type 7, value 20 or 21 (got %d)", extra)
+					}
+					t.Deleted = &val
+				}
+			}
+			// t.MsgType (int64) (int64)
+		case "msgType":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.MsgType = int64(extraI)
+			}
+			// t.QuoteId (string) (string)
+		case "quoteId":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.QuoteId = (*string)(&sval)
+				}
+			}
+			// t.ParentId (string) (string)
+		case "parentId":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.ParentId = (*string)(&sval)
+				}
+			}
+			// t.SenderAt (int64) (int64)
+		case "senderAt":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.SenderAt = int64(extraI)
+			}
+			// t.SenderId (string) (string)
+		case "senderId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.SenderId = string(sval)
+			}
+			// t.ThreadId (string) (string)
+		case "threadId":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.ThreadId = (*string)(&sval)
+				}
+			}
+			// t.CreatedAt (int64) (int64)
+		case "createdAt":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.CreatedAt = int64(extraI)
+			}
+			// t.UpdatedAt (int64) (int64)
+		case "updatedAt":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.UpdatedAt = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_FunctionToolCall) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+	fieldCount := 6
+
+	if t.Arguments == nil {
+		fieldCount--
+	}
+
+	if _, err := cw.Write(cbg.CborEncodeMajorType(cbg.MajMap, uint64(fieldCount))); err != nil {
+		return err
+	}
+
+	// t.Id (string) (string)
+	if len("id") > 1000000 {
+		return xerrors.Errorf("Value in field \"id\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("id"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("id")); err != nil {
+		return err
+	}
+
+	if len(t.Id) > 1000000 {
+		return xerrors.Errorf("Value in field t.Id was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Id))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Id)); err != nil {
+		return err
+	}
+
+	// t.Name (string) (string)
+	if len("name") > 1000000 {
+		return xerrors.Errorf("Value in field \"name\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("name"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("name")); err != nil {
+		return err
+	}
+
+	if len(t.Name) > 1000000 {
+		return xerrors.Errorf("Value in field t.Name was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Name))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Name)); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if len("type") > 1000000 {
+		return xerrors.Errorf("Value in field \"type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("type")); err != nil {
+		return err
+	}
+
+	if len(t.Type) > 1000000 {
+		return xerrors.Errorf("Value in field t.Type was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Type))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Type)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChat#FunctionToolCall"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChat#FunctionToolCall")); err != nil {
+		return err
+	}
+
+	// t.Status (string) (string)
+	if len("status") > 1000000 {
+		return xerrors.Errorf("Value in field \"status\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("status"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("status")); err != nil {
+		return err
+	}
+
+	if len(t.Status) > 1000000 {
+		return xerrors.Errorf("Value in field t.Status was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Status))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Status)); err != nil {
+		return err
+	}
+
+	// t.Arguments (string) (string)
+	if t.Arguments != nil {
+
+		if len("arguments") > 1000000 {
+			return xerrors.Errorf("Value in field \"arguments\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("arguments"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("arguments")); err != nil {
+			return err
+		}
+
+		if t.Arguments == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.Arguments) > 1000000 {
+				return xerrors.Errorf("Value in field t.Arguments was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.Arguments))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.Arguments)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (t *ChatAiChat_FunctionToolCall) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_FunctionToolCall{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_FunctionToolCall: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 9)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Id (string) (string)
+		case "id":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Id = string(sval)
+			}
+			// t.Name (string) (string)
+		case "name":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Name = string(sval)
+			}
+			// t.Type (string) (string)
+		case "type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Type = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Status (string) (string)
+		case "status":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Status = string(sval)
+			}
+			// t.Arguments (string) (string)
+		case "arguments":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.Arguments = (*string)(&sval)
+				}
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_InputMessage) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+	fieldCount := 5
+
+	if t.Status == nil {
+		fieldCount--
+	}
+
+	if t.Type == nil {
+		fieldCount--
+	}
+
+	if _, err := cw.Write(cbg.CborEncodeMajorType(cbg.MajMap, uint64(fieldCount))); err != nil {
+		return err
+	}
+
+	// t.Role (string) (string)
+	if len("role") > 1000000 {
+		return xerrors.Errorf("Value in field \"role\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("role"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("role")); err != nil {
+		return err
+	}
+
+	if len(t.Role) > 1000000 {
+		return xerrors.Errorf("Value in field t.Role was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Role))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Role)); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if t.Type != nil {
+
+		if len("type") > 1000000 {
+			return xerrors.Errorf("Value in field \"type\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("type")); err != nil {
+			return err
+		}
+
+		if t.Type == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.Type) > 1000000 {
+				return xerrors.Errorf("Value in field t.Type was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.Type))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.Type)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChat#InputMessage"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChat#InputMessage")); err != nil {
+		return err
+	}
+
+	// t.Status (string) (string)
+	if t.Status != nil {
+
+		if len("status") > 1000000 {
+			return xerrors.Errorf("Value in field \"status\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("status"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("status")); err != nil {
+			return err
+		}
+
+		if t.Status == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.Status) > 1000000 {
+				return xerrors.Errorf("Value in field t.Status was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.Status))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.Status)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.Content ([]*vtri.ChatAiChat_InputMessage_Content_Elem) (slice)
+	if len("content") > 1000000 {
+		return xerrors.Errorf("Value in field \"content\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("content"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("content")); err != nil {
+		return err
+	}
+
+	if len(t.Content) > 8192 {
+		return xerrors.Errorf("Slice value in field t.Content was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajArray, uint64(len(t.Content))); err != nil {
+		return err
+	}
+	for _, v := range t.Content {
+		if err := v.MarshalCBOR(cw); err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
+func (t *ChatAiChat_InputMessage) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_InputMessage{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_InputMessage: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 7)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Role (string) (string)
+		case "role":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Role = string(sval)
+			}
+			// t.Type (string) (string)
+		case "type":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.Type = (*string)(&sval)
+				}
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Status (string) (string)
+		case "status":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.Status = (*string)(&sval)
+				}
+			}
+			// t.Content ([]*vtri.ChatAiChat_InputMessage_Content_Elem) (slice)
+		case "content":
+
+			maj, extra, err = cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+
+			if extra > 8192 {
+				return fmt.Errorf("t.Content: array too large (%d)", extra)
+			}
+
+			if maj != cbg.MajArray {
+				return fmt.Errorf("expected cbor array")
+			}
+
+			if extra > 0 {
+				t.Content = make([]*ChatAiChat_InputMessage_Content_Elem, extra)
+			}
+
+			for i := 0; i < int(extra); i++ {
+				{
+					var maj byte
+					var extra uint64
+					var err error
+					_ = maj
+					_ = extra
+					_ = err
+
+					{
+
+						b, err := cr.ReadByte()
+						if err != nil {
+							return err
+						}
+						if b != cbg.CborNull[0] {
+							if err := cr.UnreadByte(); err != nil {
+								return err
+							}
+							t.Content[i] = new(ChatAiChat_InputMessage_Content_Elem)
+							if err := t.Content[i].UnmarshalCBOR(cr); err != nil {
+								return xerrors.Errorf("unmarshaling t.Content[i] pointer: %w", err)
+							}
+						}
+
+					}
+
+				}
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_InputMessage_Content_Elem) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{163}); err != nil {
+		return err
+	}
+
+	// t.ChatAiChat_InputFileContent (vtri.ChatAiChat_InputFileContent) (struct)
+	if len("ChatAiChat_InputFileContent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChat_InputFileContent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChat_InputFileContent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChat_InputFileContent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChat_InputFileContent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChat_InputTextContent (vtri.ChatAiChat_InputTextContent) (struct)
+	if len("ChatAiChat_InputTextContent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChat_InputTextContent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChat_InputTextContent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChat_InputTextContent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChat_InputTextContent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChat_InputImageContent (vtri.ChatAiChat_InputImageContent) (struct)
+	if len("ChatAiChat_InputImageContent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChat_InputImageContent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChat_InputImageContent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChat_InputImageContent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChat_InputImageContent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_InputMessage_Content_Elem) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_InputMessage_Content_Elem{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_InputMessage_Content_Elem: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 28)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.ChatAiChat_InputFileContent (vtri.ChatAiChat_InputFileContent) (struct)
+		case "ChatAiChat_InputFileContent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChat_InputFileContent = new(ChatAiChat_InputFileContent)
+					if err := t.ChatAiChat_InputFileContent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChat_InputFileContent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChat_InputTextContent (vtri.ChatAiChat_InputTextContent) (struct)
+		case "ChatAiChat_InputTextContent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChat_InputTextContent = new(ChatAiChat_InputTextContent)
+					if err := t.ChatAiChat_InputTextContent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChat_InputTextContent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChat_InputImageContent (vtri.ChatAiChat_InputImageContent) (struct)
+		case "ChatAiChat_InputImageContent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChat_InputImageContent = new(ChatAiChat_InputImageContent)
+					if err := t.ChatAiChat_InputImageContent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChat_InputImageContent pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_InputTextContent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{163}); err != nil {
+		return err
+	}
+
+	// t.Text (string) (string)
+	if len("text") > 1000000 {
+		return xerrors.Errorf("Value in field \"text\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("text"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("text")); err != nil {
+		return err
+	}
+
+	if len(t.Text) > 1000000 {
+		return xerrors.Errorf("Value in field t.Text was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Text))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Text)); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if len("type") > 1000000 {
+		return xerrors.Errorf("Value in field \"type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("type")); err != nil {
+		return err
+	}
+
+	if len(t.Type) > 1000000 {
+		return xerrors.Errorf("Value in field t.Type was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Type))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Type)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChat#InputTextContent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChat#InputTextContent")); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_InputTextContent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_InputTextContent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_InputTextContent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 5)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Text (string) (string)
+		case "text":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Text = string(sval)
+			}
+			// t.Type (string) (string)
+		case "type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Type = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_InputImageContent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+	fieldCount := 5
+
+	if t.FileId == nil {
+		fieldCount--
+	}
+
+	if t.ImageUrl == nil {
+		fieldCount--
+	}
+
+	if _, err := cw.Write(cbg.CborEncodeMajorType(cbg.MajMap, uint64(fieldCount))); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if len("type") > 1000000 {
+		return xerrors.Errorf("Value in field \"type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("type")); err != nil {
+		return err
+	}
+
+	if len(t.Type) > 1000000 {
+		return xerrors.Errorf("Value in field t.Type was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Type))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Type)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChat#InputImageContent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChat#InputImageContent")); err != nil {
+		return err
+	}
+
+	// t.Detail (string) (string)
+	if len("detail") > 1000000 {
+		return xerrors.Errorf("Value in field \"detail\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("detail"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("detail")); err != nil {
+		return err
+	}
+
+	if len(t.Detail) > 1000000 {
+		return xerrors.Errorf("Value in field t.Detail was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Detail))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Detail)); err != nil {
+		return err
+	}
+
+	// t.FileId (string) (string)
+	if t.FileId != nil {
+
+		if len("fileId") > 1000000 {
+			return xerrors.Errorf("Value in field \"fileId\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("fileId"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("fileId")); err != nil {
+			return err
+		}
+
+		if t.FileId == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.FileId) > 1000000 {
+				return xerrors.Errorf("Value in field t.FileId was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.FileId))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.FileId)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.ImageUrl (string) (string)
+	if t.ImageUrl != nil {
+
+		if len("imageUrl") > 1000000 {
+			return xerrors.Errorf("Value in field \"imageUrl\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("imageUrl"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("imageUrl")); err != nil {
+			return err
+		}
+
+		if t.ImageUrl == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.ImageUrl) > 1000000 {
+				return xerrors.Errorf("Value in field t.ImageUrl was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.ImageUrl))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.ImageUrl)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (t *ChatAiChat_InputImageContent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_InputImageContent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_InputImageContent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 8)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Type (string) (string)
+		case "type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Type = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Detail (string) (string)
+		case "detail":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Detail = string(sval)
+			}
+			// t.FileId (string) (string)
+		case "fileId":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.FileId = (*string)(&sval)
+				}
+			}
+			// t.ImageUrl (string) (string)
+		case "imageUrl":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.ImageUrl = (*string)(&sval)
+				}
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_InputFileContent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{163}); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if len("type") > 1000000 {
+		return xerrors.Errorf("Value in field \"type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("type")); err != nil {
+		return err
+	}
+
+	if len(t.Type) > 1000000 {
+		return xerrors.Errorf("Value in field t.Type was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Type))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Type)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChat#InputFileContent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChat#InputFileContent")); err != nil {
+		return err
+	}
+
+	// t.FileId (string) (string)
+	if len("fileId") > 1000000 {
+		return xerrors.Errorf("Value in field \"fileId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("fileId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("fileId")); err != nil {
+		return err
+	}
+
+	if len(t.FileId) > 1000000 {
+		return xerrors.Errorf("Value in field t.FileId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.FileId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.FileId)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_InputFileContent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_InputFileContent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_InputFileContent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 6)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Type (string) (string)
+		case "type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Type = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.FileId (string) (string)
+		case "fileId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.FileId = string(sval)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_ResponseError) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{162}); err != nil {
+		return err
+	}
+
+	// t.Code (string) (string)
+	if len("code") > 1000000 {
+		return xerrors.Errorf("Value in field \"code\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("code"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("code")); err != nil {
+		return err
+	}
+
+	if t.Code == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		if len(*t.Code) > 1000000 {
+			return xerrors.Errorf("Value in field t.Code was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.Code))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string(*t.Code)); err != nil {
+			return err
+		}
+	}
+
+	// t.Message (string) (string)
+	if len("message") > 1000000 {
+		return xerrors.Errorf("Value in field \"message\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("message"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("message")); err != nil {
+		return err
+	}
+
+	if len(t.Message) > 1000000 {
+		return xerrors.Errorf("Value in field t.Message was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Message))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Message)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_ResponseError) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_ResponseError{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_ResponseError: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 7)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Code (string) (string)
+		case "code":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.Code = (*string)(&sval)
+				}
+			}
+			// t.Message (string) (string)
+		case "message":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Message = string(sval)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_ResponseUsage) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{165}); err != nil {
+		return err
+	}
+
+	// t.InputTokens (int64) (int64)
+	if len("inputTokens") > 1000000 {
+		return xerrors.Errorf("Value in field \"inputTokens\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("inputTokens"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("inputTokens")); err != nil {
+		return err
+	}
+
+	if t.InputTokens >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.InputTokens)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.InputTokens-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.TotalTokens (int64) (int64)
+	if len("totalTokens") > 1000000 {
+		return xerrors.Errorf("Value in field \"totalTokens\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("totalTokens"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("totalTokens")); err != nil {
+		return err
+	}
+
+	if t.TotalTokens >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.TotalTokens)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.TotalTokens-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.OutputTokens (int64) (int64)
+	if len("outputTokens") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputTokens\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputTokens"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputTokens")); err != nil {
+		return err
+	}
+
+	if t.OutputTokens >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputTokens)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputTokens-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.InputTokensDetails (vtri.ChatAiChat_ResponseUsage_InputTokensDetails) (struct)
+	if len("inputTokensDetails") > 1000000 {
+		return xerrors.Errorf("Value in field \"inputTokensDetails\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("inputTokensDetails"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("inputTokensDetails")); err != nil {
+		return err
+	}
+
+	if err := t.InputTokensDetails.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.OutputTokensDetails (vtri.ChatAiChat_ResponseUsage_OutputTokensDetails) (struct)
+	if len("outputTokensDetails") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputTokensDetails\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputTokensDetails"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputTokensDetails")); err != nil {
+		return err
+	}
+
+	if err := t.OutputTokensDetails.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_ResponseUsage) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_ResponseUsage{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_ResponseUsage: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 19)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.InputTokens (int64) (int64)
+		case "inputTokens":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.InputTokens = int64(extraI)
+			}
+			// t.TotalTokens (int64) (int64)
+		case "totalTokens":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.TotalTokens = int64(extraI)
+			}
+			// t.OutputTokens (int64) (int64)
+		case "outputTokens":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputTokens = int64(extraI)
+			}
+			// t.InputTokensDetails (vtri.ChatAiChat_ResponseUsage_InputTokensDetails) (struct)
+		case "inputTokensDetails":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.InputTokensDetails = new(ChatAiChat_ResponseUsage_InputTokensDetails)
+					if err := t.InputTokensDetails.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.InputTokensDetails pointer: %w", err)
+					}
+				}
+
+			}
+			// t.OutputTokensDetails (vtri.ChatAiChat_ResponseUsage_OutputTokensDetails) (struct)
+		case "outputTokensDetails":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.OutputTokensDetails = new(ChatAiChat_ResponseUsage_OutputTokensDetails)
+					if err := t.OutputTokensDetails.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.OutputTokensDetails pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_ResponseUsage_InputTokensDetails) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{161}); err != nil {
+		return err
+	}
+
+	// t.CachedTokens (int64) (int64)
+	if len("cachedTokens") > 1000000 {
+		return xerrors.Errorf("Value in field \"cachedTokens\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("cachedTokens"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("cachedTokens")); err != nil {
+		return err
+	}
+
+	if t.CachedTokens >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.CachedTokens)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.CachedTokens-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChat_ResponseUsage_InputTokensDetails) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_ResponseUsage_InputTokensDetails{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_ResponseUsage_InputTokensDetails: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 12)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.CachedTokens (int64) (int64)
+		case "cachedTokens":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.CachedTokens = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_ResponseUsage_OutputTokensDetails) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{161}); err != nil {
+		return err
+	}
+
+	// t.ReasoningTokens (int64) (int64)
+	if len("reasoningTokens") > 1000000 {
+		return xerrors.Errorf("Value in field \"reasoningTokens\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("reasoningTokens"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("reasoningTokens")); err != nil {
+		return err
+	}
+
+	if t.ReasoningTokens >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.ReasoningTokens)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.ReasoningTokens-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChat_ResponseUsage_OutputTokensDetails) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_ResponseUsage_OutputTokensDetails{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_ResponseUsage_OutputTokensDetails: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 15)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.ReasoningTokens (int64) (int64)
+		case "reasoningTokens":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.ReasoningTokens = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_OutputItem) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{163}); err != nil {
+		return err
+	}
+
+	// t.ChatAiChat_OutputMessage (vtri.ChatAiChat_OutputMessage) (struct)
+	if len("ChatAiChat_OutputMessage") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChat_OutputMessage\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChat_OutputMessage"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChat_OutputMessage")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChat_OutputMessage.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChat_ReasoningItem (vtri.ChatAiChat_ReasoningItem) (struct)
+	if len("ChatAiChat_ReasoningItem") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChat_ReasoningItem\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChat_ReasoningItem"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChat_ReasoningItem")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChat_ReasoningItem.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChat_FunctionToolCall (vtri.ChatAiChat_FunctionToolCall) (struct)
+	if len("ChatAiChat_FunctionToolCall") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChat_FunctionToolCall\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChat_FunctionToolCall"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChat_FunctionToolCall")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChat_FunctionToolCall.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_OutputItem) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_OutputItem{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_OutputItem: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 27)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.ChatAiChat_OutputMessage (vtri.ChatAiChat_OutputMessage) (struct)
+		case "ChatAiChat_OutputMessage":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChat_OutputMessage = new(ChatAiChat_OutputMessage)
+					if err := t.ChatAiChat_OutputMessage.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChat_OutputMessage pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChat_ReasoningItem (vtri.ChatAiChat_ReasoningItem) (struct)
+		case "ChatAiChat_ReasoningItem":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChat_ReasoningItem = new(ChatAiChat_ReasoningItem)
+					if err := t.ChatAiChat_ReasoningItem.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChat_ReasoningItem pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChat_FunctionToolCall (vtri.ChatAiChat_FunctionToolCall) (struct)
+		case "ChatAiChat_FunctionToolCall":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChat_FunctionToolCall = new(ChatAiChat_FunctionToolCall)
+					if err := t.ChatAiChat_FunctionToolCall.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChat_FunctionToolCall pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_OutputMessage) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{166}); err != nil {
+		return err
+	}
+
+	// t.Id (string) (string)
+	if len("id") > 1000000 {
+		return xerrors.Errorf("Value in field \"id\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("id"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("id")); err != nil {
+		return err
+	}
+
+	if len(t.Id) > 1000000 {
+		return xerrors.Errorf("Value in field t.Id was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Id))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Id)); err != nil {
+		return err
+	}
+
+	// t.Role (string) (string)
+	if len("role") > 1000000 {
+		return xerrors.Errorf("Value in field \"role\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("role"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("role")); err != nil {
+		return err
+	}
+
+	if len(t.Role) > 1000000 {
+		return xerrors.Errorf("Value in field t.Role was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Role))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Role)); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if len("type") > 1000000 {
+		return xerrors.Errorf("Value in field \"type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("type")); err != nil {
+		return err
+	}
+
+	if len(t.Type) > 1000000 {
+		return xerrors.Errorf("Value in field t.Type was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Type))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Type)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChat#OutputMessage"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChat#OutputMessage")); err != nil {
+		return err
+	}
+
+	// t.Status (string) (string)
+	if len("status") > 1000000 {
+		return xerrors.Errorf("Value in field \"status\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("status"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("status")); err != nil {
+		return err
+	}
+
+	if len(t.Status) > 1000000 {
+		return xerrors.Errorf("Value in field t.Status was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Status))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Status)); err != nil {
+		return err
+	}
+
+	// t.Content ([]*vtri.ChatAiChat_OutputContent) (slice)
+	if len("content") > 1000000 {
+		return xerrors.Errorf("Value in field \"content\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("content"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("content")); err != nil {
+		return err
+	}
+
+	if len(t.Content) > 8192 {
+		return xerrors.Errorf("Slice value in field t.Content was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajArray, uint64(len(t.Content))); err != nil {
+		return err
+	}
+	for _, v := range t.Content {
+		if err := v.MarshalCBOR(cw); err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
+func (t *ChatAiChat_OutputMessage) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_OutputMessage{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_OutputMessage: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 7)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Id (string) (string)
+		case "id":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Id = string(sval)
+			}
+			// t.Role (string) (string)
+		case "role":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Role = string(sval)
+			}
+			// t.Type (string) (string)
+		case "type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Type = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Status (string) (string)
+		case "status":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Status = string(sval)
+			}
+			// t.Content ([]*vtri.ChatAiChat_OutputContent) (slice)
+		case "content":
+
+			maj, extra, err = cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+
+			if extra > 8192 {
+				return fmt.Errorf("t.Content: array too large (%d)", extra)
+			}
+
+			if maj != cbg.MajArray {
+				return fmt.Errorf("expected cbor array")
+			}
+
+			if extra > 0 {
+				t.Content = make([]*ChatAiChat_OutputContent, extra)
+			}
+
+			for i := 0; i < int(extra); i++ {
+				{
+					var maj byte
+					var extra uint64
+					var err error
+					_ = maj
+					_ = extra
+					_ = err
+
+					{
+
+						b, err := cr.ReadByte()
+						if err != nil {
+							return err
+						}
+						if b != cbg.CborNull[0] {
+							if err := cr.UnreadByte(); err != nil {
+								return err
+							}
+							t.Content[i] = new(ChatAiChat_OutputContent)
+							if err := t.Content[i].UnmarshalCBOR(cr); err != nil {
+								return xerrors.Errorf("unmarshaling t.Content[i] pointer: %w", err)
+							}
+						}
+
+					}
+
+				}
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_ReasoningItem) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+	fieldCount := 5
+
+	if t.Status == nil {
+		fieldCount--
+	}
+
+	if _, err := cw.Write(cbg.CborEncodeMajorType(cbg.MajMap, uint64(fieldCount))); err != nil {
+		return err
+	}
+
+	// t.Id (string) (string)
+	if len("id") > 1000000 {
+		return xerrors.Errorf("Value in field \"id\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("id"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("id")); err != nil {
+		return err
+	}
+
+	if len(t.Id) > 1000000 {
+		return xerrors.Errorf("Value in field t.Id was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Id))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Id)); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if len("type") > 1000000 {
+		return xerrors.Errorf("Value in field \"type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("type")); err != nil {
+		return err
+	}
+
+	if len(t.Type) > 1000000 {
+		return xerrors.Errorf("Value in field t.Type was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Type))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Type)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChat#ReasoningItem"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChat#ReasoningItem")); err != nil {
+		return err
+	}
+
+	// t.Status (string) (string)
+	if t.Status != nil {
+
+		if len("status") > 1000000 {
+			return xerrors.Errorf("Value in field \"status\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("status"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("status")); err != nil {
+			return err
+		}
+
+		if t.Status == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.Status) > 1000000 {
+				return xerrors.Errorf("Value in field t.Status was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.Status))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.Status)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.Summary ([]*vtri.ChatAiChat_ReasoningItem_Summary_Elem) (slice)
+	if len("summary") > 1000000 {
+		return xerrors.Errorf("Value in field \"summary\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("summary"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("summary")); err != nil {
+		return err
+	}
+
+	if len(t.Summary) > 8192 {
+		return xerrors.Errorf("Slice value in field t.Summary was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajArray, uint64(len(t.Summary))); err != nil {
+		return err
+	}
+	for _, v := range t.Summary {
+		if err := v.MarshalCBOR(cw); err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
+func (t *ChatAiChat_ReasoningItem) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_ReasoningItem{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_ReasoningItem: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 7)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Id (string) (string)
+		case "id":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Id = string(sval)
+			}
+			// t.Type (string) (string)
+		case "type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Type = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Status (string) (string)
+		case "status":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.Status = (*string)(&sval)
+				}
+			}
+			// t.Summary ([]*vtri.ChatAiChat_ReasoningItem_Summary_Elem) (slice)
+		case "summary":
+
+			maj, extra, err = cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+
+			if extra > 8192 {
+				return fmt.Errorf("t.Summary: array too large (%d)", extra)
+			}
+
+			if maj != cbg.MajArray {
+				return fmt.Errorf("expected cbor array")
+			}
+
+			if extra > 0 {
+				t.Summary = make([]*ChatAiChat_ReasoningItem_Summary_Elem, extra)
+			}
+
+			for i := 0; i < int(extra); i++ {
+				{
+					var maj byte
+					var extra uint64
+					var err error
+					_ = maj
+					_ = extra
+					_ = err
+
+					{
+
+						b, err := cr.ReadByte()
+						if err != nil {
+							return err
+						}
+						if b != cbg.CborNull[0] {
+							if err := cr.UnreadByte(); err != nil {
+								return err
+							}
+							t.Summary[i] = new(ChatAiChat_ReasoningItem_Summary_Elem)
+							if err := t.Summary[i].UnmarshalCBOR(cr); err != nil {
+								return xerrors.Errorf("unmarshaling t.Summary[i] pointer: %w", err)
+							}
+						}
+
+					}
+
+				}
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_ReasoningItem_Summary_Elem) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{162}); err != nil {
+		return err
+	}
+
+	// t.Text (string) (string)
+	if len("text") > 1000000 {
+		return xerrors.Errorf("Value in field \"text\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("text"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("text")); err != nil {
+		return err
+	}
+
+	if len(t.Text) > 1000000 {
+		return xerrors.Errorf("Value in field t.Text was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Text))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Text)); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if len("type") > 1000000 {
+		return xerrors.Errorf("Value in field \"type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("type")); err != nil {
+		return err
+	}
+
+	if len(t.Type) > 1000000 {
+		return xerrors.Errorf("Value in field t.Type was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Type))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Type)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_ReasoningItem_Summary_Elem) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_ReasoningItem_Summary_Elem{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_ReasoningItem_Summary_Elem: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 4)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Text (string) (string)
+		case "text":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Text = string(sval)
+			}
+			// t.Type (string) (string)
+		case "type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Type = string(sval)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_OutputContent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{162}); err != nil {
+		return err
+	}
+
+	// t.ChatAiChat_RefusalContent (vtri.ChatAiChat_RefusalContent) (struct)
+	if len("ChatAiChat_RefusalContent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChat_RefusalContent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChat_RefusalContent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChat_RefusalContent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChat_RefusalContent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChat_OutputTextContent (vtri.ChatAiChat_OutputTextContent) (struct)
+	if len("ChatAiChat_OutputTextContent") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChat_OutputTextContent\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChat_OutputTextContent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChat_OutputTextContent")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChat_OutputTextContent.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_OutputContent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_OutputContent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_OutputContent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 28)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.ChatAiChat_RefusalContent (vtri.ChatAiChat_RefusalContent) (struct)
+		case "ChatAiChat_RefusalContent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChat_RefusalContent = new(ChatAiChat_RefusalContent)
+					if err := t.ChatAiChat_RefusalContent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChat_RefusalContent pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChat_OutputTextContent (vtri.ChatAiChat_OutputTextContent) (struct)
+		case "ChatAiChat_OutputTextContent":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChat_OutputTextContent = new(ChatAiChat_OutputTextContent)
+					if err := t.ChatAiChat_OutputTextContent.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChat_OutputTextContent pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_OutputTextContent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+	fieldCount := 4
+
+	if t.Annotations == nil {
+		fieldCount--
+	}
+
+	if _, err := cw.Write(cbg.CborEncodeMajorType(cbg.MajMap, uint64(fieldCount))); err != nil {
+		return err
+	}
+
+	// t.Text (string) (string)
+	if len("text") > 1000000 {
+		return xerrors.Errorf("Value in field \"text\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("text"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("text")); err != nil {
+		return err
+	}
+
+	if len(t.Text) > 1000000 {
+		return xerrors.Errorf("Value in field t.Text was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Text))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Text)); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if len("type") > 1000000 {
+		return xerrors.Errorf("Value in field \"type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("type")); err != nil {
+		return err
+	}
+
+	if len(t.Type) > 1000000 {
+		return xerrors.Errorf("Value in field t.Type was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Type))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Type)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChat#OutputTextContent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChat#OutputTextContent")); err != nil {
+		return err
+	}
+
+	// t.Annotations ([]*vtri.ChatAiChat_Annotation) (slice)
+	if t.Annotations != nil {
+
+		if len("annotations") > 1000000 {
+			return xerrors.Errorf("Value in field \"annotations\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("annotations"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("annotations")); err != nil {
+			return err
+		}
+
+		if len(t.Annotations) > 8192 {
+			return xerrors.Errorf("Slice value in field t.Annotations was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajArray, uint64(len(t.Annotations))); err != nil {
+			return err
+		}
+		for _, v := range t.Annotations {
+			if err := v.MarshalCBOR(cw); err != nil {
+				return err
+			}
+
+		}
+	}
+	return nil
+}
+
+func (t *ChatAiChat_OutputTextContent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_OutputTextContent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_OutputTextContent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 11)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Text (string) (string)
+		case "text":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Text = string(sval)
+			}
+			// t.Type (string) (string)
+		case "type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Type = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Annotations ([]*vtri.ChatAiChat_Annotation) (slice)
+		case "annotations":
+
+			maj, extra, err = cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+
+			if extra > 8192 {
+				return fmt.Errorf("t.Annotations: array too large (%d)", extra)
+			}
+
+			if maj != cbg.MajArray {
+				return fmt.Errorf("expected cbor array")
+			}
+
+			if extra > 0 {
+				t.Annotations = make([]*ChatAiChat_Annotation, extra)
+			}
+
+			for i := 0; i < int(extra); i++ {
+				{
+					var maj byte
+					var extra uint64
+					var err error
+					_ = maj
+					_ = extra
+					_ = err
+
+					{
+
+						b, err := cr.ReadByte()
+						if err != nil {
+							return err
+						}
+						if b != cbg.CborNull[0] {
+							if err := cr.UnreadByte(); err != nil {
+								return err
+							}
+							t.Annotations[i] = new(ChatAiChat_Annotation)
+							if err := t.Annotations[i].UnmarshalCBOR(cr); err != nil {
+								return xerrors.Errorf("unmarshaling t.Annotations[i] pointer: %w", err)
+							}
+						}
+
+					}
+
+				}
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_RefusalContent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{163}); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if len("type") > 1000000 {
+		return xerrors.Errorf("Value in field \"type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("type")); err != nil {
+		return err
+	}
+
+	if len(t.Type) > 1000000 {
+		return xerrors.Errorf("Value in field t.Type was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Type))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Type)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChat#RefusalContent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChat#RefusalContent")); err != nil {
+		return err
+	}
+
+	// t.Refusal (string) (string)
+	if len("refusal") > 1000000 {
+		return xerrors.Errorf("Value in field \"refusal\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("refusal"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("refusal")); err != nil {
+		return err
+	}
+
+	if len(t.Refusal) > 1000000 {
+		return xerrors.Errorf("Value in field t.Refusal was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Refusal))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Refusal)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_RefusalContent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_RefusalContent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_RefusalContent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 7)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Type (string) (string)
+		case "type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Type = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Refusal (string) (string)
+		case "refusal":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Refusal = string(sval)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_Annotation) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{162}); err != nil {
+		return err
+	}
+
+	// t.ChatAiChat_UrlCitationBody (vtri.ChatAiChat_UrlCitationBody) (struct)
+	if len("ChatAiChat_UrlCitationBody") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChat_UrlCitationBody\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChat_UrlCitationBody"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChat_UrlCitationBody")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChat_UrlCitationBody.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.ChatAiChat_FileCitationBody (vtri.ChatAiChat_FileCitationBody) (struct)
+	if len("ChatAiChat_FileCitationBody") > 1000000 {
+		return xerrors.Errorf("Value in field \"ChatAiChat_FileCitationBody\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("ChatAiChat_FileCitationBody"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("ChatAiChat_FileCitationBody")); err != nil {
+		return err
+	}
+
+	if err := t.ChatAiChat_FileCitationBody.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_Annotation) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_Annotation{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_Annotation: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 27)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.ChatAiChat_UrlCitationBody (vtri.ChatAiChat_UrlCitationBody) (struct)
+		case "ChatAiChat_UrlCitationBody":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChat_UrlCitationBody = new(ChatAiChat_UrlCitationBody)
+					if err := t.ChatAiChat_UrlCitationBody.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChat_UrlCitationBody pointer: %w", err)
+					}
+				}
+
+			}
+			// t.ChatAiChat_FileCitationBody (vtri.ChatAiChat_FileCitationBody) (struct)
+		case "ChatAiChat_FileCitationBody":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.ChatAiChat_FileCitationBody = new(ChatAiChat_FileCitationBody)
+					if err := t.ChatAiChat_FileCitationBody.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.ChatAiChat_FileCitationBody pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_FileCitationBody) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{164}); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if len("type") > 1000000 {
+		return xerrors.Errorf("Value in field \"type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("type")); err != nil {
+		return err
+	}
+
+	if len(t.Type) > 1000000 {
+		return xerrors.Errorf("Value in field t.Type was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Type))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Type)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChat#FileCitationBody"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChat#FileCitationBody")); err != nil {
+		return err
+	}
+
+	// t.Index (int64) (int64)
+	if len("index") > 1000000 {
+		return xerrors.Errorf("Value in field \"index\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("index"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("index")); err != nil {
+		return err
+	}
+
+	if t.Index >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.Index)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.Index-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.FileId (string) (string)
+	if len("fileId") > 1000000 {
+		return xerrors.Errorf("Value in field \"fileId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("fileId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("fileId")); err != nil {
+		return err
+	}
+
+	if len(t.FileId) > 1000000 {
+		return xerrors.Errorf("Value in field t.FileId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.FileId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.FileId)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_FileCitationBody) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_FileCitationBody{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_FileCitationBody: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 6)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Type (string) (string)
+		case "type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Type = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Index (int64) (int64)
+		case "index":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.Index = int64(extraI)
+			}
+			// t.FileId (string) (string)
+		case "fileId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.FileId = string(sval)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_UrlCitationBody) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{166}); err != nil {
+		return err
+	}
+
+	// t.Url (string) (string)
+	if len("url") > 1000000 {
+		return xerrors.Errorf("Value in field \"url\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("url"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("url")); err != nil {
+		return err
+	}
+
+	if len(t.Url) > 1000000 {
+		return xerrors.Errorf("Value in field t.Url was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Url))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Url)); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if len("type") > 1000000 {
+		return xerrors.Errorf("Value in field \"type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("type")); err != nil {
+		return err
+	}
+
+	if len(t.Type) > 1000000 {
+		return xerrors.Errorf("Value in field t.Type was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Type))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Type)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChat#UrlCitationBody"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChat#UrlCitationBody")); err != nil {
+		return err
+	}
+
+	// t.Title (string) (string)
+	if len("title") > 1000000 {
+		return xerrors.Errorf("Value in field \"title\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("title"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("title")); err != nil {
+		return err
+	}
+
+	if len(t.Title) > 1000000 {
+		return xerrors.Errorf("Value in field t.Title was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Title))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Title)); err != nil {
+		return err
+	}
+
+	// t.EndIndex (int64) (int64)
+	if len("endIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"endIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("endIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("endIndex")); err != nil {
+		return err
+	}
+
+	if t.EndIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.EndIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.EndIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.StartIndex (int64) (int64)
+	if len("startIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"startIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("startIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("startIndex")); err != nil {
+		return err
+	}
+
+	if t.StartIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.StartIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.StartIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChat_UrlCitationBody) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_UrlCitationBody{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_UrlCitationBody: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 10)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Url (string) (string)
+		case "url":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Url = string(sval)
+			}
+			// t.Type (string) (string)
+		case "type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Type = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Title (string) (string)
+		case "title":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Title = string(sval)
+			}
+			// t.EndIndex (int64) (int64)
+		case "endIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.EndIndex = int64(extraI)
+			}
+			// t.StartIndex (int64) (int64)
+		case "startIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.StartIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_Message_IncompleteDetails) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+	fieldCount := 1
+
+	if t.Reason == nil {
+		fieldCount--
+	}
+
+	if _, err := cw.Write(cbg.CborEncodeMajorType(cbg.MajMap, uint64(fieldCount))); err != nil {
+		return err
+	}
+
+	// t.Reason (string) (string)
+	if t.Reason != nil {
+
+		if len("reason") > 1000000 {
+			return xerrors.Errorf("Value in field \"reason\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("reason"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("reason")); err != nil {
+			return err
+		}
+
+		if t.Reason == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if len(*t.Reason) > 1000000 {
+				return xerrors.Errorf("Value in field t.Reason was too long")
+			}
+
+			if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.Reason))); err != nil {
+				return err
+			}
+			if _, err := cw.WriteString(string(*t.Reason)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (t *ChatAiChat_Message_IncompleteDetails) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_Message_IncompleteDetails{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_Message_IncompleteDetails: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 6)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Reason (string) (string)
+		case "reason":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.Reason = (*string)(&sval)
+				}
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_Message_Metadata) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{160}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_Message_Metadata) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_Message_Metadata{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_Message_Metadata: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 0)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_Message_Tools_Elem) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{160}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_Message_Tools_Elem) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_Message_Tools_Elem{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_Message_Tools_Elem: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 0)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChat_Message) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{176}); err != nil {
+		return err
+	}
+
+	// t.Id (string) (string)
+	if len("id") > 1000000 {
+		return xerrors.Errorf("Value in field \"id\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("id"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("id")); err != nil {
+		return err
+	}
+
+	if len(t.Id) > 1000000 {
+		return xerrors.Errorf("Value in field t.Id was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Id))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Id)); err != nil {
+		return err
+	}
+
+	// t.Role (string) (string)
+	if len("role") > 1000000 {
+		return xerrors.Errorf("Value in field \"role\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("role"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("role")); err != nil {
+		return err
+	}
+
+	if len(t.Role) > 1000000 {
+		return xerrors.Errorf("Value in field t.Role was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Role))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Role)); err != nil {
+		return err
+	}
+
+	// t.Text (string) (string)
+	if len("text") > 1000000 {
+		return xerrors.Errorf("Value in field \"text\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("text"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("text")); err != nil {
+		return err
+	}
+
+	if len(t.Text) > 1000000 {
+		return xerrors.Errorf("Value in field t.Text was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Text))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Text)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChat"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChat")); err != nil {
+		return err
+	}
+
+	// t.Error (vtri.ChatAiChat_ResponseError) (struct)
+	if len("error") > 1000000 {
+		return xerrors.Errorf("Value in field \"error\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("error"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("error")); err != nil {
+		return err
+	}
+
+	if err := t.Error.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.Tools ([]*vtri.ChatAiChat_Message_Tools_Elem) (slice)
+	if len("tools") > 1000000 {
+		return xerrors.Errorf("Value in field \"tools\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("tools"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("tools")); err != nil {
+		return err
+	}
+
+	if len(t.Tools) > 8192 {
+		return xerrors.Errorf("Slice value in field t.Tools was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajArray, uint64(len(t.Tools))); err != nil {
+		return err
+	}
+	for _, v := range t.Tools {
+		if err := v.MarshalCBOR(cw); err != nil {
+			return err
+		}
+
+	}
+
+	// t.Usage (vtri.ChatAiChat_ResponseUsage) (struct)
+	if len("usage") > 1000000 {
+		return xerrors.Errorf("Value in field \"usage\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("usage"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("usage")); err != nil {
+		return err
+	}
+
+	if err := t.Usage.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.Status (string) (string)
+	if len("status") > 1000000 {
+		return xerrors.Errorf("Value in field \"status\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("status"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("status")); err != nil {
+		return err
+	}
+
+	if len(t.Status) > 1000000 {
+		return xerrors.Errorf("Value in field t.Status was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Status))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Status)); err != nil {
+		return err
+	}
+
+	// t.UserId (string) (string)
+	if len("userId") > 1000000 {
+		return xerrors.Errorf("Value in field \"userId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("userId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("userId")); err != nil {
+		return err
+	}
+
+	if len(t.UserId) > 1000000 {
+		return xerrors.Errorf("Value in field t.UserId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.UserId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.UserId)); err != nil {
+		return err
+	}
+
+	// t.Metadata (vtri.ChatAiChat_Message_Metadata) (struct)
+	if len("metadata") > 1000000 {
+		return xerrors.Errorf("Value in field \"metadata\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("metadata"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("metadata")); err != nil {
+		return err
+	}
+
+	if err := t.Metadata.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.CreatedAt (int64) (int64)
+	if len("createdAt") > 1000000 {
+		return xerrors.Errorf("Value in field \"createdAt\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("createdAt"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("createdAt")); err != nil {
+		return err
+	}
+
+	if t.CreatedAt >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.CreatedAt)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.CreatedAt-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.MessageId (string) (string)
+	if len("messageId") > 1000000 {
+		return xerrors.Errorf("Value in field \"messageId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("messageId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("messageId")); err != nil {
+		return err
+	}
+
+	if len(t.MessageId) > 1000000 {
+		return xerrors.Errorf("Value in field t.MessageId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.MessageId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.MessageId)); err != nil {
+		return err
+	}
+
+	// t.UpdatedAt (int64) (int64)
+	if len("updatedAt") > 1000000 {
+		return xerrors.Errorf("Value in field \"updatedAt\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("updatedAt"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("updatedAt")); err != nil {
+		return err
+	}
+
+	if t.UpdatedAt >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.UpdatedAt)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.UpdatedAt-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.MessageItems ([]*vtri.ChatAiChat_OutputItem) (slice)
+	if len("messageItems") > 1000000 {
+		return xerrors.Errorf("Value in field \"messageItems\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("messageItems"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("messageItems")); err != nil {
+		return err
+	}
+
+	if len(t.MessageItems) > 8192 {
+		return xerrors.Errorf("Slice value in field t.MessageItems was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajArray, uint64(len(t.MessageItems))); err != nil {
+		return err
+	}
+	for _, v := range t.MessageItems {
+		if err := v.MarshalCBOR(cw); err != nil {
+			return err
+		}
+
+	}
+
+	// t.InterruptType (int64) (int64)
+	if len("interruptType") > 1000000 {
+		return xerrors.Errorf("Value in field \"interruptType\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("interruptType"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("interruptType")); err != nil {
+		return err
+	}
+
+	if t.InterruptType >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.InterruptType)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.InterruptType-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.IncompleteDetails (vtri.ChatAiChat_Message_IncompleteDetails) (struct)
+	if len("incompleteDetails") > 1000000 {
+		return xerrors.Errorf("Value in field \"incompleteDetails\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("incompleteDetails"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("incompleteDetails")); err != nil {
+		return err
+	}
+
+	if err := t.IncompleteDetails.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChat_Message) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChat_Message{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChat_Message: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 17)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Id (string) (string)
+		case "id":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Id = string(sval)
+			}
+			// t.Role (string) (string)
+		case "role":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Role = string(sval)
+			}
+			// t.Text (string) (string)
+		case "text":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Text = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Error (vtri.ChatAiChat_ResponseError) (struct)
+		case "error":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Error = new(ChatAiChat_ResponseError)
+					if err := t.Error.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Error pointer: %w", err)
+					}
+				}
+
+			}
+			// t.Tools ([]*vtri.ChatAiChat_Message_Tools_Elem) (slice)
+		case "tools":
+
+			maj, extra, err = cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+
+			if extra > 8192 {
+				return fmt.Errorf("t.Tools: array too large (%d)", extra)
+			}
+
+			if maj != cbg.MajArray {
+				return fmt.Errorf("expected cbor array")
+			}
+
+			if extra > 0 {
+				t.Tools = make([]*ChatAiChat_Message_Tools_Elem, extra)
+			}
+
+			for i := 0; i < int(extra); i++ {
+				{
+					var maj byte
+					var extra uint64
+					var err error
+					_ = maj
+					_ = extra
+					_ = err
+
+					{
+
+						b, err := cr.ReadByte()
+						if err != nil {
+							return err
+						}
+						if b != cbg.CborNull[0] {
+							if err := cr.UnreadByte(); err != nil {
+								return err
+							}
+							t.Tools[i] = new(ChatAiChat_Message_Tools_Elem)
+							if err := t.Tools[i].UnmarshalCBOR(cr); err != nil {
+								return xerrors.Errorf("unmarshaling t.Tools[i] pointer: %w", err)
+							}
+						}
+
+					}
+
+				}
+			}
+			// t.Usage (vtri.ChatAiChat_ResponseUsage) (struct)
+		case "usage":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Usage = new(ChatAiChat_ResponseUsage)
+					if err := t.Usage.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Usage pointer: %w", err)
+					}
+				}
+
+			}
+			// t.Status (string) (string)
+		case "status":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Status = string(sval)
+			}
+			// t.UserId (string) (string)
+		case "userId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.UserId = string(sval)
+			}
+			// t.Metadata (vtri.ChatAiChat_Message_Metadata) (struct)
+		case "metadata":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Metadata = new(ChatAiChat_Message_Metadata)
+					if err := t.Metadata.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Metadata pointer: %w", err)
+					}
+				}
+
+			}
+			// t.CreatedAt (int64) (int64)
+		case "createdAt":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.CreatedAt = int64(extraI)
+			}
+			// t.MessageId (string) (string)
+		case "messageId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.MessageId = string(sval)
+			}
+			// t.UpdatedAt (int64) (int64)
+		case "updatedAt":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.UpdatedAt = int64(extraI)
+			}
+			// t.MessageItems ([]*vtri.ChatAiChat_OutputItem) (slice)
+		case "messageItems":
+
+			maj, extra, err = cr.ReadHeader()
+			if err != nil {
+				return err
+			}
+
+			if extra > 8192 {
+				return fmt.Errorf("t.MessageItems: array too large (%d)", extra)
+			}
+
+			if maj != cbg.MajArray {
+				return fmt.Errorf("expected cbor array")
+			}
+
+			if extra > 0 {
+				t.MessageItems = make([]*ChatAiChat_OutputItem, extra)
+			}
+
+			for i := 0; i < int(extra); i++ {
+				{
+					var maj byte
+					var extra uint64
+					var err error
+					_ = maj
+					_ = extra
+					_ = err
+
+					{
+
+						b, err := cr.ReadByte()
+						if err != nil {
+							return err
+						}
+						if b != cbg.CborNull[0] {
+							if err := cr.UnreadByte(); err != nil {
+								return err
+							}
+							t.MessageItems[i] = new(ChatAiChat_OutputItem)
+							if err := t.MessageItems[i].UnmarshalCBOR(cr); err != nil {
+								return xerrors.Errorf("unmarshaling t.MessageItems[i] pointer: %w", err)
+							}
+						}
+
+					}
+
+				}
+			}
+			// t.InterruptType (int64) (int64)
+		case "interruptType":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.InterruptType = int64(extraI)
+			}
+			// t.IncompleteDetails (vtri.ChatAiChat_Message_IncompleteDetails) (struct)
+		case "incompleteDetails":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.IncompleteDetails = new(ChatAiChat_Message_IncompleteDetails)
+					if err := t.IncompleteDetails.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.IncompleteDetails pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_InterruptEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{161}); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#InterruptEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#InterruptEvent")); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChatStream_InterruptEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_InterruptEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_InterruptEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 5)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_CompletedEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{162}); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#CompletedEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#CompletedEvent")); err != nil {
+		return err
+	}
+
+	// t.Response (vtri.ChatAiChat_Message) (struct)
+	if len("response") > 1000000 {
+		return xerrors.Errorf("Value in field \"response\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("response"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("response")); err != nil {
+		return err
+	}
+
+	if err := t.Response.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChatStream_CompletedEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_CompletedEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_CompletedEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 8)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Response (vtri.ChatAiChat_Message) (struct)
+		case "response":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Response = new(ChatAiChat_Message)
+					if err := t.Response.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Response pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_ContentPartAddedEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{165}); err != nil {
+		return err
+	}
+
+	// t.Part (vtri.ChatAiChat_OutputContent) (struct)
+	if len("part") > 1000000 {
+		return xerrors.Errorf("Value in field \"part\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("part"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("part")); err != nil {
+		return err
+	}
+
+	if err := t.Part.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#ContentPartAddedEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#ContentPartAddedEvent")); err != nil {
+		return err
+	}
+
+	// t.ItemId (string) (string)
+	if len("itemId") > 1000000 {
+		return xerrors.Errorf("Value in field \"itemId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("itemId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("itemId")); err != nil {
+		return err
+	}
+
+	if len(t.ItemId) > 1000000 {
+		return xerrors.Errorf("Value in field t.ItemId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.ItemId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.ItemId)); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.ContentIndex (int64) (int64)
+	if len("contentIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"contentIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("contentIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("contentIndex")); err != nil {
+		return err
+	}
+
+	if t.ContentIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.ContentIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.ContentIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_ContentPartAddedEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_ContentPartAddedEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_ContentPartAddedEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 12)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Part (vtri.ChatAiChat_OutputContent) (struct)
+		case "part":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Part = new(ChatAiChat_OutputContent)
+					if err := t.Part.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Part pointer: %w", err)
+					}
+				}
+
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.ItemId (string) (string)
+		case "itemId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.ItemId = string(sval)
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+			// t.ContentIndex (int64) (int64)
+		case "contentIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.ContentIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_ContentPartDoneEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{165}); err != nil {
+		return err
+	}
+
+	// t.Part (vtri.ChatAiChat_OutputContent) (struct)
+	if len("part") > 1000000 {
+		return xerrors.Errorf("Value in field \"part\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("part"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("part")); err != nil {
+		return err
+	}
+
+	if err := t.Part.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#ContentPartDoneEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#ContentPartDoneEvent")); err != nil {
+		return err
+	}
+
+	// t.ItemId (string) (string)
+	if len("itemId") > 1000000 {
+		return xerrors.Errorf("Value in field \"itemId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("itemId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("itemId")); err != nil {
+		return err
+	}
+
+	if len(t.ItemId) > 1000000 {
+		return xerrors.Errorf("Value in field t.ItemId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.ItemId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.ItemId)); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.ContentIndex (int64) (int64)
+	if len("contentIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"contentIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("contentIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("contentIndex")); err != nil {
+		return err
+	}
+
+	if t.ContentIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.ContentIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.ContentIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_ContentPartDoneEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_ContentPartDoneEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_ContentPartDoneEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 12)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Part (vtri.ChatAiChat_OutputContent) (struct)
+		case "part":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Part = new(ChatAiChat_OutputContent)
+					if err := t.Part.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Part pointer: %w", err)
+					}
+				}
+
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.ItemId (string) (string)
+		case "itemId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.ItemId = string(sval)
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+			// t.ContentIndex (int64) (int64)
+		case "contentIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.ContentIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_CreatedEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{162}); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#CreatedEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#CreatedEvent")); err != nil {
+		return err
+	}
+
+	// t.Response (vtri.ChatAiChat_Message) (struct)
+	if len("response") > 1000000 {
+		return xerrors.Errorf("Value in field \"response\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("response"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("response")); err != nil {
+		return err
+	}
+
+	if err := t.Response.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChatStream_CreatedEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_CreatedEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_CreatedEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 8)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Response (vtri.ChatAiChat_Message) (struct)
+		case "response":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Response = new(ChatAiChat_Message)
+					if err := t.Response.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Response pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_ErrorEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{164}); err != nil {
+		return err
+	}
+
+	// t.Code (string) (string)
+	if len("code") > 1000000 {
+		return xerrors.Errorf("Value in field \"code\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("code"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("code")); err != nil {
+		return err
+	}
+
+	if t.Code == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		if len(*t.Code) > 1000000 {
+			return xerrors.Errorf("Value in field t.Code was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.Code))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string(*t.Code)); err != nil {
+			return err
+		}
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#ErrorEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#ErrorEvent")); err != nil {
+		return err
+	}
+
+	// t.Param (string) (string)
+	if len("param") > 1000000 {
+		return xerrors.Errorf("Value in field \"param\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("param"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("param")); err != nil {
+		return err
+	}
+
+	if t.Param == nil {
+		if _, err := cw.Write(cbg.CborNull); err != nil {
+			return err
+		}
+	} else {
+		if len(*t.Param) > 1000000 {
+			return xerrors.Errorf("Value in field t.Param was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(*t.Param))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string(*t.Param)); err != nil {
+			return err
+		}
+	}
+
+	// t.Message (string) (string)
+	if len("message") > 1000000 {
+		return xerrors.Errorf("Value in field \"message\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("message"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("message")); err != nil {
+		return err
+	}
+
+	if len(t.Message) > 1000000 {
+		return xerrors.Errorf("Value in field t.Message was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Message))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Message)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChatStream_ErrorEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_ErrorEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_ErrorEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 7)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Code (string) (string)
+		case "code":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.Code = (*string)(&sval)
+				}
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Param (string) (string)
+		case "param":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					sval, err := cbg.ReadStringWithMax(cr, 1000000)
+					if err != nil {
+						return err
+					}
+
+					t.Param = (*string)(&sval)
+				}
+			}
+			// t.Message (string) (string)
+		case "message":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Message = string(sval)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_InProgressEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{162}); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#InProgressEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#InProgressEvent")); err != nil {
+		return err
+	}
+
+	// t.Response (vtri.ChatAiChat_Message) (struct)
+	if len("response") > 1000000 {
+		return xerrors.Errorf("Value in field \"response\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("response"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("response")); err != nil {
+		return err
+	}
+
+	if err := t.Response.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChatStream_InProgressEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_InProgressEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_InProgressEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 8)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Response (vtri.ChatAiChat_Message) (struct)
+		case "response":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Response = new(ChatAiChat_Message)
+					if err := t.Response.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Response pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_FailedEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{162}); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#FailedEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#FailedEvent")); err != nil {
+		return err
+	}
+
+	// t.Response (vtri.ChatAiChat_Message) (struct)
+	if len("response") > 1000000 {
+		return xerrors.Errorf("Value in field \"response\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("response"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("response")); err != nil {
+		return err
+	}
+
+	if err := t.Response.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChatStream_FailedEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_FailedEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_FailedEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 8)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Response (vtri.ChatAiChat_Message) (struct)
+		case "response":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Response = new(ChatAiChat_Message)
+					if err := t.Response.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Response pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_IncompleteEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{162}); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#IncompleteEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#IncompleteEvent")); err != nil {
+		return err
+	}
+
+	// t.Response (vtri.ChatAiChat_Message) (struct)
+	if len("response") > 1000000 {
+		return xerrors.Errorf("Value in field \"response\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("response"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("response")); err != nil {
+		return err
+	}
+
+	if err := t.Response.MarshalCBOR(cw); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatAiChatStream_IncompleteEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_IncompleteEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_IncompleteEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 8)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Response (vtri.ChatAiChat_Message) (struct)
+		case "response":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Response = new(ChatAiChat_Message)
+					if err := t.Response.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Response pointer: %w", err)
+					}
+				}
+
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_OutputItemAddedEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{163}); err != nil {
+		return err
+	}
+
+	// t.Item (vtri.ChatAiChat_OutputItem) (struct)
+	if len("item") > 1000000 {
+		return xerrors.Errorf("Value in field \"item\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("item"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("item")); err != nil {
+		return err
+	}
+
+	if err := t.Item.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#OutputItemAddedEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#OutputItemAddedEvent")); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_OutputItemAddedEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_OutputItemAddedEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_OutputItemAddedEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 11)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Item (vtri.ChatAiChat_OutputItem) (struct)
+		case "item":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Item = new(ChatAiChat_OutputItem)
+					if err := t.Item.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Item pointer: %w", err)
+					}
+				}
+
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_OutputItemDoneEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{163}); err != nil {
+		return err
+	}
+
+	// t.Item (vtri.ChatAiChat_OutputItem) (struct)
+	if len("item") > 1000000 {
+		return xerrors.Errorf("Value in field \"item\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("item"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("item")); err != nil {
+		return err
+	}
+
+	if err := t.Item.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#OutputItemDoneEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#OutputItemDoneEvent")); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_OutputItemDoneEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_OutputItemDoneEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_OutputItemDoneEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 11)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Item (vtri.ChatAiChat_OutputItem) (struct)
+		case "item":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Item = new(ChatAiChat_OutputItem)
+					if err := t.Item.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Item pointer: %w", err)
+					}
+				}
+
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_ReasoningSummaryPartAddedEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{164}); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#ReasoningSummaryPartAddedEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#ReasoningSummaryPartAddedEvent")); err != nil {
+		return err
+	}
+
+	// t.ItemId (string) (string)
+	if len("itemId") > 1000000 {
+		return xerrors.Errorf("Value in field \"itemId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("itemId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("itemId")); err != nil {
+		return err
+	}
+
+	if len(t.ItemId) > 1000000 {
+		return xerrors.Errorf("Value in field t.ItemId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.ItemId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.ItemId)); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.ContentIndex (int64) (int64)
+	if len("contentIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"contentIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("contentIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("contentIndex")); err != nil {
+		return err
+	}
+
+	if t.ContentIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.ContentIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.ContentIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_ReasoningSummaryPartAddedEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_ReasoningSummaryPartAddedEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_ReasoningSummaryPartAddedEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 12)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.ItemId (string) (string)
+		case "itemId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.ItemId = string(sval)
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+			// t.ContentIndex (int64) (int64)
+		case "contentIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.ContentIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_ReasoningSummaryPartDoneEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{165}); err != nil {
+		return err
+	}
+
+	// t.Text (string) (string)
+	if len("text") > 1000000 {
+		return xerrors.Errorf("Value in field \"text\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("text"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("text")); err != nil {
+		return err
+	}
+
+	if len(t.Text) > 1000000 {
+		return xerrors.Errorf("Value in field t.Text was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Text))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Text)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#ReasoningSummaryPartDoneEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#ReasoningSummaryPartDoneEvent")); err != nil {
+		return err
+	}
+
+	// t.ItemId (string) (string)
+	if len("itemId") > 1000000 {
+		return xerrors.Errorf("Value in field \"itemId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("itemId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("itemId")); err != nil {
+		return err
+	}
+
+	if len(t.ItemId) > 1000000 {
+		return xerrors.Errorf("Value in field t.ItemId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.ItemId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.ItemId)); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.ContentIndex (int64) (int64)
+	if len("contentIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"contentIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("contentIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("contentIndex")); err != nil {
+		return err
+	}
+
+	if t.ContentIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.ContentIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.ContentIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_ReasoningSummaryPartDoneEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_ReasoningSummaryPartDoneEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_ReasoningSummaryPartDoneEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 12)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Text (string) (string)
+		case "text":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Text = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.ItemId (string) (string)
+		case "itemId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.ItemId = string(sval)
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+			// t.ContentIndex (int64) (int64)
+		case "contentIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.ContentIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_ReasoningSummaryTextDeltaEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{165}); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#ReasoningSummaryTextDeltaEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#ReasoningSummaryTextDeltaEvent")); err != nil {
+		return err
+	}
+
+	// t.Delta (string) (string)
+	if len("delta") > 1000000 {
+		return xerrors.Errorf("Value in field \"delta\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("delta"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("delta")); err != nil {
+		return err
+	}
+
+	if len(t.Delta) > 1000000 {
+		return xerrors.Errorf("Value in field t.Delta was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Delta))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Delta)); err != nil {
+		return err
+	}
+
+	// t.ItemId (string) (string)
+	if len("itemId") > 1000000 {
+		return xerrors.Errorf("Value in field \"itemId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("itemId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("itemId")); err != nil {
+		return err
+	}
+
+	if len(t.ItemId) > 1000000 {
+		return xerrors.Errorf("Value in field t.ItemId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.ItemId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.ItemId)); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.ContentIndex (int64) (int64)
+	if len("contentIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"contentIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("contentIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("contentIndex")); err != nil {
+		return err
+	}
+
+	if t.ContentIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.ContentIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.ContentIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_ReasoningSummaryTextDeltaEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_ReasoningSummaryTextDeltaEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_ReasoningSummaryTextDeltaEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 12)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Delta (string) (string)
+		case "delta":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Delta = string(sval)
+			}
+			// t.ItemId (string) (string)
+		case "itemId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.ItemId = string(sval)
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+			// t.ContentIndex (int64) (int64)
+		case "contentIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.ContentIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_ReasoningSummaryTextDoneEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{165}); err != nil {
+		return err
+	}
+
+	// t.Text (string) (string)
+	if len("text") > 1000000 {
+		return xerrors.Errorf("Value in field \"text\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("text"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("text")); err != nil {
+		return err
+	}
+
+	if len(t.Text) > 1000000 {
+		return xerrors.Errorf("Value in field t.Text was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Text))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Text)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#ReasoningSummaryTextDoneEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#ReasoningSummaryTextDoneEvent")); err != nil {
+		return err
+	}
+
+	// t.ItemId (string) (string)
+	if len("itemId") > 1000000 {
+		return xerrors.Errorf("Value in field \"itemId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("itemId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("itemId")); err != nil {
+		return err
+	}
+
+	if len(t.ItemId) > 1000000 {
+		return xerrors.Errorf("Value in field t.ItemId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.ItemId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.ItemId)); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.ContentIndex (int64) (int64)
+	if len("contentIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"contentIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("contentIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("contentIndex")); err != nil {
+		return err
+	}
+
+	if t.ContentIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.ContentIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.ContentIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_ReasoningSummaryTextDoneEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_ReasoningSummaryTextDoneEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_ReasoningSummaryTextDoneEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 12)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Text (string) (string)
+		case "text":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Text = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.ItemId (string) (string)
+		case "itemId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.ItemId = string(sval)
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+			// t.ContentIndex (int64) (int64)
+		case "contentIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.ContentIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_RefusalDeltaEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{165}); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#RefusalDeltaEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#RefusalDeltaEvent")); err != nil {
+		return err
+	}
+
+	// t.Delta (string) (string)
+	if len("delta") > 1000000 {
+		return xerrors.Errorf("Value in field \"delta\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("delta"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("delta")); err != nil {
+		return err
+	}
+
+	if len(t.Delta) > 1000000 {
+		return xerrors.Errorf("Value in field t.Delta was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Delta))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Delta)); err != nil {
+		return err
+	}
+
+	// t.ItemId (string) (string)
+	if len("itemId") > 1000000 {
+		return xerrors.Errorf("Value in field \"itemId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("itemId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("itemId")); err != nil {
+		return err
+	}
+
+	if len(t.ItemId) > 1000000 {
+		return xerrors.Errorf("Value in field t.ItemId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.ItemId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.ItemId)); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.ContentIndex (int64) (int64)
+	if len("contentIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"contentIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("contentIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("contentIndex")); err != nil {
+		return err
+	}
+
+	if t.ContentIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.ContentIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.ContentIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_RefusalDeltaEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_RefusalDeltaEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_RefusalDeltaEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 12)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Delta (string) (string)
+		case "delta":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Delta = string(sval)
+			}
+			// t.ItemId (string) (string)
+		case "itemId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.ItemId = string(sval)
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+			// t.ContentIndex (int64) (int64)
+		case "contentIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.ContentIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_RefusalDoneEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{165}); err != nil {
+		return err
+	}
+
+	// t.Text (string) (string)
+	if len("text") > 1000000 {
+		return xerrors.Errorf("Value in field \"text\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("text"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("text")); err != nil {
+		return err
+	}
+
+	if len(t.Text) > 1000000 {
+		return xerrors.Errorf("Value in field t.Text was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Text))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Text)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#RefusalDoneEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#RefusalDoneEvent")); err != nil {
+		return err
+	}
+
+	// t.ItemId (string) (string)
+	if len("itemId") > 1000000 {
+		return xerrors.Errorf("Value in field \"itemId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("itemId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("itemId")); err != nil {
+		return err
+	}
+
+	if len(t.ItemId) > 1000000 {
+		return xerrors.Errorf("Value in field t.ItemId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.ItemId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.ItemId)); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.ContentIndex (int64) (int64)
+	if len("contentIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"contentIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("contentIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("contentIndex")); err != nil {
+		return err
+	}
+
+	if t.ContentIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.ContentIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.ContentIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_RefusalDoneEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_RefusalDoneEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_RefusalDoneEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 12)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Text (string) (string)
+		case "text":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Text = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.ItemId (string) (string)
+		case "itemId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.ItemId = string(sval)
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+			// t.ContentIndex (int64) (int64)
+		case "contentIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.ContentIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_TextAnnotationDeltaEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{166}); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#TextAnnotationDeltaEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#TextAnnotationDeltaEvent")); err != nil {
+		return err
+	}
+
+	// t.ItemId (string) (string)
+	if len("itemId") > 1000000 {
+		return xerrors.Errorf("Value in field \"itemId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("itemId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("itemId")); err != nil {
+		return err
+	}
+
+	if len(t.ItemId) > 1000000 {
+		return xerrors.Errorf("Value in field t.ItemId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.ItemId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.ItemId)); err != nil {
+		return err
+	}
+
+	// t.Annotation (vtri.ChatAiChat_Annotation) (struct)
+	if len("annotation") > 1000000 {
+		return xerrors.Errorf("Value in field \"annotation\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("annotation"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("annotation")); err != nil {
+		return err
+	}
+
+	if err := t.Annotation.MarshalCBOR(cw); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.ContentIndex (int64) (int64)
+	if len("contentIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"contentIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("contentIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("contentIndex")); err != nil {
+		return err
+	}
+
+	if t.ContentIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.ContentIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.ContentIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.AnnotationIndex (int64) (int64)
+	if len("annotationIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"annotationIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("annotationIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("annotationIndex")); err != nil {
+		return err
+	}
+
+	if t.AnnotationIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.AnnotationIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.AnnotationIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_TextAnnotationDeltaEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_TextAnnotationDeltaEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_TextAnnotationDeltaEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 15)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.ItemId (string) (string)
+		case "itemId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.ItemId = string(sval)
+			}
+			// t.Annotation (vtri.ChatAiChat_Annotation) (struct)
+		case "annotation":
+
+			{
+
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+					t.Annotation = new(ChatAiChat_Annotation)
+					if err := t.Annotation.UnmarshalCBOR(cr); err != nil {
+						return xerrors.Errorf("unmarshaling t.Annotation pointer: %w", err)
+					}
+				}
+
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+			// t.ContentIndex (int64) (int64)
+		case "contentIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.ContentIndex = int64(extraI)
+			}
+			// t.AnnotationIndex (int64) (int64)
+		case "annotationIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.AnnotationIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_TextDeltaEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{165}); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#TextDeltaEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#TextDeltaEvent")); err != nil {
+		return err
+	}
+
+	// t.Delta (string) (string)
+	if len("delta") > 1000000 {
+		return xerrors.Errorf("Value in field \"delta\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("delta"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("delta")); err != nil {
+		return err
+	}
+
+	if len(t.Delta) > 1000000 {
+		return xerrors.Errorf("Value in field t.Delta was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Delta))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Delta)); err != nil {
+		return err
+	}
+
+	// t.ItemId (string) (string)
+	if len("itemId") > 1000000 {
+		return xerrors.Errorf("Value in field \"itemId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("itemId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("itemId")); err != nil {
+		return err
+	}
+
+	if len(t.ItemId) > 1000000 {
+		return xerrors.Errorf("Value in field t.ItemId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.ItemId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.ItemId)); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.ContentIndex (int64) (int64)
+	if len("contentIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"contentIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("contentIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("contentIndex")); err != nil {
+		return err
+	}
+
+	if t.ContentIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.ContentIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.ContentIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_TextDeltaEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_TextDeltaEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_TextDeltaEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 12)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Delta (string) (string)
+		case "delta":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Delta = string(sval)
+			}
+			// t.ItemId (string) (string)
+		case "itemId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.ItemId = string(sval)
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+			// t.ContentIndex (int64) (int64)
+		case "contentIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.ContentIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatAiChatStream_TextDoneEvent) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+
+	if _, err := cw.Write([]byte{165}); err != nil {
+		return err
+	}
+
+	// t.Text (string) (string)
+	if len("text") > 1000000 {
+		return xerrors.Errorf("Value in field \"text\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("text"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("text")); err != nil {
+		return err
+	}
+
+	if len(t.Text) > 1000000 {
+		return xerrors.Errorf("Value in field t.Text was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Text))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Text)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.aiChatStream#TextDoneEvent"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.aiChatStream#TextDoneEvent")); err != nil {
+		return err
+	}
+
+	// t.ItemId (string) (string)
+	if len("itemId") > 1000000 {
+		return xerrors.Errorf("Value in field \"itemId\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("itemId"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("itemId")); err != nil {
+		return err
+	}
+
+	if len(t.ItemId) > 1000000 {
+		return xerrors.Errorf("Value in field t.ItemId was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.ItemId))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.ItemId)); err != nil {
+		return err
+	}
+
+	// t.OutputIndex (int64) (int64)
+	if len("outputIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"outputIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("outputIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("outputIndex")); err != nil {
+		return err
+	}
+
+	if t.OutputIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.OutputIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.OutputIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	// t.ContentIndex (int64) (int64)
+	if len("contentIndex") > 1000000 {
+		return xerrors.Errorf("Value in field \"contentIndex\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("contentIndex"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("contentIndex")); err != nil {
+		return err
+	}
+
+	if t.ContentIndex >= 0 {
+		if err := cw.WriteMajorTypeHeader(cbg.MajUnsignedInt, uint64(t.ContentIndex)); err != nil {
+			return err
+		}
+	} else {
+		if err := cw.WriteMajorTypeHeader(cbg.MajNegativeInt, uint64(-t.ContentIndex-1)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *ChatAiChatStream_TextDoneEvent) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatAiChatStream_TextDoneEvent{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatAiChatStream_TextDoneEvent: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 12)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Text (string) (string)
+		case "text":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Text = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.ItemId (string) (string)
+		case "itemId":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.ItemId = string(sval)
+			}
+			// t.OutputIndex (int64) (int64)
+		case "outputIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.OutputIndex = int64(extraI)
+			}
+			// t.ContentIndex (int64) (int64)
+		case "contentIndex":
+			{
+				maj, extra, err := cr.ReadHeader()
+				if err != nil {
+					return err
+				}
+				var extraI int64
+				switch maj {
+				case cbg.MajUnsignedInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 positive overflow")
+					}
+				case cbg.MajNegativeInt:
+					extraI = int64(extra)
+					if extraI < 0 {
+						return fmt.Errorf("int64 negative overflow")
+					}
+					extraI = -1 - extraI
+				default:
+					return fmt.Errorf("wrong type for int64 field: %d", maj)
+				}
+
+				t.ContentIndex = int64(extraI)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatThread) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+	fieldCount := 7
+
+	if t.Deleted == nil {
+		fieldCount--
+	}
+
+	if _, err := cw.Write(cbg.CborEncodeMajorType(cbg.MajMap, uint64(fieldCount))); err != nil {
+		return err
+	}
+
+	// t.Id (string) (string)
+	if len("id") > 1000000 {
+		return xerrors.Errorf("Value in field \"id\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("id"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("id")); err != nil {
+		return err
+	}
+
+	if len(t.Id) > 1000000 {
+		return xerrors.Errorf("Value in field t.Id was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Id))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Id)); err != nil {
+		return err
+	}
+
+	// t.Type (string) (string)
+	if len("type") > 1000000 {
+		return xerrors.Errorf("Value in field \"type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("type")); err != nil {
+		return err
+	}
+
+	if len(t.Type) > 1000000 {
+		return xerrors.Errorf("Value in field t.Type was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Type))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Type)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.thread"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.thread")); err != nil {
+		return err
+	}
+
+	// t.Title (string) (string)
+	if len("title") > 1000000 {
+		return xerrors.Errorf("Value in field \"title\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("title"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("title")); err != nil {
+		return err
+	}
+
+	if len(t.Title) > 1000000 {
+		return xerrors.Errorf("Value in field t.Title was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Title))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Title)); err != nil {
+		return err
+	}
+
+	// t.Deleted (bool) (bool)
+	if t.Deleted != nil {
+
+		if len("deleted") > 1000000 {
+			return xerrors.Errorf("Value in field \"deleted\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("deleted"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("deleted")); err != nil {
+			return err
+		}
+
+		if t.Deleted == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if err := cbg.WriteBool(w, *t.Deleted); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.CreatedAt (string) (string)
+	if len("createdAt") > 1000000 {
+		return xerrors.Errorf("Value in field \"createdAt\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("createdAt"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("createdAt")); err != nil {
+		return err
+	}
+
+	if len(t.CreatedAt) > 1000000 {
+		return xerrors.Errorf("Value in field t.CreatedAt was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.CreatedAt))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.CreatedAt)); err != nil {
+		return err
+	}
+
+	// t.UpdatedAt (string) (string)
+	if len("updatedAt") > 1000000 {
+		return xerrors.Errorf("Value in field \"updatedAt\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("updatedAt"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("updatedAt")); err != nil {
+		return err
+	}
+
+	if len(t.UpdatedAt) > 1000000 {
+		return xerrors.Errorf("Value in field t.UpdatedAt was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.UpdatedAt))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.UpdatedAt)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatThread) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatThread{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatThread: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 9)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Id (string) (string)
+		case "id":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Id = string(sval)
+			}
+			// t.Type (string) (string)
+		case "type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Type = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Title (string) (string)
+		case "title":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Title = string(sval)
+			}
+			// t.Deleted (bool) (bool)
+		case "deleted":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					maj, extra, err = cr.ReadHeader()
+					if err != nil {
+						return err
+					}
+					if maj != cbg.MajOther {
+						return fmt.Errorf("booleans must be major type 7")
+					}
+
+					var val bool
+					switch extra {
+					case 20:
+						val = false
+					case 21:
+						val = true
+					default:
+						return fmt.Errorf("booleans are either major type 7, value 20 or 21 (got %d)", extra)
+					}
+					t.Deleted = &val
+				}
+			}
+			// t.CreatedAt (string) (string)
+		case "createdAt":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.CreatedAt = string(sval)
+			}
+			// t.UpdatedAt (string) (string)
+		case "updatedAt":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.UpdatedAt = string(sval)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+func (t *ChatRoom) MarshalCBOR(w io.Writer) error {
+	if t == nil {
+		_, err := w.Write(cbg.CborNull)
+		return err
+	}
+
+	cw := cbg.NewCborWriter(w)
+	fieldCount := 6
+
+	if t.Deleted == nil {
+		fieldCount--
+	}
+
+	if _, err := cw.Write(cbg.CborEncodeMajorType(cbg.MajMap, uint64(fieldCount))); err != nil {
+		return err
+	}
+
+	// t.Id (string) (string)
+	if len("id") > 1000000 {
+		return xerrors.Errorf("Value in field \"id\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("id"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("id")); err != nil {
+		return err
+	}
+
+	if len(t.Id) > 1000000 {
+		return xerrors.Errorf("Value in field t.Id was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Id))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Id)); err != nil {
+		return err
+	}
+
+	// t.LexiconTypeID (string) (string)
+	if len("$type") > 1000000 {
+		return xerrors.Errorf("Value in field \"$type\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("$type"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("$type")); err != nil {
+		return err
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("app.vtri.chat.room"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("app.vtri.chat.room")); err != nil {
+		return err
+	}
+
+	// t.Title (string) (string)
+	if len("title") > 1000000 {
+		return xerrors.Errorf("Value in field \"title\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("title"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("title")); err != nil {
+		return err
+	}
+
+	if len(t.Title) > 1000000 {
+		return xerrors.Errorf("Value in field t.Title was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.Title))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.Title)); err != nil {
+		return err
+	}
+
+	// t.Deleted (bool) (bool)
+	if t.Deleted != nil {
+
+		if len("deleted") > 1000000 {
+			return xerrors.Errorf("Value in field \"deleted\" was too long")
+		}
+
+		if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("deleted"))); err != nil {
+			return err
+		}
+		if _, err := cw.WriteString(string("deleted")); err != nil {
+			return err
+		}
+
+		if t.Deleted == nil {
+			if _, err := cw.Write(cbg.CborNull); err != nil {
+				return err
+			}
+		} else {
+			if err := cbg.WriteBool(w, *t.Deleted); err != nil {
+				return err
+			}
+		}
+	}
+
+	// t.CreatedAt (string) (string)
+	if len("createdAt") > 1000000 {
+		return xerrors.Errorf("Value in field \"createdAt\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("createdAt"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("createdAt")); err != nil {
+		return err
+	}
+
+	if len(t.CreatedAt) > 1000000 {
+		return xerrors.Errorf("Value in field t.CreatedAt was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.CreatedAt))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.CreatedAt)); err != nil {
+		return err
+	}
+
+	// t.UpdatedAt (string) (string)
+	if len("updatedAt") > 1000000 {
+		return xerrors.Errorf("Value in field \"updatedAt\" was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len("updatedAt"))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string("updatedAt")); err != nil {
+		return err
+	}
+
+	if len(t.UpdatedAt) > 1000000 {
+		return xerrors.Errorf("Value in field t.UpdatedAt was too long")
+	}
+
+	if err := cw.WriteMajorTypeHeader(cbg.MajTextString, uint64(len(t.UpdatedAt))); err != nil {
+		return err
+	}
+	if _, err := cw.WriteString(string(t.UpdatedAt)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ChatRoom) UnmarshalCBOR(r io.Reader) (err error) {
+	*t = ChatRoom{}
+
+	cr := cbg.NewCborReader(r)
+
+	maj, extra, err := cr.ReadHeader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
+
+	if maj != cbg.MajMap {
+		return fmt.Errorf("cbor input should be of type map")
+	}
+
+	if extra > cbg.MaxLength {
+		return fmt.Errorf("ChatRoom: map struct too large (%d)", extra)
+	}
+
+	n := extra
+
+	nameBuf := make([]byte, 9)
+	for i := uint64(0); i < n; i++ {
+		nameLen, ok, err := cbg.ReadFullStringIntoBuf(cr, nameBuf, 1000000)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(cr, func(cid.Cid) {}); err != nil {
+				return err
+			}
+			continue
+		}
+
+		switch string(nameBuf[:nameLen]) {
+		// t.Id (string) (string)
+		case "id":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Id = string(sval)
+			}
+			// t.LexiconTypeID (string) (string)
+		case "$type":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.LexiconTypeID = string(sval)
+			}
+			// t.Title (string) (string)
+		case "title":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.Title = string(sval)
+			}
+			// t.Deleted (bool) (bool)
+		case "deleted":
+
+			{
+				b, err := cr.ReadByte()
+				if err != nil {
+					return err
+				}
+				if b != cbg.CborNull[0] {
+					if err := cr.UnreadByte(); err != nil {
+						return err
+					}
+
+					maj, extra, err = cr.ReadHeader()
+					if err != nil {
+						return err
+					}
+					if maj != cbg.MajOther {
+						return fmt.Errorf("booleans must be major type 7")
+					}
+
+					var val bool
+					switch extra {
+					case 20:
+						val = false
+					case 21:
+						val = true
+					default:
+						return fmt.Errorf("booleans are either major type 7, value 20 or 21 (got %d)", extra)
+					}
+					t.Deleted = &val
+				}
+			}
+			// t.CreatedAt (string) (string)
+		case "createdAt":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.CreatedAt = string(sval)
+			}
+			// t.UpdatedAt (string) (string)
+		case "updatedAt":
+
+			{
+				sval, err := cbg.ReadStringWithMax(cr, 1000000)
+				if err != nil {
+					return err
+				}
+
+				t.UpdatedAt = string(sval)
+			}
+
+		default:
+			// Field doesn't exist on this type, so ignore it
+			if err := cbg.ScanForLinks(r, func(cid.Cid) {}); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}

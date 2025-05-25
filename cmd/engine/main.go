@@ -7,11 +7,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/urfave/cli/v2"
 	"github.com/zhongshangwu/avatarai-social/pkg/api"
-	"github.com/zhongshangwu/avatarai-social/pkg/avatarai"
 	"github.com/zhongshangwu/avatarai-social/pkg/config"
 	"github.com/zhongshangwu/avatarai-social/pkg/database"
 	"gorm.io/driver/mysql"
@@ -81,30 +79,11 @@ func runAvatarEngine(cctx *cli.Context) error {
 		return fmt.Errorf("初始化元数据存储失败: %w", err)
 	}
 
-	// 设置模型客户端
-	modelClient := createModelClient()
-
-	// 创建引擎配置
-	engineConfig := &avatarai.AvatarConfig{
-		APIKey:                cfg.Avatar.LLM.APIKey,
-		EndpointURL:           cfg.Avatar.LLM.APIURL,
-		Timeout:               cfg.Server.HTTP.ReadTimeout,
-		MaxConcurrentRequests: cfg.Database.MaxConnections, // 使用数据库最大连接数作为并发请求限制
-		Logger:                logger,
-		AdminToken:            cfg.Server.AdminKey,
-	}
-
-	// 创建头像引擎
-	avatarEngine, err := avatarai.NewAvatarEngine(db, modelClient, engineConfig)
-	if err != nil {
-		return fmt.Errorf("创建头像引擎失败: %w", err)
-	}
-
 	// 创建 API 服务器
 	apiServer := api.NewAvatarAIAPI(cfg, metaStore)
 
 	// 启动服务
-	engineErr := make(chan error, 1)
+	// engineErr := make(chan error, 1)
 	apiErr := make(chan error, 1)
 
 	// 启动引擎服务
@@ -127,17 +106,17 @@ func runAvatarEngine(cctx *cli.Context) error {
 	select {
 	case <-signals:
 		log.Info("收到关闭信号")
-		shutdownServices(avatarEngine)
-	case err := <-engineErr:
-		if err != nil {
-			log.Error("引擎服务错误", "err", err)
-		}
-		shutdownServices(avatarEngine)
+		// shutdownServices(avatarEngine)
+	// case err := <-engineErr:
+	// 	if err != nil {
+	// 		log.Error("引擎服务错误", "err", err)
+	// 	}
+	// shutdownServices(avatarEngine)
 	case err := <-apiErr:
 		if err != nil {
 			log.Error("API 服务器错误", "err", err)
 		}
-		shutdownServices(avatarEngine)
+		// shutdownServices(avatarEngine)
 	}
 
 	log.Info("关闭完成")
@@ -181,21 +160,21 @@ func setupDatabase(cfg config.DatabaseConfig) (*gorm.DB, error) {
 	return db, nil
 }
 
-func createModelClient() avatarai.ModelClient {
-	// 创建一个简单的模型客户端实现
-	// 实际实现应当根据配置创建合适的客户端
-	return &mockModelClient{}
-}
+// func createModelClient() avatarai.ModelClient {
+// 	// 创建一个简单的模型客户端实现
+// 	// 实际实现应当根据配置创建合适的客户端
+// 	return &mockModelClient{}
+// }
 
-// 关闭服务
-func shutdownServices(engine *avatarai.AvatarEngine) {
-	log.Info("正在关闭服务...")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := engine.Shutdown(ctx); err != nil {
-		log.Error("关闭 AvatarAI 引擎时出错", "err", err)
-	}
-}
+// // 关闭服务
+// func shutdownServices(engine *avatarai.AvatarEngine) {
+// 	log.Info("正在关闭服务...")
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+// 	if err := engine.Shutdown(ctx); err != nil {
+// 		log.Error("关闭 AvatarAI 引擎时出错", "err", err)
+// 	}
+// }
 
 // mock 实现模型客户端接口
 type mockModelClient struct{}

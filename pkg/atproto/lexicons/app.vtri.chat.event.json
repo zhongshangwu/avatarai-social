@@ -1,0 +1,138 @@
+{
+  "lexicon": 1,
+  "id": "app.vtri.chat.event",
+  "description": "聊天事件定义",
+  "defs": {
+    "main": {
+      "type": "object",
+      "description": "通用聊天事件定义",
+      "required": ["eventId", "eventType", "event"],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "description": "事件ID"
+        },
+        "eventType": {
+          "type": "string",
+          "description": "事件类型",
+          "enum": [
+            "send_msg",
+            "ai_chat.interrupt",
+            "ai_chat.completed",
+            "ai_chat.content_part.added",
+            "ai_chat.content_part.done",
+            "ai_chat.created",
+            "ai_chat.in_progress",
+            "ai_chat.failed",
+            "ai_chat.incomplete",
+            "ai_chat.output_item.added",
+            "ai_chat.output_item.done",
+            "ai_chat.reasoning_summary.part.added",
+            "ai_chat.reasoning_summary.part.done",
+            "ai_chat.reasoning_summary.text.delta",
+            "ai_chat.reasoning_summary.text.done",
+            "ai_chat.refusal.delta",
+            "ai_chat.refusal.done",
+            "ai_chat.output_text.annotation.added",
+            "ai_chat.output_text.delta",
+            "ai_chat.output_text.done"
+          ]
+        },
+        "event": {
+          "type": "union",
+          "refs": [
+            "#sendMsgEvent",
+            "app.vtri.chat.aiChatStream#InterruptEvent",
+            "app.vtri.chat.aiChatStream#CompletedEvent",
+            "app.vtri.chat.aiChatStream#ContentPartAddedEvent",
+            "app.vtri.chat.aiChatStream#ContentPartDoneEvent",
+            "app.vtri.chat.aiChatStream#CreatedEvent",
+            "app.vtri.chat.aiChatStream#ErrorEvent",
+            "app.vtri.chat.aiChatStream#InProgressEvent",
+            "app.vtri.chat.aiChatStream#FailedEvent",
+            "app.vtri.chat.aiChatStream#IncompleteEvent",
+            "app.vtri.chat.aiChatStream#OutputItemAddedEvent",
+            "app.vtri.chat.aiChatStream#OutputItemDoneEvent",
+            "app.vtri.chat.aiChatStream#ReasoningSummaryPartAddedEvent",
+            "app.vtri.chat.aiChatStream#ReasoningSummaryPartDoneEvent",
+            "app.vtri.chat.aiChatStream#ReasoningSummaryTextDeltaEvent",
+            "app.vtri.chat.aiChatStream#ReasoningSummaryTextDoneEvent",
+            "app.vtri.chat.aiChatStream#RefusalDeltaEvent",
+            "app.vtri.chat.aiChatStream#RefusalDoneEvent",
+            "app.vtri.chat.aiChatStream#TextAnnotationDeltaEvent",
+            "app.vtri.chat.aiChatStream#TextDeltaEvent",
+            "app.vtri.chat.aiChatStream#TextDoneEvent"
+          ]
+        }
+      }
+    },
+    "sendMsgEvent": {
+      "type": "object",
+      "description": "发送消息事件",
+      "required": ["roomId", "msgType", "body", "senderId"],
+      "properties": {
+        "roomId": {
+          "type": "string",
+          "description": "房间ID"
+        },
+        "msgType": {
+          "type": "integer",
+          "description": "消息类型"
+        },
+        "body": {
+          "type": "union",
+          "description": "消息体",
+          "refs": [
+            "#textMsg",
+            "#aiChatMsg"
+          ]
+        },
+        "senderId": {
+          "type": "string",
+          "description": "发送者ID"
+        },
+        "threadId": {
+          "type": "string",
+          "description": "话题ID"
+        },
+        "quoteId": {
+          "type": "string",
+          "description": "引用ID"
+        },
+        "senderAt": {
+          "type": "string",
+          "description": "发送时间"
+        }
+      }
+    },
+    "textMsg": {
+      "type": "object",
+      "description": "文本消息体",
+      "required": ["text"],
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "文本消息内容"
+        }
+      }
+    },
+    "aiChatMsg": {
+      "type": "object",
+      "description": "AI聊天消息体",
+      "required": ["role", "content"],
+      "properties": {
+        "role": { "type": "string" },
+        "content": {
+          "type": "array",
+          "items": {
+            "type": "union",
+            "refs": [
+              "app.vtri.chat.aiChat#InputMessage",
+              "app.vtri.chat.aiChat#FunctionToolCall"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

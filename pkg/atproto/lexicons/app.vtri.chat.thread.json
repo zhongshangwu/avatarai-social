@@ -1,0 +1,48 @@
+{
+  "lexicon": 1,
+  "id": "app.vtri.chat.thread",
+  "description": "聊天话题/主题定义",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "话题/主题信息",
+      "key": "any",
+      "record": {
+        "type": "object",
+        "required": ["id", "title", "type", "createdAt", "updatedAt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "话题ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "话题标题",
+            "maxGraphemes": 256,
+            "maxLength": 2560
+          },
+          "type": {
+            "type": "string",
+            "description": "话题类型: 连续上下文/独立上下文",
+            "enum": ["continuous", "independent"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "创建时间"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "更新时间"
+          },
+          "deleted": {
+            "type": "boolean",
+            "default": false,
+            "description": "是否被删除"
+          }
+        }
+      }
+    }
+  }
+}

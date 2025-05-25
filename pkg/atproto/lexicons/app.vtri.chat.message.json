@@ -1,63 +1,84 @@
 {
-    "lexicon": 1,
-    "id": "app.vtri.chat.message",
-    "defs": {
-      "main": {
-        "type": "record",
-        "description": "Record containing a vtri moment.",
-        "key": "tid",
-        "record": {
-          "type": "object",
-          "required": ["text", "createdAt"],
-          "properties": {
-            "text": {
-              "type": "string",
-              "maxLength": 3000,
-              "maxGraphemes": 300,
-              "description": "The primary post content. May be an empty string, if there are embeds."
-            },
-            "facets": {
-              "type": "array",
-              "description": "Annotations of text (mentions, URLs, hashtags, etc)",
-              "items": { "type": "ref", "ref": "app.bsky.richtext.facet" }
-            },
-            "reply": { "type": "ref", "ref": "#replyRef" },
-            "embed": {
-              "type": "union",
-              "refs": [
-                "app.vtri.entity.images",
-                "app.vtri.entity.video",
-                "app.vtri.entity.external",
-                "app.vtri.entity.record"
-              ]
-            },
-            "langs": {
-              "type": "array",
-              "description": "Indicates human language of post primary text content.",
-              "maxLength": 3,
-              "items": { "type": "string", "format": "language" }
-            },
-            "tags": {
-              "type": "array",
-              "description": "Additional hashtags, in addition to any included in post text and facets.",
-              "maxLength": 8,
-              "items": { "type": "string", "maxLength": 640, "maxGraphemes": 64 }
-            },
-            "createdAt": {
-              "type": "string",
-              "format": "datetime",
-              "description": "Client-declared timestamp when this post was originally created."
-            }
-          }
-        }
-      },
-      "replyRef": {
+  "lexicon": 1,
+  "id": "app.vtri.chat.message",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "定义聊天消息的记录结构，包含消息的所有必要信息和元数据",
+      "key": "tid",
+      "record": {
         "type": "object",
-        "required": ["root", "parent"],
+        "required": ["id", "roomId", "msgType", "content", "senderId", "senderAt", "createdAt", "updatedAt"],
         "properties": {
-          "root": { "type": "ref", "ref": "com.atproto.repo.strongRef" },
-          "parent": { "type": "ref", "ref": "com.atproto.repo.strongRef" }
+          "id": {
+            "type": "string",
+            "description": "消息的唯一标识符，用于引用和检索特定消息"
+          },
+          "roomId": {
+            "type": "string",
+            "description": "消息所属聊天室的唯一标识符，表示消息的发送位置"
+          },
+          "rootId": {
+            "type": "string",
+            "description": "对于嵌套回复，指向最顶层消息的ID，用于构建完整的消息树结构"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "直接被回复消息的ID，用于建立消息之间的直接回复关系"
+          },
+          "msgType": {
+            "type": "integer",
+            "description": "消息的类型标识，决定如何解析和显示消息内容",
+            "knownValues": {
+              "unspecified": 0,
+              "text": 1,
+              "post": 2,
+              "image": 3,
+              "file": 4,
+              "audio": 5,
+              "video": 6,
+              "sticker": 7,
+              "card": 8,
+              "aiChat": 9,
+              "system": 10,
+              "delete": 11,
+              "rtc": 12
+            }
+          },
+          "content": {
+            "type": "string",
+            "description": "消息的实际内容，以JSON字符串格式存储，根据msgType不同有不同的结构"
+          },
+          "senderId": {
+            "type": "string",
+            "description": "消息发送者的唯一标识符，用于关联用户信息和权限验证"
+          },
+          "threadId": {
+            "type": "string",
+            "description": "消息所属的话题或线程ID，用于组织相关消息"
+          },
+          "quoteId": {
+            "type": "string",
+            "description": "被引用消息的ID，用于实现消息引用功能"
+          },
+          "senderAt": {
+            "type": "integer",
+            "description": "消息发送的时间戳（毫秒级Unix时间戳），表示用户实际发送的时间"
+          },
+          "createdAt": {
+            "type": "integer",
+            "description": "消息创建的时间戳（毫秒级Unix时间戳），表示系统记录的创建时间"
+          },
+          "updatedAt": {
+            "type": "integer",
+            "description": "消息最后更新的时间戳（毫秒级Unix时间戳），用于跟踪消息的修改历史"
+          },
+          "deleted": {
+            "type": "boolean",
+            "description": "标记消息是否已被撤回或删除，影响消息的显示状态"
+          }
         }
       }
     }
   }
+}

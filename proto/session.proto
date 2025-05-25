@@ -1,0 +1,103 @@
+
+syntax = "proto3";
+package step.heimdall.realtimeagent;
+
+option go_package = "gitlab.basemind.com/proto/heimdall/realtimeagent";
+
+import "realtime_events.proto";
+import "conversation.proto";
+
+enum TurnDetectionType {
+  TURN_DETECTION_TYPE_UNSPECIFIED = 0;
+  TURN_DETECTION_TYPE_SERVER_VAD = 1;
+}
+
+message OmniTurnDetection {
+  TurnDetectionType type = 1;
+}
+
+enum Modality {
+  MODZLITY_UNSPECIFIED = 0;
+  MODZLITY_AUDIO = 1;
+  MODZLITY_TEXT = 2;
+}
+
+enum BuiltInTool {
+  BUILT_IN_TOOL_UNSPECIFIED = 0;
+  BUILT_IN_TOOL_WEB_SEARCH = 1;
+  BUILT_IN_TOOL_RETRIEVAL_SEARCH = 2;
+  BUILT_IN_TOOL_HANG_UP = 3;
+}
+
+message VoiceClone {
+  string audio = 1;
+  string text = 2;
+}
+
+message ToolCallConfig {
+  message RetrievalSearch {
+    message VectorStore {
+      string id = 1;
+      string description = 2;
+    }
+    repeated VectorStore vector_stores = 1;
+    string uid = 2;
+    string token = 3;
+  }
+  RetrievalSearch retrieval_search = 1;
+}
+
+message FunctionToolSchema {
+  string name = 1;
+  string description = 2;
+  string parameters = 3; // Json Schema的序列化后结果
+  /*
+  parameters example
+  {
+    "type": "object",
+      "properties": {
+        "location": {
+          "type": "string",
+          "description": "The city and state, e.g. San Francisco, CA"
+        },
+        "unit": {
+          "type": "string",
+          "enum": ["celsius", "fahrenheit"]
+        }
+      },
+      "required": ["location"]
+    }
+  */
+}
+
+message TranscriptOutputControl {
+  int32 speed = 1;
+  int32 start_delay_ms = 2; // transcript开始输出时间相比audio慢N毫秒
+  int32 end_delay_ms = 3; // transcript结束时间相比audio慢N毫秒
+}
+
+message Session {
+  repeated Modality modalities = 1;
+  string instructions = 2;
+  string voice = 3;
+  float temperature = 4;
+
+  // max_response_output_tokens 如果为0表示受所选模型默认配置限制
+  int32 max_response_output_tokens = 5;
+  VoiceClone voice_clone = 6;
+  repeated BuiltInTool built_in_tools = 7;
+  OmniTurnDetection turn_detection = 8;
+  ToolCallConfig tool_call = 9;
+  TranscriptOutputControl transcript_output_control = 10;
+  double volume_ratio = 11;
+
+  repeated FunctionToolSchema tools = 20;
+
+  repeated ConversationItem history = 98;
+  SessionInternalExtra inter_extra = 99;
+
+  // 对比 openai 接口暂不支持字段
+  // tools/tool_choice 暂时不支持外部tools
+  // input_audio_transcription
+
+}

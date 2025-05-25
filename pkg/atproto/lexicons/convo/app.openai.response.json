@@ -1,0 +1,379 @@
+{
+  "lexicon": 1,
+  "id": "com.openai.response",
+  "description": "OpenAI响应API的结构定义",
+  "defs": {
+    "OutputAudio": {
+      "type": "object",
+      "description": "模型的音频输出。",
+      "required": ["type", "data", "transcript"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "输出音频的类型。始终为`output_audio`。",
+          "enum": ["output_audio"],
+          "const": true
+        },
+        "data": {
+          "type": "string",
+          "description": "模型的Base64编码音频数据。"
+        },
+        "transcript": {
+          "type": "string",
+          "description": "模型音频数据的转录内容。"
+        }
+      }
+    },
+
+    "OutputContent": {
+      "type": "union",
+      "description": "输出内容，可以是文本或拒绝响应。",
+      "refs": ["#OutputTextContent", "#RefusalContent"]
+    },
+
+    "OutputItem": {
+      "type": "union",
+      "description": "输出项，可以是消息、工具调用或推理项。",
+      "refs": ["#OutputMessage", "#FileSearchToolCall", "#FunctionToolCall", "#WebSearchToolCall", "#ComputerToolCall", "#ReasoningItem"]
+    },
+
+    "OutputMessage": {
+      "type": "object",
+      "description": "模型的输出消息。",
+      "required": ["id", "type", "role", "content", "status"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "输出消息的唯一ID。"
+        },
+        "type": {
+          "type": "string",
+          "description": "输出消息的类型。始终为`message`。",
+          "enum": ["message"],
+          "const": true
+        },
+        "role": {
+          "type": "string",
+          "description": "输出消息的角色。始终为`assistant`。",
+          "enum": ["assistant"],
+          "const": true
+        },
+        "content": {
+          "type": "array",
+          "description": "输出消息的内容。",
+          "items": {
+            "type": "ref",
+            "ref": "#OutputContent"
+          }
+        },
+        "status": {
+          "type": "string",
+          "description": "消息状态。可以是`in_progress`、`completed`或`incomplete`之一。",
+          "enum": ["in_progress", "completed", "incomplete"]
+        }
+      }
+    },
+
+    "ParallelToolCalls": {
+      "type": "boolean",
+      "description": "是否在工具使用期间启用并行函数调用。",
+      "default": true
+    },
+
+    "OutputTextContent": {
+      "type": "object",
+      "description": "模型的文本输出。",
+      "required": ["type", "text", "annotations"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "输出文本的类型。始终为`output_text`。",
+          "enum": ["output_text"],
+          "const": true
+        },
+        "text": {
+          "type": "string",
+          "description": "模型的文本输出。"
+        },
+        "annotations": {
+          "type": "array",
+          "description": "文本输出的注释。",
+          "items": {
+            "type": "ref",
+            "ref": "#Annotation"
+          }
+        }
+      }
+    },
+
+    "RefusalContent": {
+      "type": "object",
+      "description": "模型的拒绝响应。",
+      "required": ["type", "refusal"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "拒绝响应的类型。始终为`refusal`。",
+          "enum": ["refusal"],
+          "const": true
+        },
+        "refusal": {
+          "type": "string",
+          "description": "模型的拒绝解释。"
+        }
+      }
+    },
+
+    "Annotation": {
+      "type": "union",
+      "description": "注释，可以是文件引用、URL引用或文件路径。",
+      "refs": ["#FileCitationBody", "#UrlCitationBody", "#FilePath"]
+    },
+
+    "FileCitationBody": {
+      "type": "object",
+      "description": "文件引用。",
+      "required": ["type", "file_id", "index"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "文件引用的类型。始终为`file_citation`。",
+          "enum": ["file_citation"],
+          "const": true
+        },
+        "file_id": {
+          "type": "string",
+          "description": "文件的ID。"
+        },
+        "index": {
+          "type": "integer",
+          "description": "文件在文件列表中的索引。"
+        }
+      }
+    },
+
+    "UrlCitationBody": {
+      "type": "object",
+      "description": "用于生成模型响应的Web资源引用。",
+      "required": ["type", "url", "start_index", "end_index", "title"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "URL引用的类型。始终为`url_citation`。",
+          "enum": ["url_citation"],
+          "const": true
+        },
+        "url": {
+          "type": "string",
+          "description": "Web资源的URL。"
+        },
+        "start_index": {
+          "type": "integer",
+          "description": "URL引用在消息中的第一个字符的索引。"
+        },
+        "end_index": {
+          "type": "integer",
+          "description": "URL引用在消息中的最后一个字符的索引。"
+        },
+        "title": {
+          "type": "string",
+          "description": "Web资源的标题。"
+        }
+      }
+    },
+
+    "FilePath": {
+      "type": "object",
+      "description": "文件路径引用。",
+      "required": ["type", "path"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "文件路径的类型。始终为`file_path`。",
+          "enum": ["file_path"],
+          "const": true
+        },
+        "path": {
+          "type": "string",
+          "description": "文件的路径。"
+        }
+      }
+    },
+
+    "FunctionToolCall": {
+      "type": "object",
+      "description": "运行函数的工具调用。",
+      "required": ["type", "call_id", "name", "arguments"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "函数工具调用的唯一ID。"
+        },
+        "type": {
+          "type": "string",
+          "description": "函数工具调用的类型。始终为`function_call`。",
+          "enum": ["function_call"],
+          "const": true
+        },
+        "call_id": {
+          "type": "string",
+          "description": "由模型生成的函数工具调用的唯一ID。"
+        },
+        "name": {
+          "type": "string",
+          "description": "要运行的函数的名称。"
+        },
+        "arguments": {
+          "type": "string",
+          "description": "传递给函数的参数的JSON字符串。"
+        },
+        "status": {
+          "type": "string",
+          "description": "项目的状态。可以是`in_progress`、`completed`或`incomplete`之一。",
+          "enum": ["in_progress", "completed", "incomplete"]
+        }
+      }
+    },
+
+    "FunctionToolCallOutput": {
+      "type": "object",
+      "description": "函数工具调用的输出。",
+      "required": ["type", "call_id", "output"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "函数工具调用输出的唯一ID。"
+        },
+        "type": {
+          "type": "string",
+          "description": "函数工具调用输出的类型。始终为`function_call_output`。",
+          "enum": ["function_call_output"],
+          "const": true
+        },
+        "call_id": {
+          "type": "string",
+          "description": "由模型生成的函数工具调用的唯一ID。"
+        },
+        "output": {
+          "type": "string",
+          "description": "函数工具调用输出的JSON字符串。"
+        },
+        "status": {
+          "type": "string",
+          "description": "项目的状态。可以是`in_progress`、`completed`或`incomplete`之一。",
+          "enum": ["in_progress", "completed", "incomplete"]
+        }
+      }
+    },
+
+    "InputMessage": {
+      "type": "object",
+      "description": "具有指示层次结构角色的模型输入消息。`developer`或`system`角色的指令优先于`user`角色的指令。",
+      "required": ["role", "content"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "消息输入的类型。始终设置为`message`。",
+          "enum": ["message"],
+          "const": true
+        },
+        "role": {
+          "type": "string",
+          "description": "消息输入的角色。可以是`user`、`system`或`developer`之一。",
+          "enum": ["user", "system", "developer"]
+        },
+        "status": {
+          "type": "string",
+          "description": "项目的状态。可以是`in_progress`、`completed`或`incomplete`之一。",
+          "enum": ["in_progress", "completed", "incomplete"]
+        },
+        "content": {
+          "type": "ref",
+          "ref": "#InputMessageContentList"
+        }
+      }
+    },
+
+    "InputMessageContentList": {
+      "type": "array",
+      "description": "模型的一个或多个输入项列表，包含不同的内容类型。",
+      "items": {
+        "type": "ref",
+        "ref": "#InputContent"
+      }
+    },
+
+    "InputContent": {
+      "type": "union",
+      "description": "输入内容，可以是文本、图像或文件。",
+      "refs": ["#InputTextContent", "#InputImageContent", "#InputFileContent"]
+    },
+
+    "InputTextContent": {
+      "type": "object",
+      "description": "模型的文本输入。",
+      "required": ["type", "text"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "输入项的类型。始终为`input_text`。",
+          "enum": ["input_text"],
+          "const": true
+        },
+        "text": {
+          "type": "string",
+          "description": "模型的文本输入。"
+        }
+      }
+    },
+
+    "InputImageContent": {
+      "type": "object",
+      "description": "模型的图像输入。",
+      "required": ["type", "detail"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "输入项的类型。始终为`input_image`。",
+          "enum": ["input_image"],
+          "const": true
+        },
+        "image_url": {
+          "type": "union",
+          "description": "要发送到模型的图像的URL。完全限定的URL或数据URL中的base64编码图像。",
+          "refs": ["string", "null"]
+        },
+        "file_id": {
+          "type": "union",
+          "description": "要发送到模型的文件的ID。",
+          "refs": ["string", "null"]
+        },
+        "detail": {
+          "type": "string",
+          "description": "要发送到模型的图像的细节级别。可以是`high`、`low`或`auto`之一。默认为`auto`。",
+          "enum": ["low", "high", "auto"]
+        }
+      }
+    },
+
+    "InputFileContent": {
+      "type": "object",
+      "description": "模型的文件输入。",
+      "required": ["type", "file_id"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "输入项的类型。始终为`input_file`。",
+          "enum": ["input_file"],
+          "const": true
+        },
+        "file_id": {
+          "type": "string",
+          "description": "要发送到模型的文件的ID。"
+        }
+      }
+    }
+  }
+}
+
+

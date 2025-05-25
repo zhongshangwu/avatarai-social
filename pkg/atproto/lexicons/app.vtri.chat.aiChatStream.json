@@ -1,0 +1,381 @@
+{
+  "lexicon": 1,
+  "id": "app.vtri.chat.aiChatStream",
+  "description": "Events emitted during ai chat response streaming",
+  "defs": {
+    "InterruptEvent": {
+      "type": "object",
+      "description": "AI聊天中断事件",
+      "properties": {
+      }
+    },
+    "CompletedEvent": {
+      "type": "object",
+      "description": "Emitted when the model response is complete",
+      "required": ["response"],
+      "properties": {
+        "response": {
+          "type": "ref",
+          "ref": "app.vtri.chat.aiChat#Message",
+          "description": "Properties of the completed response"
+        }
+      }
+    },
+    "ContentPartAddedEvent": {
+      "type": "object",
+      "description": "Emitted when a new content part is added",
+      "required": ["itemId", "outputIndex", "contentIndex", "part"],
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "description": "The ID of the output item that the content part was added to"
+        },
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that the content part was added to"
+        },
+        "contentIndex": {
+          "type": "integer",
+          "description": "The index of the content part that was added"
+        },
+        "part": {
+          "type": "ref",
+          "ref": "app.vtri.chat.aiChat#OutputContent",
+          "description": "The content part that was added"
+        }
+      }
+    },
+    "ContentPartDoneEvent": {
+      "type": "object",
+      "description": "Emitted when a content part is done",
+      "required": ["itemId", "outputIndex", "contentIndex", "part"],
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "description": "The ID of the output item that the content part was added to"
+        },
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that the content part was added to"
+        },
+        "contentIndex": {
+          "type": "integer",
+          "description": "The index of the content part that is done"
+        },
+        "part": {
+          "type": "ref",
+          "ref": "app.vtri.chat.aiChat#OutputContent",
+          "description": "The content part that is done"
+        }
+      }
+    },
+    "CreatedEvent": {
+      "type": "object",
+      "description": "Emitted when a response is created",
+      "required": ["response"],
+      "properties": {
+        "response": {
+          "type": "ref",
+          "ref": "app.vtri.chat.aiChat#Message",
+          "description": "The response that was created"
+        }
+      }
+    },
+    "ErrorEvent": {
+      "type": "object",
+      "description": "Emitted when an error occurs",
+      "required": ["code", "message", "param"],
+      "nullable": ["code", "param"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The error code"
+        },
+        "message": {
+          "type": "string",
+          "description": "The error message"
+        },
+        "param": {
+          "type": "string",
+          "description": "The error parameter"
+        }
+      }
+    },
+    "InProgressEvent": {
+      "type": "object",
+      "description": "Emitted when the response is in progress",
+      "required": ["response"],
+      "properties": {
+        "response": {
+          "type": "ref",
+          "ref": "app.vtri.chat.aiChat#Message",
+          "description": "The response that is in progress"
+        }
+      }
+    },
+    "FailedEvent": {
+      "type": "object",
+      "description": "An event that is emitted when a response fails",
+      "required": ["response"],
+      "properties": {
+        "response": {
+          "type": "ref",
+          "ref": "app.vtri.chat.aiChat#Message",
+          "description": "The response that failed"
+        }
+      }
+    },
+    "IncompleteEvent": {
+      "type": "object",
+      "description": "An event that is emitted when a response finishes as incomplete",
+      "required": ["response"],
+      "properties": {
+        "response": {
+          "type": "ref",
+          "ref": "app.vtri.chat.aiChat#Message",
+          "description": "The response that was incomplete"
+        }
+      }
+    },
+    "OutputItemAddedEvent": {
+      "type": "object",
+      "description": "Emitted when a new output item is added",
+      "required": ["outputIndex", "item"],
+      "properties": {
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that was added"
+        },
+        "item": {
+          "type": "ref",
+          "ref": "app.vtri.chat.aiChat#OutputItem",
+          "description": "The output item that was added"
+        }
+      }
+    },
+    "OutputItemDoneEvent": {
+      "type": "object",
+      "description": "Emitted when an output item is marked done",
+      "required": ["outputIndex", "item"],
+      "properties": {
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that was marked done"
+        },
+        "item": {
+          "type": "ref",
+          "ref": "app.vtri.chat.aiChat#OutputItem",
+          "description": "The output item that was marked done"
+        }
+      }
+  },
+    "ReasoningSummaryPartAddedEvent": {
+      "type": "object",
+      "description": "Emitted when a reasoning summary part is added",
+      "required": ["itemId", "outputIndex", "contentIndex"],
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "description": "The ID of the output item that the reasoning summary part was added to"
+        },
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that the reasoning summary part was added to"
+        },
+        "contentIndex": {
+          "type": "integer",
+          "description": "The index of the content part that the reasoning summary part was added to"
+        }
+      }
+    },
+    "ReasoningSummaryPartDoneEvent": {
+      "type": "object",
+      "description": "Emitted when a reasoning summary part is done",
+      "required": ["itemId", "outputIndex", "contentIndex", "text"],
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "description": "The ID of the output item that the reasoning summary part was added to"
+        },
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that the reasoning summary part was added to"
+        },
+        "contentIndex": {
+          "type": "integer",
+          "description": "The index of the content part that the reasoning summary part was added to"
+        },
+        "text": {
+          "type": "string",
+          "description": "The text of the reasoning summary part"
+        }
+      }
+    },
+    "ReasoningSummaryTextDeltaEvent": {
+      "type": "object",
+      "description": "Emitted when there is a delta in the reasoning summary text",
+      "required": ["itemId", "outputIndex", "contentIndex", "delta"],
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "description": "The ID of the output item that the reasoning summary text delta was added to"
+        },
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that the reasoning summary text delta was added to"
+        },
+        "contentIndex": {
+          "type": "integer",
+          "description": "The index of the content part that the reasoning summary text delta was added to"
+        },
+        "delta": {
+          "type": "string",
+          "description": "The delta text that was added to the reasoning summary"
+        }
+      }
+    },
+    "ReasoningSummaryTextDoneEvent": {
+      "type": "object",
+      "description": "Emitted when the reasoning summary text is done",
+      "required": ["itemId", "outputIndex", "contentIndex", "text"],
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "description": "The ID of the output item that the reasoning summary text was added to"
+        },
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that the reasoning summary text was added to"
+        },
+        "contentIndex": {
+          "type": "integer",
+          "description": "The index of the content part that the reasoning summary text was added to"
+        },
+        "text": {
+          "type": "string",
+          "description": "The complete reasoning summary text"
+        }
+      }
+    },
+    "RefusalDeltaEvent": {
+      "type": "object",
+      "description": "Emitted when there is a delta in the refusal text",
+      "required": ["itemId", "outputIndex", "contentIndex", "delta"],
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "description": "The ID of the output item that the refusal delta was added to"
+        },
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that the refusal delta was added to"
+        },
+        "contentIndex": {
+          "type": "integer",
+          "description": "The index of the content part that the refusal delta was added to"
+        },
+        "delta": {
+          "type": "string",
+          "description": "The delta text that was added to the refusal"
+        }
+      }
+    },
+    "RefusalDoneEvent": {
+      "type": "object",
+      "description": "Emitted when the refusal text is done",
+      "required": ["itemId", "outputIndex", "contentIndex", "text"],
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "description": "The ID of the output item that the refusal text was added to"
+        },
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that the refusal text was added to"
+        },
+        "contentIndex": {
+          "type": "integer",
+          "description": "The index of the content part that the refusal text was added to"
+        },
+        "text": {
+          "type": "string",
+          "description": "The complete refusal text"
+        }
+      }
+    },
+    "TextAnnotationDeltaEvent": {
+      "type": "object",
+      "description": "Emitted when a text annotation is added",
+      "required": ["itemId", "outputIndex", "contentIndex", "annotationIndex", "annotation"],
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "description": "The ID of the output item that the text annotation was added to"
+        },
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that the text annotation was added to"
+        },
+        "contentIndex": {
+          "type": "integer",
+          "description": "The index of the content part that the text annotation was added to"
+        },
+        "annotationIndex": {
+          "type": "integer",
+          "description": "The index of the annotation that was added"
+        },
+        "annotation": {
+          "type": "ref",
+          "ref": "app.vtri.chat.aiChat#Annotation",
+          "description": "The annotation that was added"
+        }
+      }
+    },
+    "TextDeltaEvent": {
+      "type": "object",
+      "description": "Emitted when there is an additional text delta",
+      "required": ["itemId", "outputIndex", "contentIndex", "delta"],
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "description": "The ID of the output item that the text delta was added to"
+        },
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that the text delta was added to"
+        },
+        "contentIndex": {
+          "type": "integer",
+          "description": "The index of the content part that the text delta was added to"
+        },
+        "delta": {
+          "type": "string",
+          "description": "The text delta that was added"
+        }
+      }
+    },
+    "TextDoneEvent": {
+      "type": "object",
+      "description": "Emitted when text content is finalized",
+      "required": ["itemId", "outputIndex", "contentIndex", "text"],
+      "properties": {
+        "itemId": {
+          "type": "string",
+          "description": "The ID of the output item that the text content is finalized"
+        },
+        "outputIndex": {
+          "type": "integer",
+          "description": "The index of the output item that the text content is finalized"
+        },
+        "contentIndex": {
+          "type": "integer",
+          "description": "The index of the content part that the text content is finalized"
+        },
+        "text": {
+          "type": "string",
+          "description": "The text content that is finalized"
+        }
+      }
+    }
+  }
+}

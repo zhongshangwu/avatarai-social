@@ -1,0 +1,23 @@
+ created by Bluesky ]
+🔍 Dev-env introspection server started http://localhost:2581
+👤 DID Placeholder server started http://localhost:2582
+🌞 Personal Data server started http://localhost:2583
+🗼 Ozone server started http://localhost:2587
+🗼 Ozone service DID did:plc:vmvnlsosjtirw4k27a7dp7a3
+🌅 Bsky Appview started http://localhost:2584
+🤖 Feed Generator started http://localhost:45393
+🤖 Feed Generator started http://localhost:36403
+
+
+# PostgreSQL 连接信息
+export DB_POSTGRES_URL="postgresql://pg:password@localhost:5433/postgres"
+
+# PostgreSQL 标准环境变量
+export PGHOST="localhost"
+export PGPORT="5433"
+export PGUSER="pg"
+export PGPASSWORD="password"
+export PGDATABASE="postgres"
+
+# Redis 连接信息
+export REDIS_HOST="localhost:6380"

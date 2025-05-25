@@ -1,6 +1,35 @@
 # base path for Lexicon document tree (for lexgen)
 LEXDIR?=./pkg/atproto/vtri
 
+# Proto related variables
+PROTO_DIR=./proto/chat
+GO_OUT_DIR=./proto/chat
+PROTO_FILES=$(shell find $(PROTO_DIR) -name "*.proto")
+
+.PHONY: install-proto-tools
+install-proto-tools:
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+.PHONY: proto
+proto: install-proto-tools
+	@echo "Generating proto files..."
+	@for file in $(PROTO_FILES); do \
+		protoc \
+			--proto_path=$(PROTO_DIR) \
+			--go_out=$(GO_OUT_DIR) \
+			--go_opt=paths=source_relative \
+			--go-grpc_out=$(GO_OUT_DIR) \
+			--go-grpc_opt=paths=source_relative \
+			$$file; \
+	done
+	@echo "Proto files generated successfully"
+
+# 清理生成的proto文件
+.PHONY: clean-proto
+clean-proto:
+	find $(GO_OUT_DIR) -name "*.pb.go" -type f -delete
+
 .PHONY: lexgen
 lexgen:
 	go run github.com/bluesky-social/indigo/cmd/lexgen --package vtri \
