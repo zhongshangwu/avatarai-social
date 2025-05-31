@@ -1,6 +1,7 @@
-package chat
+package messages
 
 type InterruptEvent struct {
+	ResponseID string `json:"responseId"` // 响应ID
 }
 
 func (i *InterruptEvent) isChatEventBody() {}
@@ -155,3 +156,136 @@ type TextDoneEvent struct {
 }
 
 func (e *TextDoneEvent) isChatEventBody() {}
+
+type FunctionCallArgumentsDeltaEvent struct {
+	ItemID      string `json:"itemId"`      // 添加函数调用参数增量的输出项的ID
+	OutputIndex int    `json:"outputIndex"` // 添加函数调用参数增量的输出项的索引
+	Delta       string `json:"delta"`       // 添加的函数调用参数增量
+}
+
+func (e *FunctionCallArgumentsDeltaEvent) isChatEventBody() {}
+
+type FunctionCallArgumentsDoneEvent struct {
+	ItemID      string `json:"itemId"`      // 函数调用参数完成的输出项的ID
+	OutputIndex int    `json:"outputIndex"` // 函数调用参数完成的输出项的索引
+	Arguments   string `json:"arguments"`   // 完成的函数调用参数
+}
+
+func (e *FunctionCallArgumentsDoneEvent) isChatEventBody() {}
+
+type FileSearchCallInProgressEvent struct {
+	OutputIndex int    `json:"outputIndex"` // 文件搜索调用关联的输出项的索引
+	ItemID      string `json:"itemId"`      // 文件搜索调用关联的输出项的ID
+}
+
+func (e *FileSearchCallInProgressEvent) isChatEventBody() {}
+
+type FileSearchCallSearchingEvent struct {
+	OutputIndex int    `json:"outputIndex"` // 文件搜索调用搜索的输出项的索引
+	ItemID      string `json:"itemId"`      // 文件搜索调用搜索的输出项的ID
+}
+
+func (e *FileSearchCallSearchingEvent) isChatEventBody() {}
+
+type FileSearchCallCompletedEvent struct {
+	OutputIndex int    `json:"outputIndex"` // 文件搜索调用完成的输出项的索引
+	ItemID      string `json:"itemId"`      // 文件搜索调用完成的输出项的ID
+}
+
+func (e *FileSearchCallCompletedEvent) isChatEventBody() {}
+
+type WebSearchCallInProgressEvent struct {
+	OutputIndex int    `json:"outputIndex"` // Web搜索调用关联的输出项的索引
+	ItemID      string `json:"itemId"`      // Web搜索调用关联的输出项的ID
+}
+
+func (e *WebSearchCallInProgressEvent) isChatEventBody() {}
+
+type WebSearchCallSearchingEvent struct {
+	OutputIndex int    `json:"outputIndex"` // Web搜索调用搜索的输出项的索引
+	ItemID      string `json:"itemId"`      // Web搜索调用搜索的输出项的ID
+}
+
+func (e *WebSearchCallSearchingEvent) isChatEventBody() {}
+
+type WebSearchCallCompletedEvent struct {
+	OutputIndex int    `json:"outputIndex"` // Web搜索调用完成的输出项的索引
+	ItemID      string `json:"itemId"`      // Web搜索调用完成的输出项的ID
+}
+
+func (e *WebSearchCallCompletedEvent) isChatEventBody() {}
+
+type CodeInterpreterCallInProgressEvent struct {
+	OutputIndex int    `json:"outputIndex"` // 代码解释器调用关联的输出项的索引
+	ItemID      string `json:"itemId"`      // 代码解释器调用关联的输出项的ID
+}
+
+func (e *CodeInterpreterCallInProgressEvent) isChatEventBody() {}
+
+type CodeInterpreterCallInterpretingEvent struct {
+	OutputIndex int    `json:"outputIndex"` // 代码解释器调用解释的输出项的索引
+	ItemID      string `json:"itemId"`      // 代码解释器调用解释的输出项的ID
+}
+
+func (e *CodeInterpreterCallInterpretingEvent) isChatEventBody() {}
+
+type CodeInterpreterCallCompletedEvent struct {
+	OutputIndex int    `json:"outputIndex"` // 代码解释器调用完成的输出项的索引
+	ItemID      string `json:"itemId"`      // 代码解释器调用完成的输出项的ID
+}
+
+func (e *CodeInterpreterCallCompletedEvent) isChatEventBody() {}
+
+type CodeInterpreterCallCodeDeltaEvent struct {
+	OutputIndex int    `json:"outputIndex"` // 代码解释器调用代码增量的输出项的索引
+	ItemID      string `json:"itemId"`      // 代码解释器调用代码增量的输出项的ID
+	Delta       string `json:"delta"`       // 添加的代码增量
+}
+
+func (e *CodeInterpreterCallCodeDeltaEvent) isChatEventBody() {}
+
+type CodeInterpreterCallCodeDoneEvent struct {
+	OutputIndex int    `json:"outputIndex"` // 代码解释器调用代码完成的输出项的索引
+	ItemID      string `json:"itemId"`      // 代码解释器调用代码完成的输出项的ID
+	Code        string `json:"code"`        // 完成的代码
+}
+
+func (e *CodeInterpreterCallCodeDoneEvent) isChatEventBody() {}
+
+type ComputerCallInProgressEvent struct {
+	OutputIndex int    `json:"outputIndex"` // 计算机调用关联的输出项的索引
+	ItemID      string `json:"itemId"`      // 计算机调用关联的输出项的ID
+}
+
+func (e *ComputerCallInProgressEvent) isChatEventBody() {}
+
+type ComputerCallCompletedEvent struct {
+	OutputIndex int    `json:"outputIndex"` // 计算机调用完成的输出项的索引
+	ItemID      string `json:"itemId"`      // 计算机调用完成的输出项的ID
+}
+
+func (e *ComputerCallCompletedEvent) isChatEventBody() {}
+
+type AudioDeltaEvent struct {
+	Delta string `json:"delta"` // 音频增量数据
+}
+
+func (e *AudioDeltaEvent) isChatEventBody() {}
+
+type AudioDoneEvent struct {
+	ResponseID string `json:"responseId"` // 响应ID
+}
+
+func (e *AudioDoneEvent) isChatEventBody() {}
+
+type AudioTranscriptDeltaEvent struct {
+	Delta string `json:"delta"` // 音频转录增量
+}
+
+func (e *AudioTranscriptDeltaEvent) isChatEventBody() {}
+
+type AudioTranscriptDoneEvent struct {
+	Transcript string `json:"transcript"` // 完整的音频转录
+}
+
+func (e *AudioTranscriptDoneEvent) isChatEventBody() {}

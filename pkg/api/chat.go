@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -12,14 +14,19 @@ import (
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/chat"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/events"
 	"github.com/zhongshangwu/avatarai-social/pkg/streams"
-	chatTypes "github.com/zhongshangwu/avatarai-social/pkg/types/chat"
+	"github.com/zhongshangwu/avatarai-social/pkg/types/messages"
 )
 
 var (
-	upgrader = websocket.Upgrader{}
+	upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true // 在生产环境中应该进行适当的来源检查
+		},
+		EnableCompression: true,
+	}
 )
 
-type EventHandler func(event chatTypes.ChatEvent, conn *websocket.Conn) error
+type EventHandler func(event messages.ChatEvent, conn *websocket.Conn) error
 
 func (a *AvatarAIAPI) ChatStream(c echo.Context) error {
 	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
@@ -29,103 +36,134 @@ func (a *AvatarAIAPI) ChatStream(c echo.Context) error {
 	defer conn.Close()
 
 	logrus.Info("ChatStream connected")
-	ctx, cancel := context.WithCancel(c.Request().Context())
 
-	// 创建 LoggingTracer 用于跟踪事件
-	tracer := events.NewLoggingTracer[*chatTypes.ChatEvent](func(format string, args ...interface{}) {
+	connCtx, connCancel := context.WithCancel(c.Request().Context())
+	defer connCancel()
+
+	tracer := events.NewLoggingTracer[*messages.ChatEvent](func(format string, args ...interface{}) {
 		logrus.Infof("[ChatEventTracer] "+format, args...)
 	})
 
-	eventBus := events.NewEventBus[*chatTypes.ChatEvent](
-		events.BusWithBufferSize[*chatTypes.ChatEvent](100),
-		events.BusWithWorkerCount[*chatTypes.ChatEvent](1),
-		events.BusWithErrorHandler[*chatTypes.ChatEvent](func(err error) {
+	eventBus := events.NewEventBus[*messages.ChatEvent](
+		events.BusWithBufferSize[*messages.ChatEvent](100),
+		events.BusWithWorkerCount[*messages.ChatEvent](1),
+		events.BusWithErrorHandler[*messages.ChatEvent](func(err error) {
 			logrus.Errorf("ChatStream event bus error: %v", err)
 		}),
-		events.BusWithTracer[*chatTypes.ChatEvent](tracer),
+		events.BusWithTracer[*messages.ChatEvent](tracer),
 	)
-	eventBus.Start(ctx)
 
-	respStream := streams.NewStream[*chatTypes.ChatEvent](ctx, 100)
-
-	go func() {
-		handleChatStreamResponse(ctx, respStream, conn)
-		cancel()
+	if err := eventBus.Start(connCtx); err != nil {
+		logrus.Errorf("Failed to start event bus: %v", err)
+		return err
+	}
+	defer func() {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		eventBus.Stop(shutdownCtx)
 	}()
 
+	outbox := streams.NewStream[*messages.ChatEvent](connCtx, 100)
+	defer outbox.CloseSend()
+
 	chatActor := chat.NewChatActor("chat", a.Config,
-		events.ActorWithCustomOutbox[*chatTypes.ChatEvent](respStream),
+		events.ActorWithCustomOutbox[*messages.ChatEvent](outbox),
 	)
-	chatActor.Start(ctx)
+
+	if err := chatActor.Start(connCtx); err != nil {
+		logrus.Errorf("Failed to start chat actor: %v", err)
+		return err
+	}
 	defer chatActor.Stop()
 
-	if _, err := eventBus.Subscribe(string(chatTypes.EventTypeSendMsg), chatActor.Send); err != nil {
+	if _, err := eventBus.Subscribe(string(messages.EventTypeSendMsg), chatActor.Send); err != nil {
 		logrus.Errorf("ChatStream subscribe event error: %v", err)
+		sendErrorEvent(conn, "subscribe_event_error", "订阅事件失败")
+		return err
+	}
+	if _, err := eventBus.Subscribe(string(messages.EventTypeAIChatInterrupt), chatActor.Send); err != nil {
+		logrus.Errorf("ChatStream subscribe event error: %v", err)
+		sendErrorEvent(conn, "subscribe_event_error", "订阅事件失败")
+		return err
 	}
 
-	// 添加调试日志，确认订阅是否成功
-	logrus.Infof("已成功订阅 SendMsg 事件到 ChatActor")
+	go func() {
+		a.handleChatStreamResponse(connCtx, outbox, conn)
+	}()
 
 	for {
-		msgType, msg, err := conn.ReadMessage()
-		logrus.Infof("ChatStream msgType: %d, msg: %s, err: %v", msgType, string(msg), err)
-		if err != nil {
-			// 处理连接关闭或错误
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				logrus.Errorf("WebSocket错误: %v", err)
-			}
-		}
-
-		if msgType == websocket.TextMessage {
-			var event chatTypes.ChatEvent
-			if err := json.Unmarshal(msg, &event); err != nil {
-				logrus.Errorf("ChatStream event unmarshal error: %v", err)
-				sendErrorEvent(conn, "invalid_event_format", "无效的事件格式")
-				continue
-			}
-
-			logrus.Infof("ChatStream event: %+v", event)
-			switch event.EventType {
-			case chatTypes.EventTypeSendMsg:
-				logrus.Infof("event type: %s", event.EventType)
-
-				// 调试输出事件结构
-				if msgEvent, ok := event.Event.(*chatTypes.SendMsgEvent); ok {
-					logrus.Infof("SendMsgEvent 解析成功: msgType=%s", msgEvent.MsgType)
-
-					// 检查消息体类型
-					switch body := msgEvent.Body.(type) {
-					case *chatTypes.AIChatMsg:
-						logrus.Infof("AIChatMsg 消息体: 包含 %d 个消息项", len(body.MessageItems))
-					case *chatTypes.TextMsg:
-						logrus.Infof("TextMsg 消息体: %s", body.Text)
-					default:
-						logrus.Warnf("未知的消息体类型: %T", msgEvent.Body)
-					}
-				} else {
-					logrus.Warnf("事件解析失败，event.Event 不是 SendMsgEvent 类型")
+		select {
+		case <-connCtx.Done():
+			logrus.Info("连接上下文已取消，退出消息处理循环")
+			return nil
+		default:
+			// conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+			msgType, msg, err := conn.ReadMessage()
+			if err != nil {
+				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					logrus.Infof("WebSocket连接正常关闭: %v", err)
+					return nil
 				}
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseNormalClosure) {
+					logrus.Errorf("WebSocket意外错误: %v", err)
+				}
+				return err
+			}
 
-				logrus.Infof("开始发布事件到 EventBus: %s", event.EventID)
-				if err := eventBus.Publish(ctx, &event); err != nil {
-					logrus.Errorf("ChatStream publish event error: %v", err)
+			if msgType == websocket.TextMessage {
+				if err := a.handleWebSocketMessage(connCtx, eventBus, conn, msg); err != nil {
+					logrus.Errorf("处理 WebSocket 消息失败: %v", err)
 					continue
 				}
-				logrus.Infof("事件已发布到 EventBus: %s", event.EventID)
 			}
 		}
 	}
 }
 
-func handleChatStreamResponse(ctx context.Context, stream *streams.Stream[*chatTypes.ChatEvent], conn *websocket.Conn) {
+func (a *AvatarAIAPI) handleWebSocketMessage(
+	ctx context.Context,
+	eventBus events.EventBus[*messages.ChatEvent],
+	conn *websocket.Conn,
+	msg []byte,
+) error {
+	logrus.Infof("ChatStream msgType: TextMessage, msg: %s", string(msg))
+
+	var event messages.ChatEvent
+	if err := json.Unmarshal(msg, &event); err != nil {
+		logrus.Errorf("ChatStream event unmarshal error: %v", err)
+		sendErrorEvent(conn, "invalid_event_format", "无效的事件格式")
+		return err
+	}
+
+	eventCtx := context.WithValue(ctx, "eventID", event.EventID)
+	eventCtx = context.WithValue(eventCtx, "eventType", event.EventType)
+	eventCtx, cancel := context.WithTimeout(eventCtx, 30*time.Second)
+	defer cancel()
+
+	logrus.Infof("ChatStream event: %+v", event)
+	logrus.Infof("开始发布事件到 EventBus: %s", event.EventID)
+
+	if err := eventBus.Publish(eventCtx, &event); err != nil {
+		logrus.Errorf("ChatStream publish event error: %v", err)
+		return err
+	}
+
+	logrus.Infof("事件已发布到 EventBus: %s", event.EventID)
+	return nil
+}
+
+func (a *AvatarAIAPI) handleChatStreamResponse(ctx context.Context, outbox *streams.Stream[*messages.ChatEvent], conn *websocket.Conn) {
 	logrus.Info("启动 handleChatStreamResponse 处理器")
-	defer stream.CloseSend()
+	defer logrus.Info("handleChatStreamResponse 处理器退出")
 
 	for {
-		logrus.Info("等待接收事件响应...")
-		serverEvent, closed, err := stream.Recv()
-		if errors.Is(err, streams.ErrContextAlreadyDone) || closed {
-			logrus.Info("ChatStream recv response finished")
+		serverEvent, closed, err := outbox.Recv()
+		if closed {
+			logrus.Info("ChatStream recv response finished - stream closed")
+			return
+		}
+		if errors.Is(err, streams.ErrContextAlreadyDone) {
+			logrus.Info("ChatStream recv response finished - context done")
 			return
 		}
 		if err != nil {
@@ -133,29 +171,49 @@ func handleChatStreamResponse(ctx context.Context, stream *streams.Stream[*chatT
 			return
 		}
 
+		if serverEvent == nil {
+			logrus.Info("ChatStream recv response finished - serverEvent is nil")
+			continue
+		}
+
 		logrus.Infof("收到响应事件: ID=%s, 类型=%s", serverEvent.EventID, serverEvent.EventType)
 
-		data, err := json.Marshal(serverEvent)
-		if err != nil {
-			logrus.Errorf("ChatStream response marshal error: %v", err)
+		if err := a.sendResponseToClient(ctx, conn, serverEvent); err != nil {
+			logrus.Errorf("发送响应到客户端失败: %v", err)
 			return
 		}
-
-		logrus.Infof("发送响应到客户端: %s", string(data))
-		err = conn.WriteMessage(websocket.TextMessage, data)
-		if err != nil {
-			logrus.Errorf("ChatStream write response error: %v", err)
-			return
-		}
-		logrus.Info("响应已发送到客户端")
 	}
 }
 
+func (a *AvatarAIAPI) sendResponseToClient(ctx context.Context, conn *websocket.Conn, event *messages.ChatEvent) error {
+	data, err := json.Marshal(event)
+	if err != nil {
+		logrus.Errorf("ChatStream response marshal error: %v", err)
+		return err
+	}
+
+	logrus.Infof("发送响应到客户端: %s", string(data))
+
+	// conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+	err = conn.WriteMessage(websocket.TextMessage, data)
+	if err != nil {
+		if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+			logrus.Info("客户端连接已关闭，停止发送响应")
+		} else {
+			logrus.Errorf("ChatStream write response error: %v", err)
+		}
+		return err
+	}
+
+	logrus.Info("响应已发送到客户端")
+	return nil
+}
+
 func sendErrorEvent(conn *websocket.Conn, errorCode string, errorMsg string) error {
-	errorEvent := chatTypes.ChatEvent{
+	errorEvent := messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: chatTypes.EventTypeError,
-		Event: &chatTypes.ErrorEvent{
+		EventType: messages.EventTypeError,
+		Event: &messages.ErrorEvent{
 			Code:    &errorCode,
 			Message: errorMsg,
 		},

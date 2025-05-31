@@ -167,7 +167,7 @@ func (a *BaseActor[T]) Send(ctx context.Context, msg T) error {
 	a.mu.RUnlock()
 
 	logrus.Infof("Actor %s 发送消息到收件箱\n", a.id)
-	err := a.inbox.Send(msg)
+	err := a.inbox.Send(ctx, msg)
 	if err != nil {
 		if errors.Is(err, streams.ErrChannelClosed) {
 			logrus.Infof("Actor %s 收件箱已关闭\n", a.id)
@@ -220,7 +220,7 @@ func (a *BaseActor[T]) PublishToOutbox(ctx context.Context, msg T) error {
 	a.mu.RUnlock()
 
 	logrus.Infof("Actor %s 发送消息到 outbox\n", a.id)
-	err := a.outbox.Send(msg)
+	err := a.outbox.Send(ctx, msg)
 	if err != nil {
 		if errors.Is(err, streams.ErrChannelClosed) {
 			logrus.Infof("Actor %s outbox 已关闭\n", a.id)

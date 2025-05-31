@@ -129,23 +129,17 @@ func (eb *DefaultEventBus[T]) worker(id int) {
 			continue
 		}
 
-		// 追踪事件处理开始
 		ctx := eb.tracer.StartEventTrace(eb.ctx, event)
 
-		// 记录分发开始
 		eb.tracer.EventDispatchStarted(ctx, event)
 		start := time.Now()
 
-		// 分发事件
 		err = eb.dispatcher.Dispatch(ctx, event)
 
-		// 计算处理时间
 		duration := time.Since(start)
 
-		// 记录分发完成
 		eb.tracer.EventDispatchFinished(ctx, event, duration, err)
 
-		// 记录指标
 		eb.metrics.EventProcessed(event.Type(), duration)
 
 		if err != nil {
@@ -153,7 +147,6 @@ func (eb *DefaultEventBus[T]) worker(id int) {
 			eb.metrics.EventError(event.Type(), err)
 		}
 
-		// 追踪事件处理结束
 		eb.tracer.EndEventTrace(ctx, err)
 	}
 }
@@ -162,7 +155,7 @@ func (eb *DefaultEventBus[T]) Stop(ctx context.Context) error {
 	eb.mu.Lock()
 	if eb.stopped {
 		eb.mu.Unlock()
-		return nil // 已经停止
+		return nil
 	}
 
 	if !eb.started {
@@ -226,7 +219,7 @@ func (eb *DefaultEventBus[T]) Publish(ctx context.Context, event T) error {
 	eb.metrics.EventPublished(event.Type())
 
 	// 发送事件到流
-	err := eb.eventStream.Send(event)
+	err := eb.eventStream.Send(ctx, event)
 	if err != nil {
 		return fmt.Errorf("failed to publish event: %w", err)
 	}

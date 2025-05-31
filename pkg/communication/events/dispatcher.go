@@ -100,15 +100,12 @@ func (d *DefaultDispatcher[T]) Dispatch(ctx context.Context, event T) error {
 	for _, entry := range handlerEntries {
 		handlerID := string(entry.id)
 
-		// 记录处理程序开始执行
 		tracer.EventHandlerStarted(ctx, event, handlerID)
 
-		// 执行处理程序
 		startTime := time.Now()
 		err := entry.handler(ctx, event)
 		duration := time.Since(startTime)
 
-		// 记录处理程序完成
 		tracer.EventHandlerFinished(ctx, event, handlerID, duration, err)
 
 		if err != nil {

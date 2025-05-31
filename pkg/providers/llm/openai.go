@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 	"github.com/openai/openai-go/packages/ssestream"
+	"github.com/sirupsen/logrus"
 	"github.com/zhongshangwu/avatarai-social/pkg/streams"
 )
 
@@ -222,7 +224,18 @@ func (o *OpenAIClient) handleChatGenerateStreamResponse(
 		finalToolCalls := []ToolCall{}
 		var usage *Usage
 
-		for openaiStream.Next() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
+			// 使用非阻塞的方式检查 openaiStream
+			if !openaiStream.Next() {
+				break
+			}
+
 			chunk := openaiStream.Current()
 			acc.AddChunk(chunk)
 
@@ -295,7 +308,9 @@ func (o *OpenAIClient) handleChatGenerateStreamResponse(
 				resultChunk.Delta.Usage = usage
 			}
 
-			respStream.Send(resultChunk)
+			respStream.Send(ctx, resultChunk)
+			logrus.Infof("send result chunk sleep 3 seconds....: %v", resultChunk.Delta.Message.Content)
+			time.Sleep(3 * time.Second)
 		}
 
 		// 处理流错误
@@ -330,7 +345,7 @@ func (o *OpenAIClient) handleChatBlockAsStreamResponse(
 			}
 		}
 
-		respStream.Send(&LLMResultChunk{
+		respStream.Send(ctx, &LLMResultChunk{
 			Model:             blockResult.Model,
 			PromptMessages:    promptMessages,
 			SystemFingerprint: blockResult.SystemFingerprint,
