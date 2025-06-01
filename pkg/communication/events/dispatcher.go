@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// TracedDispatcher 是支持跟踪功能的 EventDispatcher 接口扩展
 type TracedDispatcher[T Event] interface {
 	EventDispatcher[T]
 	SetTracer(tracer EventBusTracer[T])

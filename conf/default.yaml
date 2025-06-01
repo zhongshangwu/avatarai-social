@@ -29,9 +29,9 @@ atp:
 avatar:
   llm:
     provider: "openai"
-    api_url: "http://127.0.0.1:9200/v1"
-    model: "mini2-copilot-179k-lucas-it145-int8-label-staging"
-    api_key: "bbipH-Q8sPV77j_GQNPZyDjF_qAkvIVeSibrehmy6Uk"
+    api_url: "https://openrouter.ai/api/v1"
+    model: "mistralai/ministral-3b"
+    api_key: "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"
 
 security:
   rsa_private_key: |

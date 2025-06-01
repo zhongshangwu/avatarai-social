@@ -90,8 +90,11 @@ class AIChatStreamClient:
             return
 
         message = {
-            "type": "interrupt",
-            "data": {}
+            "eventId": str(uuid.uuid4()),
+            "eventType": "ai_chat.interrupt",
+            "event": {
+                "responseId": "default-response-id"
+            }
         }
 
         try:
