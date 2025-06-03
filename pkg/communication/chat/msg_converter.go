@@ -3,71 +3,72 @@ package chat
 import (
 	"fmt"
 
-	"github.com/zhongshangwu/avatarai-social/pkg/types/messages"
+	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
 )
 
-func (actor *ChatActor) convertMsgToInputItems(sendMsgEvent *messages.SendMsgEvent) ([]messages.InputItem, error) {
-	switch sendMsgEvent.MsgType {
+func (actor *ChatActor) convertMsgToInputItems(message *messages.Message) ([]messages.InputItem, error) {
+	switch message.MsgType {
 	case messages.MessageTypeText:
-		return actor.convertTextMsg(sendMsgEvent)
+		return actor.convertTextMsg(message)
 	case messages.MessageTypeImage:
-		return actor.convertImageMsg(sendMsgEvent)
+		return actor.convertImageMsg(message)
 	case messages.MessageTypeVideo:
-		return actor.convertVideoMsg(sendMsgEvent)
+		return actor.convertVideoMsg(message)
 	case messages.MessageTypeFile:
-		return actor.convertFileMsg(sendMsgEvent)
+		return actor.convertFileMsg(message)
 	case messages.MessageTypeAudio:
-		return actor.convertAudioMsg(sendMsgEvent)
-	case messages.MessageTypeAIChat:
-		return actor.convertAIChatMsg(sendMsgEvent)
+		return actor.convertAudioMsg(message)
+	case messages.MessageTypeAgent:
+		return actor.convertAIChatMsg(message)
 	case messages.MessageTypePost:
-		return actor.convertPostMsg(sendMsgEvent)
+		return actor.convertPostMsg(message)
 	case messages.MessageTypeSticker:
-		return actor.convertStickerMsg(sendMsgEvent)
+		return actor.convertStickerMsg(message)
 	default:
-		return nil, fmt.Errorf("不支持的消息类型: %s", sendMsgEvent.MsgType)
+		return nil, fmt.Errorf("不支持的消息类型: %s", message.MsgType)
 	}
 }
 
-func (actor *ChatActor) convertTextMsg(sendMsgEvent *messages.SendMsgEvent) ([]messages.InputItem, error) {
-	textBody, ok := sendMsgEvent.Body.(*messages.TextMsgBody)
+func (actor *ChatActor) convertTextMsg(message *messages.Message) ([]messages.InputItem, error) {
+	textContent, ok := message.Content.(*messages.TextMessageContent)
 	if !ok {
-		return nil, fmt.Errorf("消息体类型转换失败，非 TextMsgBody 类型")
+		return nil, fmt.Errorf("消息体类型转换失败，非 TextMessageContent 类型")
 	}
 
-	inputMessage := &messages.EasyInputMessage{
-		Type: "easy_message",
+	inputMessage := &messages.InputMessage{
+		Type: "message",
 		Role: "user",
-		Content: &messages.EasyInputTextContent{
-			Text: textBody.Text,
+		Content: []messages.InputContent{
+			&messages.InputTextContent{
+				Type: "input_text",
+				Text: textContent.Text,
+			},
 		},
 	}
 
 	return []messages.InputItem{inputMessage}, nil
 }
 
-func (actor *ChatActor) convertImageMsg(sendMsgEvent *messages.SendMsgEvent) ([]messages.InputItem, error) {
-	imageBody, ok := sendMsgEvent.Body.(*messages.ImageMsgBody)
+func (actor *ChatActor) convertImageMsg(message *messages.Message) ([]messages.InputItem, error) {
+	imageContent, ok := message.Content.(*messages.ImageMessageContent)
 	if !ok {
-		return nil, fmt.Errorf("消息体类型转换失败，非 ImageMsgBody 类型")
+		return nil, fmt.Errorf("消息体类型转换失败，非 ImageMessageContent 类型")
 	}
 
-	// 构建包含图片和可选文本的内容
 	var contents []messages.InputContent
 
-	// 添加图片内容
-	imageContent := &messages.InputImageContent{
+	imageInputContent := &messages.InputImageContent{
 		Type:   "input_image",
-		FileID: imageBody.ImageCID, // 使用 CID 作为 FileID
+		FileID: imageContent.ImageCID, // 使用 CID 作为 FileID
 		Detail: "auto",
 	}
-	contents = append(contents, imageContent)
+	contents = append(contents, imageInputContent)
 
 	// 如果有替代文本，添加文本内容
-	if imageBody.Alt != "" {
+	if imageContent.Alt != "" {
 		textContent := &messages.InputTextContent{
 			Type: "input_text",
-			Text: fmt.Sprintf("图片描述: %s", imageBody.Alt),
+			Text: fmt.Sprintf("图片描述: %s", imageContent.Alt),
 		}
 		contents = append(contents, textContent)
 	}
@@ -81,25 +82,25 @@ func (actor *ChatActor) convertImageMsg(sendMsgEvent *messages.SendMsgEvent) ([]
 	return []messages.InputItem{inputMessage}, nil
 }
 
-func (actor *ChatActor) convertVideoMsg(sendMsgEvent *messages.SendMsgEvent) ([]messages.InputItem, error) {
-	videoBody, ok := sendMsgEvent.Body.(*messages.VideoMsgBody)
+func (actor *ChatActor) convertVideoMsg(message *messages.Message) ([]messages.InputItem, error) {
+	videoContent, ok := message.Content.(*messages.VideoMessageContent)
 	if !ok {
-		return nil, fmt.Errorf("消息体类型转换失败，非 VideoMsgBody 类型")
+		return nil, fmt.Errorf("消息体类型转换失败，非 VideoMessageContent 类型")
 	}
 
 	var contents []messages.InputContent
 
 	// 添加视频文件内容
-	videoContent := &messages.InputFileContent{
+	videoInputContent := &messages.InputFileContent{
 		Type:   "input_file",
-		FileID: videoBody.VideoCID,
+		FileID: videoContent.VideoCID,
 	}
-	contents = append(contents, videoContent)
+	contents = append(contents, videoInputContent)
 
 	// 添加视频信息文本
-	videoInfo := fmt.Sprintf("视频时长: %d秒", videoBody.Duration)
-	if videoBody.Width > 0 && videoBody.Height > 0 {
-		videoInfo += fmt.Sprintf(", 分辨率: %dx%d", videoBody.Width, videoBody.Height)
+	videoInfo := fmt.Sprintf("视频时长: %d秒", videoContent.Duration)
+	if videoContent.Width > 0 && videoContent.Height > 0 {
+		videoInfo += fmt.Sprintf(", 分辨率: %dx%d", videoContent.Width, videoContent.Height)
 	}
 
 	textContent := &messages.InputTextContent{
@@ -109,10 +110,10 @@ func (actor *ChatActor) convertVideoMsg(sendMsgEvent *messages.SendMsgEvent) ([]
 	contents = append(contents, textContent)
 
 	// 如果有缩略图，也添加进去
-	if videoBody.ThumbCID != "" {
+	if videoContent.ThumbCID != "" {
 		thumbContent := &messages.InputImageContent{
 			Type:   "input_image",
-			FileID: videoBody.ThumbCID,
+			FileID: videoContent.ThumbCID,
 			Detail: "low",
 		}
 		contents = append(contents, thumbContent)
@@ -127,24 +128,24 @@ func (actor *ChatActor) convertVideoMsg(sendMsgEvent *messages.SendMsgEvent) ([]
 	return []messages.InputItem{inputMessage}, nil
 }
 
-func (actor *ChatActor) convertFileMsg(sendMsgEvent *messages.SendMsgEvent) ([]messages.InputItem, error) {
-	fileBody, ok := sendMsgEvent.Body.(*messages.FileMsgBody)
+func (actor *ChatActor) convertFileMsg(message *messages.Message) ([]messages.InputItem, error) {
+	fileContent, ok := message.Content.(*messages.FileMessageContent)
 	if !ok {
-		return nil, fmt.Errorf("消息体类型转换失败，非 FileMsgBody 类型")
+		return nil, fmt.Errorf("消息体类型转换失败，非 FileMessageContent 类型")
 	}
 
 	var contents []messages.InputContent
 
 	// 添加文件内容
-	fileContent := &messages.InputFileContent{
+	fileInputContent := &messages.InputFileContent{
 		Type:   "input_file",
-		FileID: fileBody.FileCID,
+		FileID: fileContent.FileCID,
 	}
-	contents = append(contents, fileContent)
+	contents = append(contents, fileInputContent)
 
 	// 添加文件信息文本
 	fileInfo := fmt.Sprintf("文件名: %s, 大小: %d 字节, 类型: %s",
-		fileBody.FileName, fileBody.Size, fileBody.MimeType)
+		fileContent.FileName, fileContent.Size, fileContent.MimeType)
 
 	textContent := &messages.InputTextContent{
 		Type: "input_text",
@@ -161,25 +162,25 @@ func (actor *ChatActor) convertFileMsg(sendMsgEvent *messages.SendMsgEvent) ([]m
 	return []messages.InputItem{inputMessage}, nil
 }
 
-func (actor *ChatActor) convertAudioMsg(sendMsgEvent *messages.SendMsgEvent) ([]messages.InputItem, error) {
-	audioBody, ok := sendMsgEvent.Body.(*messages.AudioMsgBody)
+func (actor *ChatActor) convertAudioMsg(message *messages.Message) ([]messages.InputItem, error) {
+	audioContent, ok := message.Content.(*messages.AudioMessageContent)
 	if !ok {
-		return nil, fmt.Errorf("消息体类型转换失败，非 AudioMsgBody 类型")
+		return nil, fmt.Errorf("消息体类型转换失败，非 AudioMessageContent 类型")
 	}
 
 	var contents []messages.InputContent
 
 	// 添加音频文件内容
-	audioContent := &messages.InputFileContent{
+	audioInputContent := &messages.InputFileContent{
 		Type:   "input_file",
-		FileID: audioBody.AudioCID,
+		FileID: audioContent.AudioCID,
 	}
-	contents = append(contents, audioContent)
+	contents = append(contents, audioInputContent)
 
 	// 添加音频信息文本
-	audioInfo := fmt.Sprintf("音频时长: %d秒", audioBody.Duration)
-	if audioBody.Transcript != "" {
-		audioInfo += fmt.Sprintf(", 转录文本: %s", audioBody.Transcript)
+	audioInfo := fmt.Sprintf("音频时长: %d秒", audioContent.Duration)
+	if audioContent.Transcript != "" {
+		audioInfo += fmt.Sprintf(", 转录文本: %s", audioContent.Transcript)
 	}
 
 	textContent := &messages.InputTextContent{
@@ -197,29 +198,34 @@ func (actor *ChatActor) convertAudioMsg(sendMsgEvent *messages.SendMsgEvent) ([]
 	return []messages.InputItem{inputMessage}, nil
 }
 
-func (actor *ChatActor) convertAIChatMsg(sendMsgEvent *messages.SendMsgEvent) ([]messages.InputItem, error) {
-	aiChatBody, ok := sendMsgEvent.Body.(*messages.AIChatMsgBody)
+func (actor *ChatActor) convertAIChatMsg(message *messages.Message) ([]messages.InputItem, error) {
+	aiChatContent, ok := message.Content.(*messages.AgentMessageContent)
 	if !ok {
-		return nil, fmt.Errorf("消息体类型转换失败，非 AIChatMsgBody 类型")
+		return nil, fmt.Errorf("消息体类型转换失败，非 AgentMessageContent 类型")
 	}
 
-	return aiChatBody.MessageItems, nil
+	items := make([]messages.InputItem, 0, len(aiChatContent.AgentMessage.MessageItems))
+	for _, item := range aiChatContent.AgentMessage.MessageItems {
+		if inputItem, ok := item.(messages.InputItem); ok {
+			items = append(items, inputItem)
+		}
+	}
+
+	return items, nil
 }
 
-func (actor *ChatActor) convertPostMsg(sendMsgEvent *messages.SendMsgEvent) ([]messages.InputItem, error) {
-	postBody, ok := sendMsgEvent.Body.(*messages.PostMsgBody)
+func (actor *ChatActor) convertPostMsg(message *messages.Message) ([]messages.InputItem, error) {
+	postContent, ok := message.Content.(*messages.PostMessageContent)
 	if !ok {
-		return nil, fmt.Errorf("消息体类型转换失败，非 PostMsgBody 类型")
+		return nil, fmt.Errorf("消息体类型转换失败，非 PostMessageContent 类型")
 	}
 
-	// 将富文本内容转换为纯文本
 	var textContent string
-	if postBody.Title != "" {
-		textContent = fmt.Sprintf("标题: %s\n\n", postBody.Title)
+	if postContent.Title != "" {
+		textContent = fmt.Sprintf("标题: %s\n\n", postContent.Title)
 	}
 
-	// 处理富文本内容
-	for _, row := range postBody.Content {
+	for _, row := range postContent.Content {
 		for _, node := range row {
 			switch node.GetTag() {
 			case messages.PostNodeText:
@@ -276,28 +282,28 @@ func (actor *ChatActor) convertPostMsg(sendMsgEvent *messages.SendMsgEvent) ([]m
 	return []messages.InputItem{inputMessage}, nil
 }
 
-func (actor *ChatActor) convertStickerMsg(sendMsgEvent *messages.SendMsgEvent) ([]messages.InputItem, error) {
-	stickerBody, ok := sendMsgEvent.Body.(*messages.StickerMsgBody)
+func (actor *ChatActor) convertStickerMsg(message *messages.Message) ([]messages.InputItem, error) {
+	stickerContent, ok := message.Content.(*messages.StickerMessageContent)
 	if !ok {
-		return nil, fmt.Errorf("消息体类型转换失败，非 StickerMsgBody 类型")
+		return nil, fmt.Errorf("消息体类型转换失败，非 StickerMessageContent 类型")
 	}
 
 	var contents []messages.InputContent
 
 	// 添加表情包图片内容
-	stickerContent := &messages.InputImageContent{
+	stickerInputContent := &messages.InputImageContent{
 		Type:   "input_image",
-		FileID: stickerBody.StickerCID,
+		FileID: stickerContent.StickerCID,
 		Detail: "low", // 表情包通常不需要高清晰度
 	}
-	contents = append(contents, stickerContent)
+	contents = append(contents, stickerInputContent)
 
 	// 添加表情包描述文本
 	stickerInfo := "发送了一个表情包"
-	if stickerBody.Alt != "" {
-		stickerInfo += fmt.Sprintf(": %s", stickerBody.Alt)
+	if stickerContent.Alt != "" {
+		stickerInfo += fmt.Sprintf(": %s", stickerContent.Alt)
 	}
-	if stickerBody.IsAnimated {
+	if stickerContent.IsAnimated {
 		stickerInfo += " (动画表情)"
 	}
 

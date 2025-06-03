@@ -33,6 +33,14 @@ func (ms *MetaStore) Init() error {
 
 		// atp
 		&AtpRecord{},
+
+		// messages
+		&Room{},
+		&UserRoomStatus{},
+		&Message{},
+		&Thread{},
+		&AIChatMessage{},
+		&AIChatMessageItem{},
 	)
 }
 

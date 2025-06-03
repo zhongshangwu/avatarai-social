@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
 	"github.com/zhongshangwu/avatarai-social/pkg/providers/llm"
-	"github.com/zhongshangwu/avatarai-social/pkg/types/messages"
 )
 
 type LLMEntitiesTransform struct {
@@ -24,7 +24,7 @@ func (t *LLMEntitiesTransform) Transform(entities []messages.MessageItem) ([]llm
 
 	for _, entity := range entities {
 		switch entity.GetType() {
-		case "message":
+		case "message", "easy_message":
 			// 处理输入消息
 			if inputMsg, ok := entity.(*messages.InputMessage); ok {
 				promptMsg, err := t.convertInputMessage(inputMsg)

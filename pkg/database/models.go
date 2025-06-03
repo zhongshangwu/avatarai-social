@@ -193,3 +193,105 @@ type AtpRecord struct {
 func (AtpRecord) TableName() string {
 	return "atp_record"
 }
+
+type Message struct {
+	ID         string `gorm:"primaryKey"`
+	ExternalID string `gorm:"column:external_id"`
+	RoomID     string `gorm:"column:room_id"`
+	ThreadID   string `gorm:"column:thread_id"`
+	MsgType    int    `gorm:"column:msg_type"`
+	Content    string `gorm:"column:content"`
+	QuoteMID   string `gorm:"column:quote_mid"`
+	ReceiverID string `gorm:"column:receiver_id"`
+	SenderID   string `gorm:"column:sender_id"`
+	SenderAt   int64  `gorm:"column:sender_at"`
+	CreatedAt  int64  `gorm:"column:created_at"`
+	UpdatedAt  int64  `gorm:"column:updated_at"`
+	Deleted    bool   `gorm:"column:deleted"`
+}
+
+func (Message) TableName() string {
+	return "messages"
+}
+
+type Room struct {
+	ID        string `gorm:"primaryKey"`
+	Title     string `gorm:"column:title"`
+	Type      string `gorm:"column:type"`
+	LastMID   string `gorm:"column:last_mid"`
+	CreatedAt int64  `gorm:"column:created_at"`
+	UpdatedAt int64  `gorm:"column:updated_at"`
+	Deleted   bool   `gorm:"column:deleted"`
+}
+
+func (Room) TableName() string {
+	return "rooms"
+}
+
+type UserRoomStatus struct {
+	ID          string `gorm:"primaryKey"`
+	RoomID      string `gorm:"column:room_id"`
+	UnreadCount int32  `gorm:"column:unread_count"`
+	Muted       bool   `gorm:"column:muted"`
+	UserID      string `gorm:"column:user_id"`
+	Status      string `gorm:"column:status"` // request, accepted
+	CreatedAt   int64  `gorm:"column:created_at"`
+	UpdatedAt   int64  `gorm:"column:updated_at"`
+	Deleted     bool   `gorm:"column:deleted"`
+}
+
+func (UserRoomStatus) TableName() string {
+	return "user_room_status"
+}
+
+type Thread struct {
+	ID             string `gorm:"primaryKey"`
+	RoomID         string `gorm:"column:room_id"`
+	Title          string `gorm:"column:title"`
+	ContextMode    string `gorm:"column:context_mode"` // continuous, isolated
+	RootMID        string `gorm:"column:root_mid"`
+	ParentThreadID string `gorm:"column:parent_thread_id"`
+	CreatedAt      int64  `gorm:"column:created_at"`
+	UpdatedAt      int64  `gorm:"column:updated_at"`
+	Deleted        bool   `gorm:"column:deleted"`
+}
+
+func (Thread) TableName() string {
+	return "threads"
+}
+
+type AIChatMessage struct {
+	ID                string `gorm:"primaryKey"`
+	MessageID         string `gorm:"column:message_id"`
+	Role              string `gorm:"column:role"`
+	AltText           string `gorm:"column:alt_text"`
+	InterruptType     int32  `gorm:"column:interrupt_type"`
+	Status            string `gorm:"column:status"`
+	Error             string `gorm:"column:error"`
+	Usage             string `gorm:"column:usage"`
+	Metadata          string `gorm:"column:metadata"`
+	IncompleteDetails string `gorm:"column:incomplete_details"`
+	Creator           string `gorm:"column:creator"`
+	CreatedAt         int64  `gorm:"column:created_at"`
+	UpdatedAt         int64  `gorm:"column:updated_at"`
+	Deleted           bool   `gorm:"column:deleted"`
+}
+
+func (AIChatMessage) TableName() string {
+	return "ai_chat_messages"
+}
+
+type AIChatMessageItem struct {
+	ID        string `gorm:"primaryKey"`
+	MessageID string `gorm:"column:message_id"`
+	ItemType  string `gorm:"column:item_type"`
+	Item      string `gorm:"column:item"`
+	Position  int    `gorm:"column:position"`
+	CreatedAt int64  `gorm:"column:created_at"`
+	UpdatedAt int64  `gorm:"column:updated_at"`
+	Deleted   bool   `gorm:"column:deleted"`
+}
+
+func (AIChatMessageItem) TableName() string {
+	return "ai_chat_message_items"
+}

@@ -80,6 +80,7 @@ func (o *OpenAIClient) generate(
 		return nil, err
 	}
 
+	logrus.Infof("openai options: %v", options)
 	client := openai.NewClient(options...)
 
 	promptMessages = o.clearIllegalPromptMessages(model, promptMessages)
@@ -701,6 +702,7 @@ func (o *OpenAIClient) toCredentialKwargs(credentials map[string]interface{}) ([
 	options := make([]option.RequestOption, 0)
 
 	if apiKey, ok := credentials["api_key"].(string); ok {
+		logrus.Infof("openai api key: %s", apiKey)
 		options = append(options, option.WithAPIKey(apiKey))
 		options = append(options, option.WithHeader("X-Stepcast-Auth-Token", apiKey))
 	}

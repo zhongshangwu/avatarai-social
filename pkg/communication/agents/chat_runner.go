@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/prompt"
 	"github.com/zhongshangwu/avatarai-social/pkg/providers/llm"
 	"github.com/zhongshangwu/avatarai-social/pkg/streams"
-	"github.com/zhongshangwu/avatarai-social/pkg/types/messages"
 )
 
 type ChatRunner struct {
@@ -144,7 +144,7 @@ func (a *ChatRunner) processLLMInteraction(ctx *ChatInvokeContext, promptMessage
 			chunk, finished, err := chatStream.Recv()
 			if finished {
 				logrus.Info("流已完成")
-				break
+				return a.handleServerInterrupt(ctx, messages.ResponseErrorCodeServerError, "流已完成")
 			}
 			if err != nil {
 				if errors.Is(err, streams.ErrContextAlreadyDone) || errors.Is(err, streams.ErrChannelClosed) {
@@ -269,10 +269,10 @@ func (a *ChatRunner) finalizeOutputMessage(ctx *ChatInvokeContext, outputMsg *me
 				return err
 			}
 
-			if ctx.Response.Text == "" {
-				ctx.Response.Text = textContent.Text
+			if ctx.Response.AltText == "" {
+				ctx.Response.AltText = textContent.Text
 			} else {
-				ctx.Response.Text += textContent.Text
+				ctx.Response.AltText += textContent.Text
 			}
 		}
 	}
@@ -284,7 +284,7 @@ func (a *ChatRunner) finalizeOutputMessage(ctx *ChatInvokeContext, outputMsg *me
 
 func (a *ChatRunner) handleInterrupt(ctx *ChatInvokeContext) error {
 	logrus.Info("处理中断事件")
-	ctx.Response.Status = messages.AiChatMessageStatusIncomplete
+	ctx.Response.Status = messages.AgentMessageStatusIncomplete
 	ctx.Response.InterruptType = int32(messages.InterruptTypeUser)
 	return ctx.sendAIChatIncomplete(ctx.Response)
 }
@@ -296,7 +296,7 @@ func (a *ChatRunner) handleContextCancellation(ctx *ChatInvokeContext) error {
 
 func (a *ChatRunner) handleServerInterrupt(ctx *ChatInvokeContext, code messages.ResponseErrorCode, msg string) error {
 	logrus.Info("处理服务端中断")
-	ctx.Response.Status = messages.AiChatMessageStatusIncomplete
+	ctx.Response.Status = messages.AgentMessageStatusIncomplete
 	ctx.Response.InterruptType = int32(messages.InterruptTypeSystem)
 	ctx.Response.Error = &messages.ResponseError{
 		Code:    code,

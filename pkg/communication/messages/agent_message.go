@@ -7,14 +7,14 @@ import (
 	"github.com/zhongshangwu/avatarai-social/pkg/database"
 )
 
-type AIChatMessage struct {
+type AgentMessage struct {
 	ID                string                   `json:"id"`                          // 此AI聊天消息的唯一标识符
-	MessageID         string                   `json:"message_id"`                  // 消息ID (由外部创建方提供的 messageid )
+	MessageID         string                   `json:"messageId"`                   // 消息ID (由外部创建方提供的 messageid )
 	Role              RoleType                 `json:"role"`                        // 消息角色: "user", "assistant", "system"
 	AltText           string                   `json:"altText"`                     // 消息内容(对应的纯文本内容)
 	MessageItems      []MessageItem            `json:"messageItems"`                // 模型生成的内容项数组
 	InterruptType     int32                    `json:"interruptType"`               // 消息是否有被中断，默认为0
-	Status            AiChatMessageStatus      `json:"status"`                      // 响应生成的状态: "completed", "failed", "in_progress", "incomplete"
+	Status            AgentMessageStatus       `json:"status"`                      // 响应生成的状态: "completed", "failed", "in_progress", "incomplete"
 	Error             *ResponseError           `json:"error,omitempty"`             // 错误信息
 	Creator           string                   `json:"creator"`                     // 创建者DID (可能是用户DID，也可以是AssistantDID)
 	CreatedAt         int64                    `json:"createdAt"`                   // 创建时间
@@ -25,8 +25,8 @@ type AIChatMessage struct {
 	Metadata          map[string]interface{}   `json:"metadata,omitempty"`          // 响应的其他元数据
 }
 
-func (m *AIChatMessage) UnmarshalJSON(data []byte) error {
-	type Alias AIChatMessage
+func (m *AgentMessage) UnmarshalJSON(data []byte) error {
+	type Alias AgentMessage
 	aux := &struct {
 		MessageItems []json.RawMessage `json:"messageItems"`
 		*Alias
@@ -942,7 +942,7 @@ func (c *CodeInterpreterToolCall) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (a *AIChatMessage) ToDB() *database.AIChatMessage {
+func (a *AgentMessage) ToDB() *database.AIChatMessage {
 	errStr, _ := json.Marshal(a.Error)
 	usageStr, _ := json.Marshal(a.Usage)
 	metadataStr, _ := json.Marshal(a.Metadata)

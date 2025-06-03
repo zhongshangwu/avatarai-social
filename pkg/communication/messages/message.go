@@ -11,26 +11,26 @@ type Room struct {
 	ID           string   `json:"id"`           // 房间号
 	Title        string   `json:"title"`        // 房间标题 (群组可以命名名称)
 	Type         string   `json:"type"`         // 房间类型 // 单聊、群聊、ai 对话...
-	LastMID      string   `json:"last_mid"`     // 最后一条消息ID
+	LastMID      string   `json:"lastMid"`      // 最后一条消息ID
 	Participants []string `json:"participants"` // 参与者
-	CreatedAt    int64    `json:"created_at"`   // 创建时间
-	UpdatedAt    int64    `json:"updated_at"`   // 更新时间
+	CreatedAt    int64    `json:"createdAt"`    // 创建时间
+	UpdatedAt    int64    `json:"updatedAt"`    // 更新时间
 	Deleted      bool     `json:"deleted"`      // 是否被删除
 }
 
 type UserRoomStatus struct { // 归属某个具体的用户, 基本是一个 room 的镜像数据
 	ID           string   `json:"id"`           // 唯一标识 (业务上使用 room_id + userid 来唯一标识)
-	RoomID       string   `json:"room_id"`      // 房间号， 对话等都使用该 room id
+	RoomID       string   `json:"roomId"`       // 房间号， 对话等都使用该 room id
 	Title        string   `json:"title"`        // 房间标题 (群组可以命名名称)
 	Type         string   `json:"type"`         // 房间类型 // 单聊、群聊、ai 对话...
-	LastMID      string   `json:"last_mid"`     // 最后一条消息ID
+	LastMID      string   `json:"lastMid"`      // 最后一条消息ID
 	Participants []string `json:"participants"` // 参与者
-	UnreadCount  int32    `json:"unread_count"` // 未读消息数
+	UnreadCount  int32    `json:"unreadCount"`  // 未读消息数
 	Muted        bool     `json:"muted"`        // 是否被静音
-	UserID       string   `json:"user_id"`      // 用户ID
+	UserID       string   `json:"userId"`       // 用户ID
 	Status       string   `json:"status"`       // 状态 // request, accepted
-	CreatedAt    int64    `json:"created_at"`   // 创建时间
-	UpdatedAt    int64    `json:"updated_at"`   // 更新时间
+	CreatedAt    int64    `json:"createdAt"`    // 创建时间
+	UpdatedAt    int64    `json:"updatedAt"`    // 更新时间
 	Deleted      bool     `json:"deleted"`      // 是否被删除
 }
 
@@ -42,15 +42,15 @@ const (
 )
 
 type Thread struct {
-	ID             string            `json:"id"`               // 话题ID
-	RoomID         string            `json:"room_id"`          // 房间ID
-	Title          string            `json:"title"`            // 话题标题
-	ContextMode    ThreadContextMode `json:"context_mode"`     // 话题上下文类型: 连续上下文/独立上下文
-	RootMID        string            `json:"root_mid"`         // 根消息ID
-	ParentThreadID string            `json:"parent_thread_id"` // 父话题ID
-	CreatedAt      int64             `json:"created_at"`       // 创建时间
-	UpdatedAt      int64             `json:"updated_at"`       // 更新时间
-	Deleted        bool              `json:"deleted"`          // 是否被删除
+	ID             string            `json:"id"`             // 话题ID
+	RoomID         string            `json:"roomId"`         // 房间ID
+	Title          string            `json:"title"`          // 话题标题
+	ContextMode    ThreadContextMode `json:"contextMode"`    // 话题上下文类型: 连续上下文/独立上下文
+	RootMID        string            `json:"rootMid"`        // 根消息ID
+	ParentThreadID string            `json:"parentThreadId"` // 父话题ID
+	CreatedAt      int64             `json:"createdAt"`      // 创建时间
+	UpdatedAt      int64             `json:"updatedAt"`      // 更新时间
+	Deleted        bool              `json:"deleted"`        // 是否被删除
 }
 
 type MessageContent interface {
@@ -59,24 +59,24 @@ type MessageContent interface {
 }
 
 type Message struct {
-	ID       string `json:"id"`        // 消息ID
-	RoomID   string `json:"room_id"`   // 房间ID
-	ThreadID string `json:"thread_id"` // 话题ID
+	ID       string `json:"id"`       // 消息ID
+	RoomID   string `json:"roomId"`   // 房间ID
+	ThreadID string `json:"threadId"` // 话题ID
 	// RootMID   string `json:"root_mid"`   // 消息回复关系：根消息ID为回复树的根节点消息ID
 	// ParentMID string `json:"parent_mid"` // 消息回复关系：父消息ID为被回复的信息ID
 
-	MsgType MessageType    `json:"msg_type"` // 消息类型
-	Content MessageContent `json:"content"`  // 消息体，可以是不同类型的消息结构
+	MsgType MessageType    `json:"msgType"` // 消息类型
+	Content MessageContent `json:"content"` // 消息体，可以是不同类型的消息结构
 
-	ReceiverID string `json:"receiver_id"` // 接收者ID (有一个 receiver_id 会在很多时候方便一些)
-	SenderID   string `json:"sender_id"`   // 发送者ID
-	QuoteMID   string `json:"quote_mid"`   // 引用消息ID (消息回显用，作为上下文提供, 不作为消息组织结构)
-	SenderAt   int64  `json:"sender_at"`   // 发送时间
-	CreatedAt  int64  `json:"created_at"`  // 创建时间
-	UpdatedAt  int64  `json:"updated_at"`  // 更新时间
-	Deleted    bool   `json:"deleted"`     // 是否被撤回
+	ReceiverID string `json:"receiverId"` // 接收者ID (有一个 receiver_id 会在很多时候方便一些)
+	SenderID   string `json:"senderId"`   // 发送者ID
+	QuoteMID   string `json:"quoteMid"`   // 引用消息ID (消息回显用，作为上下文提供, 不作为消息组织结构)
+	SenderAt   int64  `json:"senderAt"`   // 发送时间
+	CreatedAt  int64  `json:"createdAt"`  // 创建时间
+	UpdatedAt  int64  `json:"updatedAt"`  // 更新时间
+	Deleted    bool   `json:"deleted"`    // 是否被撤回
 
-	ExternalID string `json:"external_id"` // 外部ID
+	ExternalID string `json:"externalId"` // 外部ID
 }
 
 type TextMessageContent struct {
@@ -90,8 +90,8 @@ func (t *TextMessageContent) Type() MessageType {
 func (t *TextMessageContent) isMessageContent() {}
 
 type ImageMessageContent struct {
-	ImageURL string `json:"image_url"`        // 图片URL
-	ImageCID string `json:"image_cid"`        // 图片内容ID
+	ImageURL string `json:"imageUrl"`         // 图片URL
+	ImageCID string `json:"imageCid"`         // 图片内容ID
 	Width    int    `json:"width,omitempty"`  // 图片宽度
 	Height   int    `json:"height,omitempty"` // 图片高度
 	Alt      string `json:"alt,omitempty"`    // 替代文本
@@ -104,11 +104,11 @@ func (i *ImageMessageContent) Type() MessageType {
 func (i *ImageMessageContent) isMessageContent() {}
 
 type VideoMessageContent struct {
-	VideoURL string `json:"video_url"`        // 视频URL
-	VideoCID string `json:"video_cid"`        // 视频内容ID
+	VideoURL string `json:"videoUrl"`         // 视频URL
+	VideoCID string `json:"videoCid"`         // 视频内容ID
 	Duration int    `json:"duration"`         // 视频时长（秒）
-	ThumbURL string `json:"thumb_url"`        // 缩略图URL
-	ThumbCID string `json:"thumb_cid"`        // 缩略图内容ID
+	ThumbURL string `json:"thumbUrl"`         // 缩略图URL
+	ThumbCID string `json:"thumbCid"`         // 缩略图内容ID
 	Width    int    `json:"width,omitempty"`  // 视频宽度
 	Height   int    `json:"height,omitempty"` // 视频高度
 }
@@ -120,12 +120,12 @@ func (v *VideoMessageContent) Type() MessageType {
 func (v *VideoMessageContent) isMessageContent() {}
 
 type FileMessageContent struct {
-	FileURL  string `json:"file_url"`  // 文件URL
-	FileCID  string `json:"file_cid"`  // 文件内容ID
-	Size     int64  `json:"size"`      // 文件大小（字节）
-	FileName string `json:"file_name"` // 文件名
-	MimeType string `json:"mime_type"` // MIME类型
-	FileType string `json:"file_type"` // 文件类型
+	FileURL  string `json:"fileUrl"`  // 文件URL
+	FileCID  string `json:"fileCid"`  // 文件内容ID
+	Size     int64  `json:"size"`     // 文件大小（字节）
+	FileName string `json:"fileName"` // 文件名
+	MimeType string `json:"mimeType"` // MIME类型
+	FileType string `json:"fileType"` // 文件类型
 }
 
 func (f *FileMessageContent) Type() MessageType {
@@ -135,8 +135,8 @@ func (f *FileMessageContent) Type() MessageType {
 func (f *FileMessageContent) isMessageContent() {}
 
 type AudioMessageContent struct {
-	AudioURL   string `json:"audio_url"`            // 音频URL
-	AudioCID   string `json:"audio_cid"`            // 音频内容ID
+	AudioURL   string `json:"audioUrl"`             // 音频URL
+	AudioCID   string `json:"audioCid"`             // 音频内容ID
 	Duration   int    `json:"duration"`             // 音频时长（秒）
 	Transcript string `json:"transcript,omitempty"` // 转录文本
 }
@@ -147,23 +147,23 @@ func (a *AudioMessageContent) Type() MessageType {
 
 func (a *AudioMessageContent) isMessageContent() {}
 
-type AIChatMessageContent struct {
-	Message AIChatMessage `json:"message"`
+type AgentMessageContent struct {
+	AgentMessage AgentMessage `json:"message"`
 }
 
-func (a *AIChatMessageContent) Type() MessageType {
-	return MessageTypeAIChat
+func (a *AgentMessageContent) Type() MessageType {
+	return MessageTypeAgent
 }
 
-func (a *AIChatMessageContent) isMessageContent() {}
+func (a *AgentMessageContent) isMessageContent() {}
 
 type StickerMessageContent struct {
-	StickerURL string `json:"sticker_url"`      // 表情包URL
-	StickerCID string `json:"sticker_cid"`      // 表情包内容ID
+	StickerURL string `json:"stickerUrl"`       // 表情包URL
+	StickerCID string `json:"stickerCid"`       // 表情包内容ID
 	Alt        string `json:"alt,omitempty"`    // 替代文本
 	Width      int    `json:"width,omitempty"`  // 宽度
 	Height     int    `json:"height,omitempty"` // 高度
-	IsAnimated bool   `json:"is_animated"`      // 是否为动画表情
+	IsAnimated bool   `json:"isAnimated"`       // 是否为动画表情
 }
 
 func (s *StickerMessageContent) Type() MessageType {
@@ -209,8 +209,8 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 			body = &FileMessageContent{}
 		case MessageTypeAudio:
 			body = &AudioMessageContent{}
-		case MessageTypeAIChat:
-			body = &AIChatMessageContent{}
+		case MessageTypeAgent:
+			body = &AgentMessageContent{}
 		case MessageTypePost:
 			body = &PostMessageContent{}
 		case MessageTypeSticker:
@@ -240,40 +240,40 @@ func (m *Message) ToDB() *database.Message {
 	case MessageTypeImage:
 		imageContent, _ := m.Content.(*ImageMessageContent)
 		content = map[string]interface{}{
-			"image_cid": imageContent.ImageCID,
-			"width":     imageContent.Width,
-			"height":    imageContent.Height,
-			"alt":       imageContent.Alt,
+			"imageCid": imageContent.ImageCID,
+			"width":    imageContent.Width,
+			"height":   imageContent.Height,
+			"alt":      imageContent.Alt,
 		}
 	case MessageTypeVideo:
 		videoContent, _ := m.Content.(*VideoMessageContent)
 		content = map[string]interface{}{
-			"video_cid": videoContent.VideoCID,
-			"duration":  videoContent.Duration,
-			"thumb_cid": videoContent.ThumbCID,
-			"width":     videoContent.Width,
-			"height":    videoContent.Height,
+			"videoCid": videoContent.VideoCID,
+			"duration": videoContent.Duration,
+			"thumbCid": videoContent.ThumbCID,
+			"width":    videoContent.Width,
+			"height":   videoContent.Height,
 		}
 	case MessageTypeFile:
 		fileContent, _ := m.Content.(*FileMessageContent)
 		content = map[string]interface{}{
-			"file_cid":  fileContent.FileCID,
-			"size":      fileContent.Size,
-			"file_name": fileContent.FileName,
-			"mime_type": fileContent.MimeType,
-			"file_type": fileContent.FileType,
+			"fileCid":  fileContent.FileCID,
+			"size":     fileContent.Size,
+			"fileName": fileContent.FileName,
+			"mimeType": fileContent.MimeType,
+			"fileType": fileContent.FileType,
 		}
 	case MessageTypeAudio:
 		audioContent, _ := m.Content.(*AudioMessageContent)
 		content = map[string]interface{}{
-			"audio_cid":  audioContent.AudioCID,
+			"audioCid":   audioContent.AudioCID,
 			"duration":   audioContent.Duration,
 			"transcript": audioContent.Transcript,
 		}
-	case MessageTypeAIChat:
-		aiChatContent, _ := m.Content.(*AIChatMessageContent)
+	case MessageTypeAgent:
+		agentContent, _ := m.Content.(*AgentMessageContent)
 		content = map[string]interface{}{
-			"message_id": aiChatContent.Message.ID,
+			"agentMessageId": agentContent.AgentMessage.ID,
 		}
 	case MessageTypePost:
 		postContent, _ := m.Content.(*PostMessageContent)
@@ -284,11 +284,11 @@ func (m *Message) ToDB() *database.Message {
 	case MessageTypeSticker:
 		stickerContent, _ := m.Content.(*StickerMessageContent)
 		content = map[string]interface{}{
-			"sticker_cid": stickerContent.StickerCID,
-			"alt":         stickerContent.Alt,
-			"width":       stickerContent.Width,
-			"height":      stickerContent.Height,
-			"is_animated": stickerContent.IsAnimated,
+			"stickerCid": stickerContent.StickerCID,
+			"alt":        stickerContent.Alt,
+			"width":      stickerContent.Width,
+			"height":     stickerContent.Height,
+			"isAnimated": stickerContent.IsAnimated,
 		}
 
 	default:

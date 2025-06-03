@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/memory"
+	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
 	"github.com/zhongshangwu/avatarai-social/pkg/streams"
-	"github.com/zhongshangwu/avatarai-social/pkg/types/messages"
 )
 
 type ChatInvokeContext struct {
@@ -18,7 +18,7 @@ type ChatInvokeContext struct {
 
 	Memory     *memory.Memory
 	InputItems []messages.InputItem
-	Response   *messages.AIChatMessage
+	Response   *messages.AgentMessage
 
 	CurrentOutputItemIdx int
 	CurrentOutputMessage *messages.OutputMessage
@@ -51,7 +51,7 @@ func (c *ChatInvokeContext) WithMemory(memory *memory.Memory) *ChatInvokeContext
 	return c
 }
 
-func (c *ChatInvokeContext) WithAIChatMessage(message *messages.AIChatMessage) *ChatInvokeContext {
+func (c *ChatInvokeContext) WithAgentMessage(message *messages.AgentMessage) *ChatInvokeContext {
 	c.Response = message
 	return c
 }
@@ -79,30 +79,30 @@ func (c *ChatInvokeContext) sendError(errorCode string, errorMsg string) error {
 	return c.Stream.Send(c.Context, errorEvent)
 }
 
-func (c *ChatInvokeContext) sendAIChatCreated(message *messages.AIChatMessage) error {
+func (c *ChatInvokeContext) sendAIChatCreated(message *messages.AgentMessage) error {
 	createdEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatCreated,
+		EventType: messages.EventTypeAgentMessageCreated,
 		Event: &messages.CreatedEvent{
-			Response: message,
+			AgentMessage: message,
 		},
 	}
 	return c.Stream.Send(c.Context, createdEvent)
 }
 
-func (c *ChatInvokeContext) sendAIChatInProgress(message *messages.AIChatMessage) error {
+func (c *ChatInvokeContext) sendAIChatInProgress(message *messages.AgentMessage) error {
 	inProgressEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatInProgress,
+		EventType: messages.EventTypeAgentMessageInProgress,
 		Event: &messages.InProgressEvent{
-			Response: message,
+			AgentMessage: message,
 		},
 	}
 	return c.Stream.Send(c.Context, inProgressEvent)
 }
 
-func (c *ChatInvokeContext) sendAIChatFailed(message *messages.AIChatMessage, errorCode, errorMsg string) error {
-	message.Status = messages.AiChatMessageStatusFailed
+func (c *ChatInvokeContext) sendAIChatFailed(message *messages.AgentMessage, errorCode, errorMsg string) error {
+	message.Status = messages.AgentMessageStatusFailed
 	message.Error = &messages.ResponseError{
 		Code:    messages.ResponseErrorCode(errorCode),
 		Message: errorMsg,
@@ -110,23 +110,23 @@ func (c *ChatInvokeContext) sendAIChatFailed(message *messages.AIChatMessage, er
 
 	failedEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatFailed,
+		EventType: messages.EventTypeAgentMessageFailed,
 		Event: &messages.FailedEvent{
-			Response: message,
+			AgentMessage: message,
 		},
 	}
 	return c.Stream.Send(c.Context, failedEvent)
 }
 
-func (c *ChatInvokeContext) sendAIChatCompleted(message *messages.AIChatMessage) error {
-	message.Status = messages.AiChatMessageStatusCompleted
+func (c *ChatInvokeContext) sendAIChatCompleted(message *messages.AgentMessage) error {
+	message.Status = messages.AgentMessageStatusCompleted
 	message.UpdatedAt = time.Now().UnixMilli()
 
 	completedEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatCompleted,
+		EventType: messages.EventTypeAgentMessageCompleted,
 		Event: &messages.CompletedEvent{
-			Response: message,
+			AgentMessage: message,
 		},
 	}
 	return c.Stream.Send(c.Context, completedEvent)
@@ -135,7 +135,7 @@ func (c *ChatInvokeContext) sendAIChatCompleted(message *messages.AIChatMessage)
 func (c *ChatInvokeContext) sendOutputItemAdded(outputIndex int, item messages.OutputItem) error {
 	outputItemAddedEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatOutputItemAdded,
+		EventType: messages.EventTypeAgentMessageOutputItemAdded,
 		Event: &messages.OutputItemAddedEvent{
 			OutputIndex: outputIndex,
 			Item:        item,
@@ -147,7 +147,7 @@ func (c *ChatInvokeContext) sendOutputItemAdded(outputIndex int, item messages.O
 func (c *ChatInvokeContext) sendOutputItemDone(outputIndex int, item messages.OutputItem) error {
 	outputItemDoneEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatOutputItemDone,
+		EventType: messages.EventTypeAgentMessageOutputItemDone,
 		Event: &messages.OutputItemDoneEvent{
 			OutputIndex: outputIndex,
 			Item:        item,
@@ -159,7 +159,7 @@ func (c *ChatInvokeContext) sendOutputItemDone(outputIndex int, item messages.Ou
 func (c *ChatInvokeContext) sendContentPartAdded(itemID string, outputIndex, contentIndex int, part messages.OutputContent) error {
 	contentPartAddedEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatContentPartAdded,
+		EventType: messages.EventTypeAgentMessageContentPartAdded,
 		Event: &messages.ContentPartAddedEvent{
 			ItemID:       itemID,
 			OutputIndex:  outputIndex,
@@ -173,7 +173,7 @@ func (c *ChatInvokeContext) sendContentPartAdded(itemID string, outputIndex, con
 func (c *ChatInvokeContext) sendContentPartDone(itemID string, outputIndex, contentIndex int, part messages.OutputContent) error {
 	contentPartDoneEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatContentPartDone,
+		EventType: messages.EventTypeAgentMessageContentPartDone,
 		Event: &messages.ContentPartDoneEvent{
 			ItemID:       itemID,
 			OutputIndex:  outputIndex,
@@ -187,7 +187,7 @@ func (c *ChatInvokeContext) sendContentPartDone(itemID string, outputIndex, cont
 func (c *ChatInvokeContext) sendTextDelta(itemID string, outputIndex, contentIndex int, delta string) error {
 	textDeltaEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatOutputTextDelta,
+		EventType: messages.EventTypeAgentMessageOutputTextDelta,
 		Event: &messages.TextDeltaEvent{
 			ItemID:       itemID,
 			OutputIndex:  outputIndex,
@@ -201,7 +201,7 @@ func (c *ChatInvokeContext) sendTextDelta(itemID string, outputIndex, contentInd
 func (c *ChatInvokeContext) sendTextDone(itemID string, outputIndex, contentIndex int, text string) error {
 	textDoneEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatOutputTextDone,
+		EventType: messages.EventTypeAgentMessageOutputTextDone,
 		Event: &messages.TextDoneEvent{
 			ItemID:       itemID,
 			OutputIndex:  outputIndex,
@@ -215,7 +215,7 @@ func (c *ChatInvokeContext) sendTextDone(itemID string, outputIndex, contentInde
 func (c *ChatInvokeContext) sendFunctionCallArgumentsDelta(itemID string, outputIndex int, delta string) error {
 	argsDeltaEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatFunctionCallArgumentsDelta,
+		EventType: messages.EventTypeAgentMessageFunctionCallArgumentsDelta,
 		Event: &messages.FunctionCallArgumentsDeltaEvent{
 			ItemID:      itemID,
 			OutputIndex: outputIndex,
@@ -228,7 +228,7 @@ func (c *ChatInvokeContext) sendFunctionCallArgumentsDelta(itemID string, output
 func (c *ChatInvokeContext) sendFunctionCallArgumentsDone(itemID string, outputIndex int, arguments string) error {
 	argsDoneEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatFunctionCallArgumentsDone,
+		EventType: messages.EventTypeAgentMessageFunctionCallArgumentsDone,
 		Event: &messages.FunctionCallArgumentsDoneEvent{
 			ItemID:      itemID,
 			OutputIndex: outputIndex,
@@ -238,12 +238,12 @@ func (c *ChatInvokeContext) sendFunctionCallArgumentsDone(itemID string, outputI
 	return c.Stream.Send(c.Context, argsDoneEvent)
 }
 
-func (c *ChatInvokeContext) sendAIChatIncomplete(message *messages.AIChatMessage) error {
+func (c *ChatInvokeContext) sendAIChatIncomplete(message *messages.AgentMessage) error {
 	incompleteEvent := &messages.ChatEvent{
 		EventID:   uuid.New().String(),
-		EventType: messages.EventTypeAIChatIncomplete,
+		EventType: messages.EventTypeAgentMessageIncomplete,
 		Event: &messages.IncompleteEvent{
-			Response: message,
+			AgentMessage: message,
 		},
 	}
 	return c.Stream.Send(c.Context, incompleteEvent)

@@ -54,26 +54,27 @@ class AIChatStreamClient:
             "eventType": "send_msg",
             "event": {
                 "roomId": "123",
-                "msgType": 9,
+                "msgType": 1,
                 "body": {
-                    "messageItems": [
-                        {
-                            "type": "message",
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": "input_text",
-                                    "text": text
-                                }
-                            ],
-                            "status": "success"
-                        }
-                    ]
+                    "text": text
+                    # "messageItems": [
+                    #     {
+                    #         "type": "message",
+                    #         "role": "user",
+                    #         "content": [
+                    #             {
+                    #                 "type": "input_text",
+                    #                 "text": text
+                    #             }
+                    #         ],
+                    #         "status": "success"
+                    #     }
+                    # ]
                 },
                 "senderId": user_id,
                 "threadId": "123",
                 "quoteId": "123",
-                "senderAt": int(datetime.now().timestamp())
+                "senderAt": int(datetime.now().timestamp()*1000)
             }
         }
 

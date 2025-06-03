@@ -13,8 +13,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/chat"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/events"
+	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
 	"github.com/zhongshangwu/avatarai-social/pkg/streams"
-	"github.com/zhongshangwu/avatarai-social/pkg/types/messages"
 )
 
 var (
@@ -66,7 +66,9 @@ func (a *AvatarAIAPI) ChatStream(c echo.Context) error {
 	outbox := streams.NewStream[*messages.ChatEvent](connCtx, 100)
 	defer outbox.CloseSend()
 
-	chatActor := chat.NewChatActor("chat", a.Config,
+	chatActor := chat.NewChatActor("chat",
+		a.metaStore.DB,
+		a.Config,
 		events.ActorWithCustomOutbox[*messages.ChatEvent](outbox),
 	)
 
@@ -81,7 +83,7 @@ func (a *AvatarAIAPI) ChatStream(c echo.Context) error {
 		sendErrorEvent(conn, "subscribe_event_error", "订阅事件失败")
 		return err
 	}
-	if _, err := eventBus.Subscribe(string(messages.EventTypeAIChatInterrupt), chatActor.Send); err != nil {
+	if _, err := eventBus.Subscribe(string(messages.EventTypeAgentMessageInterrupt), chatActor.Send); err != nil {
 		logrus.Errorf("ChatStream subscribe event error: %v", err)
 		sendErrorEvent(conn, "subscribe_event_error", "订阅事件失败")
 		return err

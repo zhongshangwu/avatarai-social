@@ -1,6 +1,6 @@
 package memory
 
-import "github.com/zhongshangwu/avatarai-social/pkg/types/messages"
+import "github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
 
 type Chunk interface {
 	ID() string

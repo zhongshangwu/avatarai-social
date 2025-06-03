@@ -1,0 +1,1146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Avatar AI Social Chat Protocol",
+  "description": "Complete JSON Schema for the Avatar AI Social chat protocol",
+  "type": "object",
+  "definitions": {
+    "MessageType": {
+      "type": "integer",
+      "enum": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "description": "Message type enumeration"
+    },
+    "ChatEventType": {
+      "type": "string",
+      "enum": [
+        "send_msg", "error", "ai_chat.interrupt", "ai_chat.completed",
+        "ai_chat.content_part.added", "ai_chat.content_part.done",
+        "ai_chat.created", "ai_chat.in_progress", "ai_chat.failed",
+        "ai_chat.incomplete", "ai_chat.output_item.added", "ai_chat.output_item.done",
+        "ai_chat.reasoning_summary.part.added", "ai_chat.reasoning_summary.part.done",
+        "ai_chat.reasoning_summary.text.delta", "ai_chat.reasoning_summary.text.done",
+        "ai_chat.refusal.delta", "ai_chat.refusal.done",
+        "ai_chat.output_text.annotation.added", "ai_chat.output_text.delta",
+        "ai_chat.output_text.done", "ai_chat.function_call_arguments.delta",
+        "ai_chat.function_call_arguments.done", "ai_chat.file_search_call.in_progress",
+        "ai_chat.file_search_call.searching", "ai_chat.file_search_call.completed",
+        "ai_chat.web_search_call.in_progress", "ai_chat.web_search_call.searching",
+        "ai_chat.web_search_call.completed", "ai_chat.code_interpreter_call.in_progress",
+        "ai_chat.code_interpreter_call.interpreting", "ai_chat.code_interpreter_call.completed",
+        "ai_chat.code_interpreter_call.code.delta", "ai_chat.code_interpreter_call.code.done",
+        "ai_chat.computer_call.in_progress", "ai_chat.computer_call.completed",
+        "ai_chat.audio.delta", "ai_chat.audio.done",
+        "ai_chat.audio_transcript.delta", "ai_chat.audio_transcript.done"
+      ]
+    },
+    "RoleType": {
+      "type": "string",
+      "enum": ["user", "assistant", "system"]
+    },
+    "AgentMessageStatus": {
+      "type": "string",
+      "enum": ["completed", "failed", "in_progress", "incomplete"]
+    },
+    "InterruptType": {
+      "type": "integer",
+      "enum": [0, 1, 2]
+    },
+    "IncompleteReason": {
+      "type": "string",
+      "enum": ["max_output_tokens", "content_filter"]
+    },
+    "ToolCallStatus": {
+      "type": "string",
+      "enum": ["in_progress", "searching", "interpreting", "completed", "incomplete", "failed"]
+    },
+    "ToolType": {
+      "type": "string",
+      "enum": ["file_search_call", "web_search_call", "code_interpreter_call", "computer_call", "tool_call"]
+    },
+    "ContentType": {
+      "type": "string",
+      "enum": ["input_text", "input_image", "input_file", "output_text", "refusal", "message", "reasoning", "summary_text"]
+    },
+    "AnnotationType": {
+      "type": "string",
+      "enum": ["file_citation", "url_citation", "file_path"]
+    },
+    "ComputerActionType": {
+      "type": "string",
+      "enum": ["click", "double_click", "drag", "key_press", "move", "screenshot", "scroll", "type", "wait"]
+    },
+    "ToolCallOutputType": {
+      "type": "string",
+      "enum": ["function_call_output", "computer_call_output"]
+    },
+    "CodeInterpreterOutputType": {
+      "type": "string",
+      "enum": ["text", "files"]
+    },
+    "ComputerToolCallResultType": {
+      "type": "string",
+      "enum": ["screenshot", "action"]
+    },
+    "ResponseErrorCode": {
+      "type": "string",
+      "enum": [
+        "server_error", "rate_limit_exceeded", "invalid_prompt", "vector_store_timeout",
+        "invalid_image", "invalid_image_format", "invalid_base64_image", "invalid_image_url",
+        "image_too_large", "image_too_small", "image_parse_error", "image_content_policy_violation",
+        "invalid_image_mode", "image_file_too_large", "unsupported_image_media_type",
+        "empty_image_file", "failed_to_download_image", "image_file_not_found"
+      ]
+    },
+    "RichTextNodeTextStypeType": {
+      "type": "string",
+      "enum": ["bold", "underline", "lineThrough", "italic"]
+    },
+    "ThreadContextMode": {
+      "type": "string",
+      "enum": ["continuous", "isolated"]
+    },
+    "RichTextNodeType": {
+      "type": "string",
+      "enum": ["text", "a", "at", "img", "media", "emotion", "hr", "code_block", "md"]
+    },
+    "Room": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "title": {"type": "string"},
+        "type": {"type": "string"},
+        "lastMid": {"type": "string"},
+        "participants": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "createdAt": {"type": "integer"},
+        "updatedAt": {"type": "integer"},
+        "deleted": {"type": "boolean"}
+      },
+      "required": ["id", "title", "type", "lastMid", "participants", "createdAt", "updatedAt", "deleted"]
+    },
+    "UserRoomStatus": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "roomId": {"type": "string"},
+        "title": {"type": "string"},
+        "type": {"type": "string"},
+        "lastMid": {"type": "string"},
+        "participants": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "unreadCount": {"type": "integer"},
+        "muted": {"type": "boolean"},
+        "userId": {"type": "string"},
+        "status": {"type": "string"},
+        "createdAt": {"type": "integer"},
+        "updatedAt": {"type": "integer"},
+        "deleted": {"type": "boolean"}
+      },
+      "required": ["id", "roomId", "title", "type", "lastMid", "participants", "unreadCount", "muted", "userId", "status", "createdAt", "updatedAt", "deleted"]
+    },
+    "Thread": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "roomId": {"type": "string"},
+        "title": {"type": "string"},
+        "contextMode": {"$ref": "#/definitions/ThreadContextMode"},
+        "rootMid": {"type": "string"},
+        "parentThreadId": {"type": "string"},
+        "createdAt": {"type": "integer"},
+        "updatedAt": {"type": "integer"},
+        "deleted": {"type": "boolean"}
+      },
+      "required": ["id", "roomId", "title", "contextMode", "rootMid", "parentThreadId", "createdAt", "updatedAt", "deleted"]
+    },
+    "Message": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "roomId": {"type": "string"},
+        "threadId": {"type": "string"},
+        "msgType": {"$ref": "#/definitions/MessageType"},
+        "content": {"$ref": "#/definitions/MessageContent"},
+        "receiverId": {"type": "string"},
+        "senderId": {"type": "string"},
+        "quoteMid": {"type": "string"},
+        "senderAt": {"type": "integer"},
+        "createdAt": {"type": "integer"},
+        "updatedAt": {"type": "integer"},
+        "deleted": {"type": "boolean"},
+        "externalId": {"type": "string"}
+      },
+      "required": ["id", "roomId", "threadId", "msgType", "content", "receiverId", "senderId", "quoteMid", "senderAt", "createdAt", "updatedAt", "deleted", "externalId"]
+    },
+    "MessageContent": {
+      "oneOf": [
+        {"$ref": "#/definitions/TextMessageContent"},
+        {"$ref": "#/definitions/ImageMessageContent"},
+        {"$ref": "#/definitions/VideoMessageContent"},
+        {"$ref": "#/definitions/FileMessageContent"},
+        {"$ref": "#/definitions/AudioMessageContent"},
+        {"$ref": "#/definitions/AgentMessageContent"},
+        {"$ref": "#/definitions/StickerMessageContent"},
+        {"$ref": "#/definitions/PostMessageContent"}
+      ]
+    },
+    "TextMessageContent": {
+      "type": "object",
+      "properties": {
+        "text": {"type": "string"}
+      },
+      "required": ["text"]
+    },
+    "ImageMessageContent": {
+      "type": "object",
+      "properties": {
+        "imageUrl": {"type": "string"},
+        "imageCid": {"type": "string"},
+        "width": {"type": "integer"},
+        "height": {"type": "integer"},
+        "alt": {"type": "string"}
+      },
+      "required": ["imageUrl", "imageCid"]
+    },
+    "VideoMessageContent": {
+      "type": "object",
+      "properties": {
+        "videoUrl": {"type": "string"},
+        "videoCid": {"type": "string"},
+        "duration": {"type": "integer"},
+        "thumbUrl": {"type": "string"},
+        "thumbCid": {"type": "string"},
+        "width": {"type": "integer"},
+        "height": {"type": "integer"}
+      },
+      "required": ["videoUrl", "videoCid", "duration", "thumbUrl", "thumbCid"]
+    },
+    "FileMessageContent": {
+      "type": "object",
+      "properties": {
+        "fileUrl": {"type": "string"},
+        "fileCid": {"type": "string"},
+        "size": {"type": "integer"},
+        "fileName": {"type": "string"},
+        "mimeType": {"type": "string"},
+        "fileType": {"type": "string"}
+      },
+      "required": ["fileUrl", "fileCid", "size", "fileName", "mimeType", "fileType"]
+    },
+    "AudioMessageContent": {
+      "type": "object",
+      "properties": {
+        "audioUrl": {"type": "string"},
+        "audioCid": {"type": "string"},
+        "duration": {"type": "integer"},
+        "transcript": {"type": "string"}
+      },
+      "required": ["audioUrl", "audioCid", "duration"]
+    },
+    "AgentMessageContent": {
+      "type": "object",
+      "properties": {
+        "agentMessage": {"$ref": "#/definitions/AgentMessage"}
+      },
+      "required": ["agentMessage"]
+    },
+    "StickerMessageContent": {
+      "type": "object",
+      "properties": {
+        "stickerUrl": {"type": "string"},
+        "stickerCid": {"type": "string"},
+        "alt": {"type": "string"},
+        "width": {"type": "integer"},
+        "height": {"type": "integer"},
+        "isAnimated": {"type": "boolean"}
+      },
+      "required": ["stickerUrl", "stickerCid", "isAnimated"]
+    },
+    "PostMessageContent": {
+      "type": "object",
+      "properties": {
+        "title": {"type": "string"},
+        "content": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {"$ref": "#/definitions/RichTextNode"}
+          }
+        }
+      },
+      "required": ["content"]
+    },
+    "AgentMessage": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "messageId": {"type": "string"},
+        "role": {"$ref": "#/definitions/RoleType"},
+        "altText": {"type": "string"},
+        "messageItems": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/MessageItem"}
+        },
+        "interruptType": {"type": "integer"},
+        "status": {"$ref": "#/definitions/AgentMessageStatus"},
+        "error": {"$ref": "#/definitions/ResponseError"},
+        "creator": {"type": "string"},
+        "createdAt": {"type": "integer"},
+        "updatedAt": {"type": "integer"},
+        "incompleteDetails": {"$ref": "#/definitions/IncompleteDetails"},
+        "usage": {"$ref": "#/definitions/ResponseUsage"},
+        "tools": {
+          "type": "array",
+          "items": {"type": "object"}
+        },
+        "metadata": {"type": "object"}
+      },
+      "required": ["id", "messageId", "role", "altText", "messageItems", "interruptType", "status", "creator", "createdAt", "updatedAt"]
+    },
+    "IncompleteDetails": {
+      "type": "object",
+      "properties": {
+        "reason": {"$ref": "#/definitions/IncompleteReason"}
+      },
+      "required": ["reason"]
+    },
+    "ResponseError": {
+      "type": "object",
+      "properties": {
+        "code": {"$ref": "#/definitions/ResponseErrorCode"},
+        "message": {"type": "string"}
+      },
+      "required": ["code", "message"]
+    },
+    "ResponseUsage": {
+      "type": "object",
+      "properties": {
+        "inputTokens": {"type": "integer"},
+        "inputTokensDetails": {"$ref": "#/definitions/InputTokensDetails"},
+        "outputTokens": {"type": "integer"},
+        "outputTokensDetails": {"$ref": "#/definitions/OutputTokensDetails"},
+        "totalTokens": {"type": "integer"}
+      },
+      "required": ["inputTokens", "inputTokensDetails", "outputTokens", "outputTokensDetails", "totalTokens"]
+    },
+    "InputTokensDetails": {
+      "type": "object",
+      "properties": {
+        "cachedTokens": {"type": "integer"}
+      },
+      "required": ["cachedTokens"]
+    },
+    "OutputTokensDetails": {
+      "type": "object",
+      "properties": {
+        "reasoningTokens": {"type": "integer"}
+      },
+      "required": ["reasoningTokens"]
+    },
+    "MessageItem": {
+      "oneOf": [
+        {"$ref": "#/definitions/InputMessage"},
+        {"$ref": "#/definitions/EasyInputMessage"},
+        {"$ref": "#/definitions/ItemReferenceParam"},
+        {"$ref": "#/definitions/OutputMessage"},
+        {"$ref": "#/definitions/FunctionToolCall"},
+        {"$ref": "#/definitions/ReasoningItem"},
+        {"$ref": "#/definitions/FileSearchToolCall"},
+        {"$ref": "#/definitions/WebSearchToolCall"},
+        {"$ref": "#/definitions/CodeInterpreterToolCall"},
+        {"$ref": "#/definitions/ComputerToolCall"},
+        {"$ref": "#/definitions/FunctionToolCallOutput"},
+        {"$ref": "#/definitions/ComputerToolCallOutput"}
+      ]
+    },
+    "InputMessage": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "message"},
+        "role": {"type": "string"},
+        "status": {"type": "string"},
+        "content": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/InputContent"}
+        }
+      },
+      "required": ["role", "content"]
+    },
+    "EasyInputMessage": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "message"},
+        "role": {"type": "string"},
+        "content": {"$ref": "#/definitions/EasyInputMessageContent"}
+      },
+      "required": ["type", "role", "content"]
+    },
+    "EasyInputMessageContent": {
+      "oneOf": [
+        {"type": "string"},
+        {
+          "type": "array",
+          "items": {"$ref": "#/definitions/InputContent"}
+        }
+      ]
+    },
+    "ItemReferenceParam": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "item_reference"},
+        "id": {"type": "string"}
+      },
+      "required": ["type", "id"]
+    },
+    "InputContent": {
+      "oneOf": [
+        {"$ref": "#/definitions/InputTextContent"},
+        {"$ref": "#/definitions/InputImageContent"},
+        {"$ref": "#/definitions/InputFileContent"}
+      ]
+    },
+    "InputTextContent": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "input_text"},
+        "text": {"type": "string"}
+      },
+      "required": ["type", "text"]
+    },
+    "InputImageContent": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "input_image"},
+        "imageUrl": {"type": "string"},
+        "fileId": {"type": "string"},
+        "detail": {"type": "string"}
+      },
+      "required": ["type", "detail"]
+    },
+    "InputFileContent": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "input_file"},
+        "fileId": {"type": "string"}
+      },
+      "required": ["type", "fileId"]
+    },
+    "OutputMessage": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"type": "string", "const": "message"},
+        "role": {"type": "string", "const": "assistant"},
+        "content": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/OutputContent"}
+        },
+        "status": {"type": "string"}
+      },
+      "required": ["id", "type", "role", "content", "status"]
+    },
+    "OutputContent": {
+      "oneOf": [
+        {"$ref": "#/definitions/OutputTextContent"},
+        {"$ref": "#/definitions/RefusalContent"}
+      ]
+    },
+    "OutputTextContent": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "output_text"},
+        "text": {"type": "string"},
+        "annotations": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/Annotation"}
+        }
+      },
+      "required": ["type", "text"]
+    },
+    "RefusalContent": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "refusal"},
+        "refusal": {"type": "string"}
+      },
+      "required": ["type", "refusal"]
+    },
+    "Annotation": {
+      "oneOf": [
+        {"$ref": "#/definitions/FileCitationBody"},
+        {"$ref": "#/definitions/UrlCitationBody"},
+        {"$ref": "#/definitions/FilePathBody"}
+      ]
+    },
+    "FileCitationBody": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "file_citation"},
+        "fileId": {"type": "string"},
+        "index": {"type": "integer"}
+      },
+      "required": ["type", "fileId", "index"]
+    },
+    "UrlCitationBody": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "url_citation"},
+        "url": {"type": "string"},
+        "startIndex": {"type": "integer"},
+        "endIndex": {"type": "integer"},
+        "title": {"type": "string"}
+      },
+      "required": ["type", "url", "startIndex", "endIndex", "title"]
+    },
+    "FilePathBody": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "file_path"},
+        "fileId": {"type": "string"},
+        "index": {"type": "integer"}
+      },
+      "required": ["type", "fileId", "index"]
+    },
+    "FunctionToolCall": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"type": "string", "const": "tool_call"},
+        "name": {"type": "string"},
+        "status": {"type": "string"},
+        "arguments": {"type": "string"}
+      },
+      "required": ["id", "type", "name", "status"]
+    },
+    "ReasoningItem": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "reasoning"},
+        "id": {"type": "string"},
+        "summary": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/SummaryText"}
+        },
+        "status": {"type": "string"}
+      },
+      "required": ["type", "id", "summary"]
+    },
+    "SummaryText": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "summary_text"},
+        "text": {"type": "string"}
+      },
+      "required": ["type", "text"]
+    },
+    "FileSearchToolCall": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"type": "string", "const": "file_search_call"},
+        "status": {"$ref": "#/definitions/ToolCallStatus"},
+        "queries": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "results": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/FileSearchResult"}
+        }
+      },
+      "required": ["id", "type", "status", "queries"]
+    },
+    "FileSearchResult": {
+      "type": "object",
+      "properties": {
+        "fileId": {"type": "string"},
+        "text": {"type": "string"},
+        "filename": {"type": "string"},
+        "attributes": {"$ref": "#/definitions/VectorStoreFileAttributes"},
+        "score": {"type": "number"}
+      },
+      "required": ["fileId", "text", "filename", "score"]
+    },
+    "VectorStoreFileAttributes": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {"type": "string"},
+          {"type": "number"},
+          {"type": "boolean"}
+        ]
+      }
+    },
+    "WebSearchToolCall": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"type": "string", "const": "web_search_call"},
+        "status": {"$ref": "#/definitions/ToolCallStatus"}
+      },
+      "required": ["id", "type", "status"]
+    },
+    "CodeInterpreterToolCall": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"type": "string", "const": "code_interpreter_call"},
+        "code": {"type": "string"},
+        "status": {"$ref": "#/definitions/ToolCallStatus"},
+        "results": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/CodeInterpreterToolOutput"}
+        }
+      },
+      "required": ["id", "type", "code", "status", "results"]
+    },
+    "CodeInterpreterToolOutput": {
+      "oneOf": [
+        {"$ref": "#/definitions/CodeInterpreterTextOutput"},
+        {"$ref": "#/definitions/CodeInterpreterFileOutput"}
+      ]
+    },
+    "CodeInterpreterTextOutput": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "text"},
+        "text": {"type": "string"}
+      },
+      "required": ["type", "text"]
+    },
+    "CodeInterpreterFileOutput": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "files"},
+        "files": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/CodeInterpreterFileDetail"}
+        }
+      },
+      "required": ["type", "files"]
+    },
+    "CodeInterpreterFileDetail": {
+      "type": "object",
+      "properties": {
+        "mimeType": {"type": "string"},
+        "fileId": {"type": "string"}
+      },
+      "required": ["mimeType", "fileId"]
+    },
+    "ComputerToolCall": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"type": "string", "const": "computer_call"},
+        "callId": {"type": "string"},
+        "action": {"$ref": "#/definitions/ComputerAction"},
+        "pendingSafetyChecks": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/ComputerSafetyCheck"}
+        },
+        "status": {"$ref": "#/definitions/ToolCallStatus"}
+      },
+      "required": ["id", "type", "callId", "action", "pendingSafetyChecks", "status"]
+    },
+    "ComputerAction": {
+      "oneOf": [
+        {"$ref": "#/definitions/ClickAction"},
+        {"$ref": "#/definitions/DoubleClickAction"},
+        {"$ref": "#/definitions/DragAction"},
+        {"$ref": "#/definitions/KeyPressAction"},
+        {"$ref": "#/definitions/MoveAction"},
+        {"$ref": "#/definitions/ScreenshotAction"},
+        {"$ref": "#/definitions/ScrollAction"},
+        {"$ref": "#/definitions/TypeAction"},
+        {"$ref": "#/definitions/WaitAction"}
+      ]
+    },
+    "ComputerSafetyCheck": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "code": {"type": "string"},
+        "message": {"type": "string"}
+      },
+      "required": ["id"]
+    },
+    "ClickAction": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "click"},
+        "button": {"type": "string"},
+        "x": {"type": "integer"},
+        "y": {"type": "integer"}
+      },
+      "required": ["type", "button", "x", "y"]
+    },
+    "DoubleClickAction": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "double_click"},
+        "x": {"type": "integer"},
+        "y": {"type": "integer"}
+      },
+      "required": ["type", "x", "y"]
+    },
+    "DragAction": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "drag"},
+        "x": {"type": "integer"},
+        "y": {"type": "integer"},
+        "toX": {"type": "integer"},
+        "toY": {"type": "integer"}
+      },
+      "required": ["type", "x", "y", "toX", "toY"]
+    },
+    "KeyPressAction": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "key_press"},
+        "keys": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "required": ["type", "keys"]
+    },
+    "MoveAction": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "move"},
+        "x": {"type": "integer"},
+        "y": {"type": "integer"}
+      },
+      "required": ["type", "x", "y"]
+    },
+    "ScreenshotAction": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "screenshot"}
+      },
+      "required": ["type"]
+    },
+    "ScrollAction": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "scroll"},
+        "x": {"type": "integer"},
+        "y": {"type": "integer"},
+        "scrollX": {"type": "integer"},
+        "scrollY": {"type": "integer"}
+      },
+      "required": ["type", "x", "y", "scrollX", "scrollY"]
+    },
+    "TypeAction": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "type"},
+        "text": {"type": "string"}
+      },
+      "required": ["type", "text"]
+    },
+    "WaitAction": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "wait"},
+        "duration": {"type": "integer"}
+      },
+      "required": ["type", "duration"]
+    },
+    "FunctionToolCallOutput": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"type": "string", "const": "function_call_output"},
+        "callId": {"type": "string"},
+        "output": {"type": "string"},
+        "status": {"type": "string"}
+      },
+      "required": ["id", "type", "callId", "output", "status"]
+    },
+    "ComputerToolCallOutput": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"type": "string", "const": "computer_call_output"},
+        "callId": {"type": "string"},
+        "output": {"$ref": "#/definitions/ComputerToolCallResult"},
+        "status": {"type": "string"}
+      },
+      "required": ["id", "type", "callId", "output", "status"]
+    },
+    "ComputerToolCallResult": {
+      "oneOf": [
+        {"$ref": "#/definitions/ComputerScreenshotResult"},
+        {"$ref": "#/definitions/ComputerActionResult"}
+      ]
+    },
+    "ComputerScreenshotResult": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "screenshot"},
+        "imageUrl": {"type": "string"}
+      },
+      "required": ["type", "imageUrl"]
+    },
+    "ComputerActionResult": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string", "const": "action"},
+        "success": {"type": "boolean"},
+        "message": {"type": "string"}
+      },
+      "required": ["type", "success", "message"]
+    },
+    "SendMsgEvent": {
+      "type": "object",
+      "properties": {
+        "roomId": {"type": "string"},
+        "msgType": {"$ref": "#/definitions/MessageType"},
+        "body": {"$ref": "#/definitions/SendMsgBody"},
+        "receiverId": {"type": "string"},
+        "senderId": {"type": "string"},
+        "threadId": {"type": "string"},
+        "quoteMid": {"type": "string"},
+        "senderAt": {"type": "integer"},
+        "externalId": {"type": "string"}
+      },
+      "required": ["roomId", "msgType", "body", "receiverId", "senderId"]
+    },
+    "SendMsgBody": {
+      "oneOf": [
+        {"$ref": "#/definitions/TextMsgBody"},
+        {"$ref": "#/definitions/ImageMsgBody"},
+        {"$ref": "#/definitions/VideoMsgBody"},
+        {"$ref": "#/definitions/FileMsgBody"},
+        {"$ref": "#/definitions/AudioMsgBody"},
+        {"$ref": "#/definitions/AgentMsgBody"},
+        {"$ref": "#/definitions/PostMsgBody"},
+        {"$ref": "#/definitions/StickerMsgBody"}
+      ]
+    },
+    "TextMsgBody": {
+      "type": "object",
+      "properties": {
+        "text": {"type": "string"}
+      },
+      "required": ["text"]
+    },
+    "ImageMsgBody": {
+      "type": "object",
+      "properties": {
+        "imageCid": {"type": "string"},
+        "width": {"type": "integer"},
+        "height": {"type": "integer"},
+        "alt": {"type": "string"}
+      },
+      "required": ["imageCid"]
+    },
+    "VideoMsgBody": {
+      "type": "object",
+      "properties": {
+        "videoCid": {"type": "string"},
+        "duration": {"type": "integer"},
+        "thumbCid": {"type": "string"},
+        "width": {"type": "integer"},
+        "height": {"type": "integer"}
+      },
+      "required": ["videoCid", "duration", "thumbCid"]
+    },
+    "FileMsgBody": {
+      "type": "object",
+      "properties": {
+        "fileCid": {"type": "string"},
+        "size": {"type": "integer"},
+        "fileName": {"type": "string"},
+        "mimeType": {"type": "string"},
+        "fileType": {"type": "string"}
+      },
+      "required": ["fileCid", "size", "fileName", "mimeType", "fileType"]
+    },
+    "AudioMsgBody": {
+      "type": "object",
+      "properties": {
+        "audioCid": {"type": "string"},
+        "duration": {"type": "integer"},
+        "transcript": {"type": "string"}
+      },
+      "required": ["audioCid", "duration"]
+    },
+    "AgentMsgBody": {
+      "type": "object",
+      "properties": {
+        "role": {"type": "string"},
+        "messageId": {"type": "string"},
+        "messageItems": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/InputItem"}
+        },
+        "metadata": {"type": "object"}
+      },
+      "required": ["role", "messageId", "messageItems", "metadata"]
+    },
+    "InputItem": {
+      "oneOf": [
+        {"$ref": "#/definitions/InputMessage"},
+        {"$ref": "#/definitions/EasyInputMessage"},
+        {"$ref": "#/definitions/ItemReferenceParam"},
+        {"$ref": "#/definitions/FunctionToolCall"}
+      ]
+    },
+    "StickerMsgBody": {
+      "type": "object",
+      "properties": {
+        "stickerCid": {"type": "string"},
+        "alt": {"type": "string"},
+        "width": {"type": "integer"},
+        "height": {"type": "integer"},
+        "isAnimated": {"type": "boolean"}
+      },
+      "required": ["stickerCid", "isAnimated"]
+    },
+    "PostMsgBody": {
+      "type": "object",
+      "properties": {
+        "title": {"type": "string"},
+        "content": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {"$ref": "#/definitions/RichTextNode"}
+          }
+        }
+      },
+      "required": ["content"]
+    },
+    "RichTextNode": {
+      "oneOf": [
+        {"$ref": "#/definitions/RichTextNodeText"},
+        {"$ref": "#/definitions/RichTextNodeLink"},
+        {"$ref": "#/definitions/RichTextNodeAt"},
+        {"$ref": "#/definitions/RichTextNodeImage"},
+        {"$ref": "#/definitions/RichTextNodeVideo"},
+        {"$ref": "#/definitions/RichTextNodeEmotion"},
+        {"$ref": "#/definitions/RichTextNodeHr"},
+        {"$ref": "#/definitions/RichTextNodeCodeBlock"},
+        {"$ref": "#/definitions/RichTextNodeMarkdown"}
+      ]
+    },
+    "RichTextNodeText": {
+      "type": "object",
+      "properties": {
+        "tag": {"type": "string", "const": "text"},
+        "text": {"type": "string"},
+        "unEscape": {"type": "boolean"},
+        "style": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/RichTextNodeTextStypeType"}
+        }
+      },
+      "required": ["tag", "text"]
+    },
+    "RichTextNodeLink": {
+      "type": "object",
+      "properties": {
+        "tag": {"type": "string", "const": "a"},
+        "text": {"type": "string"},
+        "href": {"type": "string"},
+        "style": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/RichTextNodeTextStypeType"}
+        }
+      },
+      "required": ["tag", "text", "href"]
+    },
+    "RichTextNodeAt": {
+      "type": "object",
+      "properties": {
+        "tag": {"type": "string", "const": "at"},
+        "userId": {"type": "string"},
+        "style": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/RichTextNodeTextStypeType"}
+        }
+      },
+      "required": ["tag", "userId"]
+    },
+    "RichTextNodeImage": {
+      "type": "object",
+      "properties": {
+        "tag": {"type": "string", "const": "img"},
+        "imageKey": {"type": "string"}
+      },
+      "required": ["tag", "imageKey"]
+    },
+    "RichTextNodeVideo": {
+      "type": "object",
+      "properties": {
+        "tag": {"type": "string", "const": "media"},
+        "fileKey": {"type": "string"},
+        "imageKey": {"type": "string"}
+      },
+      "required": ["tag", "fileKey"]
+    },
+    "RichTextNodeEmotion": {
+      "type": "object",
+      "properties": {
+        "tag": {"type": "string", "const": "emotion"},
+        "emojiType": {"type": "string"}
+      },
+      "required": ["tag", "emojiType"]
+    },
+    "RichTextNodeHr": {
+      "type": "object",
+      "properties": {
+        "tag": {"type": "string", "const": "hr"}
+      },
+      "required": ["tag"]
+    },
+    "RichTextNodeCodeBlock": {
+      "type": "object",
+      "properties": {
+        "tag": {"type": "string", "const": "code_block"},
+        "language": {"type": "string"},
+        "text": {"type": "string"}
+      },
+      "required": ["tag", "text"]
+    },
+    "RichTextNodeMarkdown": {
+      "type": "object",
+      "properties": {
+        "tag": {"type": "string", "const": "md"},
+        "text": {"type": "string"}
+      },
+      "required": ["tag", "text"]
+    },
+    "ChatEvent": {
+      "type": "object",
+      "properties": {
+        "eventId": {"type": "string"},
+        "eventType": {"$ref": "#/definitions/ChatEventType"},
+        "event": {"$ref": "#/definitions/ChatEventBody"}
+      },
+      "required": ["eventId", "eventType", "event"]
+    },
+    "ChatEventBody": {
+      "oneOf": [
+        {"$ref": "#/definitions/SendMsgEvent"},
+        {"$ref": "#/definitions/InterruptEvent"},
+        {"$ref": "#/definitions/CompletedEvent"},
+        {"$ref": "#/definitions/ContentPartAddedEvent"},
+        {"$ref": "#/definitions/ContentPartDoneEvent"},
+        {"$ref": "#/definitions/CreatedEvent"},
+        {"$ref": "#/definitions/ErrorEvent"},
+        {"$ref": "#/definitions/InProgressEvent"},
+        {"$ref": "#/definitions/FailedEvent"},
+        {"$ref": "#/definitions/IncompleteEvent"},
+        {"$ref": "#/definitions/OutputItemAddedEvent"},
+        {"$ref": "#/definitions/OutputItemDoneEvent"}
+      ]
+    },
+    "InterruptEvent": {
+      "type": "object",
+      "properties": {
+        "agentMessageId": {"type": "string"}
+      },
+      "required": ["agentMessageId"]
+    },
+    "CompletedEvent": {
+      "type": "object",
+      "properties": {
+        "agentMessage": {"$ref": "#/definitions/AgentMessage"}
+      },
+      "required": ["agentMessage"]
+    },
+    "ContentPartAddedEvent": {
+      "type": "object",
+      "properties": {
+        "itemId": {"type": "string"},
+        "outputIndex": {"type": "integer"},
+        "contentIndex": {"type": "integer"},
+        "part": {"$ref": "#/definitions/OutputContent"}
+      },
+      "required": ["itemId", "outputIndex", "contentIndex", "part"]
+    },
+    "ContentPartDoneEvent": {
+      "type": "object",
+      "properties": {
+        "itemId": {"type": "string"},
+        "outputIndex": {"type": "integer"},
+        "contentIndex": {"type": "integer"},
+        "part": {"$ref": "#/definitions/OutputContent"}
+      },
+      "required": ["itemId", "outputIndex", "contentIndex", "part"]
+    },
+    "CreatedEvent": {
+      "type": "object",
+      "properties": {
+        "agentMessage": {"$ref": "#/definitions/AgentMessage"}
+      },
+      "required": ["agentMessage"]
+    },
+    "ErrorEvent": {
+      "type": "object",
+      "properties": {
+        "code": {"type": "string"},
+        "message": {"type": "string"},
+        "param": {"type": "string"}
+      },
+      "required": ["message"]
+    },
+    "InProgressEvent": {
+      "type": "object",
+      "properties": {
+        "agentMessage": {"$ref": "#/definitions/AgentMessage"}
+      },
+      "required": ["agentMessage"]
+    },
+    "FailedEvent": {
+      "type": "object",
+      "properties": {
+        "agentMessage": {"$ref": "#/definitions/AgentMessage"}
+      },
+      "required": ["agentMessage"]
+    },
+    "IncompleteEvent": {
+      "type": "object",
+      "properties": {
+        "agentMessage": {"$ref": "#/definitions/AgentMessage"}
+      },
+      "required": ["agentMessage"]
+    },
+    "OutputItemAddedEvent": {
+      "type": "object",
+      "properties": {
+        "outputIndex": {"type": "integer"},
+        "item": {"$ref": "#/definitions/OutputItem"}
+      },
+      "required": ["outputIndex", "item"]
+    },
+    "OutputItemDoneEvent": {
+      "type": "object",
+      "properties": {
+        "outputIndex": {"type": "integer"},
+        "item": {"$ref": "#/definitions/OutputItem"}
+      },
+      "required": ["outputIndex", "item"]
+    },
+    "OutputItem": {
+      "oneOf": [
+        {"$ref": "#/definitions/OutputMessage"},
+        {"$ref": "#/definitions/FunctionToolCall"},
+        {"$ref": "#/definitions/ReasoningItem"},
+        {"$ref": "#/definitions/FileSearchToolCall"},
+        {"$ref": "#/definitions/WebSearchToolCall"},
+        {"$ref": "#/definitions/CodeInterpreterToolCall"},
+        {"$ref": "#/definitions/ComputerToolCall"},
+        {"$ref": "#/definitions/FunctionToolCallOutput"},
+        {"$ref": "#/definitions/ComputerToolCallOutput"}
+      ]
+    }
+  }
+}

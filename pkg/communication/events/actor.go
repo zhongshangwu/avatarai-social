@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 
@@ -24,7 +25,6 @@ var (
 )
 
 type ActorContext[T Event] struct {
-	Actor   Actor[T]
 	Context context.Context
 }
 
@@ -64,7 +64,7 @@ type BaseActor[T Event] struct {
 	middleware   []func(Handler[T]) Handler[T]
 	gracePeriod  time.Duration // 优雅关闭的等待时间
 
-	// 自定义 Stream
+	// 自定义 Stream (for 性能优化, 避免过多的 stream 传输)
 	customInbox  *streams.Stream[T]
 	customOutbox *streams.Stream[T]
 }
@@ -369,12 +369,17 @@ func (a *BaseActor[T]) processLoop() {
 		func(m T, h Handler[T]) {
 			defer func() {
 				if r := recover(); r != nil {
+					// log traceback
+					logrus.Errorf("panic in event handler: %v", r)
+					buf := make([]byte, 1024)
+					n := runtime.Stack(buf, true)
+					logrus.Errorf("panic traceback: %s", string(buf[:n]))
+
 					a.handleError(fmt.Errorf("panic in event handler: %v", r))
 				}
 			}()
 
 			actorCtx := ActorContext[T]{
-				Actor:   a,
 				Context: a.ctx,
 			}
 
