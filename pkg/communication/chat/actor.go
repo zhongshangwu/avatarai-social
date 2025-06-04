@@ -51,7 +51,7 @@ func NewChatActor(
 		actor.llmManager,
 	)
 	actor.runner = runner
-	actor.RegisterHandler(string(messages.EventTypeSendMsg), actor.SendMsgHandler)
+	actor.RegisterHandler(string(messages.EventTypeMessageSend), actor.SendMsgHandler)
 	actor.RegisterHandler(string(messages.EventTypeAgentMessageInterrupt), actor.InterruptHandler)
 	return actor
 }
@@ -72,6 +72,7 @@ func (actor *ChatActor) SendMsgHandler(actorCtx events.ActorContext[*messages.Ch
 		logrus.Errorf("消息发送失败: %v", err)
 		return actor.sendError(actorCtx, "send_failed", "消息发送失败")
 	}
+	actor.sendMsgSent(actorCtx, message, event)
 
 	actor.AIRespond(actorCtx, message)
 	logrus.Info("已启动异步处理 AI 聊天消息")
@@ -102,4 +103,29 @@ func (actor *ChatActor) sendError(actorCtx events.ActorContext[*messages.ChatEve
 	}
 	logrus.Infof("发送错误事件 [%s]", errorEvent.EventID)
 	return actor.PublishToOutbox(actorCtx.Context, errorEvent)
+}
+
+func (actor *ChatActor) sendMsgSent(actorCtx events.ActorContext[*messages.ChatEvent], message *messages.Message, event *messages.ChatEvent) error {
+	sentEvent := &messages.ChatEvent{
+		EventID:   uuid.New().String(),
+		EventType: messages.EventTypeMessageSent,
+		Event: &messages.MessageSentEvent{
+			MessageID: message.ID,
+			EventID:   event.EventID,
+		},
+	}
+	logrus.Infof("发送消息已发送事件: %s", sentEvent.EventID)
+	return actor.PublishToOutbox(actorCtx.Context, sentEvent)
+}
+
+func (actor *ChatActor) sendMsgReceived(actorCtx events.ActorContext[*messages.ChatEvent], message *messages.Message) error {
+	receivedEvent := &messages.ChatEvent{
+		EventID:   uuid.New().String(),
+		EventType: messages.EventTypeMessageReceived,
+		Event: &messages.MessageReceivedEvent{
+			Message: message,
+		},
+	}
+	logrus.Infof("发送消息已接收事件: %s", receivedEvent.EventID)
+	return actor.PublishToOutbox(actorCtx.Context, receivedEvent)
 }

@@ -77,21 +77,21 @@
 
 ### 消息类型枚举
 
-| 类型值 | 名称 | 描述 | 内容结构 |
-|--------|------|------|----------|
-| 0 | Unspecified | 未指定 | - |
-| 1 | Text | 文本消息 | `TextMessageContent` |
-| 2 | Post | 富文本消息 | `PostMessageContent` |
-| 3 | Image | 图片消息 | `ImageMessageContent` |
-| 4 | File | 文件消息 | `FileMessageContent` |
-| 5 | Audio | 音频消息 | `AudioMessageContent` |
-| 6 | Video | 视频消息 | `VideoMessageContent` |
-| 7 | Sticker | 表情包消息 | `StickerMessageContent` |
-| 8 | Card | 卡片消息(未实现) | `CardMessageContent` |
-| 9 | AIChat | AI聊天消息 | `AIChatMessageContent` |
-| 10 | System | 系统消息 | `SystemMessageContent` |
-| 11 | Delete | 删除消息 | `DeleteMessageContent` |
-| 12 | RTC | RTC通话消息 | `RTCMessageContent` |
+| 类型值 | 名称        | 描述             | 内容结构                |
+| ------ | ----------- | ---------------- | ----------------------- |
+| 0      | Unspecified | 未指定           | -                       |
+| 1      | Text        | 文本消息         | `TextMessageContent`    |
+| 2      | Post        | 富文本消息       | `PostMessageContent`    |
+| 3      | Image       | 图片消息         | `ImageMessageContent`   |
+| 4      | File        | 文件消息         | `FileMessageContent`    |
+| 5      | Audio       | 音频消息         | `AudioMessageContent`   |
+| 6      | Video       | 视频消息         | `VideoMessageContent`   |
+| 7      | Sticker     | 表情包消息       | `StickerMessageContent` |
+| 8      | Card        | 卡片消息(未实现) | `CardMessageContent`    |
+| 9      | AIChat      | AI聊天消息       | `AIChatMessageContent`  |
+| 10     | System      | 系统消息         | `SystemMessageContent`  |
+| 11     | Delete      | 删除消息         | `DeleteMessageContent`  |
+| 12     | RTC         | RTC通话消息      | `RTCMessageContent`     |
 
 ### 1. 文本消息 (Type: 1)
 

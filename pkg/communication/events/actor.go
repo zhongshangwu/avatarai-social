@@ -167,7 +167,7 @@ func (a *BaseActor[T]) Send(ctx context.Context, msg T) error {
 	a.mu.RUnlock()
 
 	logrus.Infof("Actor %s 发送消息到收件箱\n", a.id)
-	err := a.inbox.Send(ctx, msg)
+	err := a.inbox.Send(msg)
 	if err != nil {
 		if errors.Is(err, streams.ErrChannelClosed) {
 			logrus.Infof("Actor %s 收件箱已关闭\n", a.id)
@@ -220,7 +220,7 @@ func (a *BaseActor[T]) PublishToOutbox(ctx context.Context, msg T) error {
 	a.mu.RUnlock()
 
 	logrus.Infof("Actor %s 发送消息到 outbox\n", a.id)
-	err := a.outbox.Send(ctx, msg)
+	err := a.outbox.Send(msg)
 	if err != nil {
 		if errors.Is(err, streams.ErrChannelClosed) {
 			logrus.Infof("Actor %s outbox 已关闭\n", a.id)
@@ -252,16 +252,20 @@ func (a *BaseActor[T]) ReceiveFromOutbox(ctx context.Context) (T, error) {
 	}
 	a.mu.RUnlock()
 
-	msg, finished, err := a.outbox.Recv()
-	if err != nil {
-		return zero, fmt.Errorf("failed to receive from outbox: %w", err)
+	result := a.outbox.Recv()
+
+	if result.HasData {
+		msg := result.Data
+		return msg, nil
 	}
 
-	if finished {
+	if result.Completed {
+		if result.Error != nil {
+			return zero, fmt.Errorf("failed to receive from outbox: %w", result.Error)
+		}
 		return zero, ErrActorStopped
 	}
-
-	return msg, nil
+	panic("unreachable")
 }
 
 func (a *BaseActor[T]) ReceiveFromOutboxWithTimeout(ctx context.Context, timeout time.Duration) (T, error) {
@@ -344,50 +348,55 @@ func (a *BaseActor[T]) processLoop() {
 	defer a.wg.Done()
 
 	for {
-		msg, finished, err := a.inbox.Recv()
-		if finished {
-			// 流已关闭，退出处理循环
+
+		result := a.inbox.Recv()
+
+		if result.HasData {
+			msg := result.Data
+
+			msgType := msg.Type()
+			a.mu.RLock()
+			handler, exists := a.handlers[msgType]
+			a.mu.RUnlock()
+
+			if !exists {
+				a.handleError(fmt.Errorf("%w: %s", ErrHandlerNotFound, msgType))
+				continue
+			}
+
+			// 顺序处理模式
+			func(m T, h Handler[T]) {
+				defer func() {
+					if r := recover(); r != nil {
+						// log traceback
+						logrus.Errorf("panic in event handler: %v", r)
+						buf := make([]byte, 1024)
+						n := runtime.Stack(buf, true)
+						logrus.Errorf("panic traceback: %s", string(buf[:n]))
+
+						a.handleError(fmt.Errorf("panic in event handler: %v", r))
+					}
+				}()
+
+				actorCtx := ActorContext[T]{
+					Context: a.ctx,
+				}
+
+				err := h(actorCtx, m)
+				if err != nil {
+					a.handleError(err)
+				}
+			}(msg, handler)
+			continue
+		}
+
+		if result.Completed {
+			if result.Error != nil {
+				a.handleError(fmt.Errorf("error receiving event: %w", result.Error))
+				continue
+			}
 			return
 		}
-
-		if err != nil {
-			a.handleError(fmt.Errorf("error receiving event: %w", err))
-			continue
-		}
-
-		msgType := msg.Type()
-		a.mu.RLock()
-		handler, exists := a.handlers[msgType]
-		a.mu.RUnlock()
-
-		if !exists {
-			a.handleError(fmt.Errorf("%w: %s", ErrHandlerNotFound, msgType))
-			continue
-		}
-
-		// 顺序处理模式
-		func(m T, h Handler[T]) {
-			defer func() {
-				if r := recover(); r != nil {
-					// log traceback
-					logrus.Errorf("panic in event handler: %v", r)
-					buf := make([]byte, 1024)
-					n := runtime.Stack(buf, true)
-					logrus.Errorf("panic traceback: %s", string(buf[:n]))
-
-					a.handleError(fmt.Errorf("panic in event handler: %v", r))
-				}
-			}()
-
-			actorCtx := ActorContext[T]{
-				Context: a.ctx,
-			}
-
-			err := h(actorCtx, m)
-			if err != nil {
-				a.handleError(err)
-			}
-		}(msg, handler)
 	}
 }
 

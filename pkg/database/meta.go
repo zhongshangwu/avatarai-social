@@ -39,8 +39,8 @@ func (ms *MetaStore) Init() error {
 		&UserRoomStatus{},
 		&Message{},
 		&Thread{},
-		&AIChatMessage{},
-		&AIChatMessageItem{},
+		&AgentMessage{},
+		&AgentMessageItem{},
 	)
 }
 

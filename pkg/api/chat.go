@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"time"
 
@@ -78,7 +77,7 @@ func (a *AvatarAIAPI) ChatStream(c echo.Context) error {
 	}
 	defer chatActor.Stop()
 
-	if _, err := eventBus.Subscribe(string(messages.EventTypeSendMsg), chatActor.Send); err != nil {
+	if _, err := eventBus.Subscribe(string(messages.EventTypeMessageSend), chatActor.Send); err != nil {
 		logrus.Errorf("ChatStream subscribe event error: %v", err)
 		sendErrorEvent(conn, "subscribe_event_error", "订阅事件失败")
 		return err
@@ -159,29 +158,33 @@ func (a *AvatarAIAPI) handleChatStreamResponse(ctx context.Context, outbox *stre
 	defer logrus.Info("handleChatStreamResponse 处理器退出")
 
 	for {
-		serverEvent, closed, err := outbox.Recv()
-		if closed {
-			logrus.Info("ChatStream recv response finished - stream closed")
-			return
-		}
-		if errors.Is(err, streams.ErrContextAlreadyDone) {
-			logrus.Info("ChatStream recv response finished - context done")
-			return
-		}
-		if err != nil {
-			logrus.Errorf("ChatStream recv response error: %v", err)
-			return
-		}
+		result := outbox.Recv()
 
-		if serverEvent == nil {
-			logrus.Info("ChatStream recv response finished - serverEvent is nil")
+		if result.HasData {
+			serverEvent := result.Data
+
+			if serverEvent == nil {
+				logrus.Info("ChatStream recv response finished - serverEvent is nil")
+				continue
+			}
+
+			logrus.Infof("收到响应事件: ID=%s, 类型=%s", serverEvent.EventID, serverEvent.EventType)
+
+			if err := a.sendResponseToClient(ctx, conn, serverEvent); err != nil {
+				logrus.Errorf("发送响应到客户端失败: %v", err)
+				return
+			}
+
 			continue
 		}
 
-		logrus.Infof("收到响应事件: ID=%s, 类型=%s", serverEvent.EventID, serverEvent.EventType)
+		if result.Completed {
+			if result.Error != nil {
+				logrus.Errorf("ChatStream recv response error: %v", result.Error)
+				return
+			}
 
-		if err := a.sendResponseToClient(ctx, conn, serverEvent); err != nil {
-			logrus.Errorf("发送响应到客户端失败: %v", err)
+			logrus.Info("ChatStream recv response finished - stream closed")
 			return
 		}
 	}

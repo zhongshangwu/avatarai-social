@@ -309,7 +309,7 @@ func (o *OpenAIClient) handleChatGenerateStreamResponse(
 				resultChunk.Delta.Usage = usage
 			}
 
-			respStream.Send(ctx, resultChunk)
+			respStream.Send(resultChunk)
 			logrus.Infof("send result chunk sleep 3 seconds....: %v", resultChunk.Delta.Message.Content)
 			time.Sleep(3 * time.Second)
 		}
@@ -324,7 +324,6 @@ func (o *OpenAIClient) handleChatGenerateStreamResponse(
 	return respStream, nil
 }
 
-// handleChatBlockAsStreamResponse handles non-streaming responses as if they were streaming
 func (o *OpenAIClient) handleChatBlockAsStreamResponse(
 	ctx context.Context,
 	blockResult *LLMResult,
@@ -346,7 +345,7 @@ func (o *OpenAIClient) handleChatBlockAsStreamResponse(
 			}
 		}
 
-		respStream.Send(ctx, &LLMResultChunk{
+		respStream.Send(&LLMResultChunk{
 			Model:             blockResult.Model,
 			PromptMessages:    promptMessages,
 			SystemFingerprint: blockResult.SystemFingerprint,

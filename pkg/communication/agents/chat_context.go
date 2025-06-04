@@ -58,7 +58,7 @@ func (c *ChatInvokeContext) WithAgentMessage(message *messages.AgentMessage) *Ch
 
 func (c *ChatInvokeContext) send(event *messages.ChatEvent) error {
 	logrus.Infof("ChatInvokeContext 尝试发送事件 [%s] 类型: %s", event.EventID, event.EventType)
-	err := c.Stream.Send(c.Context, event)
+	err := c.Stream.Send(event)
 	if err != nil {
 		logrus.Errorf("ChatInvokeContext 发送事件失败: %v", err)
 		return err
@@ -76,7 +76,7 @@ func (c *ChatInvokeContext) sendError(errorCode string, errorMsg string) error {
 			Message: errorMsg,
 		},
 	}
-	return c.Stream.Send(c.Context, errorEvent)
+	return c.Stream.Send(errorEvent)
 }
 
 func (c *ChatInvokeContext) sendAIChatCreated(message *messages.AgentMessage) error {
@@ -87,7 +87,7 @@ func (c *ChatInvokeContext) sendAIChatCreated(message *messages.AgentMessage) er
 			AgentMessage: message,
 		},
 	}
-	return c.Stream.Send(c.Context, createdEvent)
+	return c.Stream.Send(createdEvent)
 }
 
 func (c *ChatInvokeContext) sendAIChatInProgress(message *messages.AgentMessage) error {
@@ -98,13 +98,13 @@ func (c *ChatInvokeContext) sendAIChatInProgress(message *messages.AgentMessage)
 			AgentMessage: message,
 		},
 	}
-	return c.Stream.Send(c.Context, inProgressEvent)
+	return c.Stream.Send(inProgressEvent)
 }
 
-func (c *ChatInvokeContext) sendAIChatFailed(message *messages.AgentMessage, errorCode, errorMsg string) error {
+func (c *ChatInvokeContext) sendAIChatFailed(message *messages.AgentMessage, errorCode messages.ResponseErrorCode, errorMsg string) error {
 	message.Status = messages.AgentMessageStatusFailed
 	message.Error = &messages.ResponseError{
-		Code:    messages.ResponseErrorCode(errorCode),
+		Code:    errorCode,
 		Message: errorMsg,
 	}
 
@@ -115,7 +115,7 @@ func (c *ChatInvokeContext) sendAIChatFailed(message *messages.AgentMessage, err
 			AgentMessage: message,
 		},
 	}
-	return c.Stream.Send(c.Context, failedEvent)
+	return c.Stream.Send(failedEvent)
 }
 
 func (c *ChatInvokeContext) sendAIChatCompleted(message *messages.AgentMessage) error {
@@ -129,7 +129,7 @@ func (c *ChatInvokeContext) sendAIChatCompleted(message *messages.AgentMessage) 
 			AgentMessage: message,
 		},
 	}
-	return c.Stream.Send(c.Context, completedEvent)
+	return c.Stream.Send(completedEvent)
 }
 
 func (c *ChatInvokeContext) sendOutputItemAdded(outputIndex int, item messages.OutputItem) error {
@@ -141,7 +141,7 @@ func (c *ChatInvokeContext) sendOutputItemAdded(outputIndex int, item messages.O
 			Item:        item,
 		},
 	}
-	return c.Stream.Send(c.Context, outputItemAddedEvent)
+	return c.Stream.Send(outputItemAddedEvent)
 }
 
 func (c *ChatInvokeContext) sendOutputItemDone(outputIndex int, item messages.OutputItem) error {
@@ -153,7 +153,7 @@ func (c *ChatInvokeContext) sendOutputItemDone(outputIndex int, item messages.Ou
 			Item:        item,
 		},
 	}
-	return c.Stream.Send(c.Context, outputItemDoneEvent)
+	return c.Stream.Send(outputItemDoneEvent)
 }
 
 func (c *ChatInvokeContext) sendContentPartAdded(itemID string, outputIndex, contentIndex int, part messages.OutputContent) error {
@@ -167,7 +167,7 @@ func (c *ChatInvokeContext) sendContentPartAdded(itemID string, outputIndex, con
 			Part:         part,
 		},
 	}
-	return c.Stream.Send(c.Context, contentPartAddedEvent)
+	return c.Stream.Send(contentPartAddedEvent)
 }
 
 func (c *ChatInvokeContext) sendContentPartDone(itemID string, outputIndex, contentIndex int, part messages.OutputContent) error {
@@ -181,7 +181,7 @@ func (c *ChatInvokeContext) sendContentPartDone(itemID string, outputIndex, cont
 			Part:         part,
 		},
 	}
-	return c.Stream.Send(c.Context, contentPartDoneEvent)
+	return c.Stream.Send(contentPartDoneEvent)
 }
 
 func (c *ChatInvokeContext) sendTextDelta(itemID string, outputIndex, contentIndex int, delta string) error {
@@ -195,7 +195,7 @@ func (c *ChatInvokeContext) sendTextDelta(itemID string, outputIndex, contentInd
 			Delta:        delta,
 		},
 	}
-	return c.Stream.Send(c.Context, textDeltaEvent)
+	return c.Stream.Send(textDeltaEvent)
 }
 
 func (c *ChatInvokeContext) sendTextDone(itemID string, outputIndex, contentIndex int, text string) error {
@@ -209,7 +209,7 @@ func (c *ChatInvokeContext) sendTextDone(itemID string, outputIndex, contentInde
 			Text:         text,
 		},
 	}
-	return c.Stream.Send(c.Context, textDoneEvent)
+	return c.Stream.Send(textDoneEvent)
 }
 
 func (c *ChatInvokeContext) sendFunctionCallArgumentsDelta(itemID string, outputIndex int, delta string) error {
@@ -222,7 +222,7 @@ func (c *ChatInvokeContext) sendFunctionCallArgumentsDelta(itemID string, output
 			Delta:       delta,
 		},
 	}
-	return c.Stream.Send(c.Context, argsDeltaEvent)
+	return c.Stream.Send(argsDeltaEvent)
 }
 
 func (c *ChatInvokeContext) sendFunctionCallArgumentsDone(itemID string, outputIndex int, arguments string) error {
@@ -235,7 +235,7 @@ func (c *ChatInvokeContext) sendFunctionCallArgumentsDone(itemID string, outputI
 			Arguments:   arguments,
 		},
 	}
-	return c.Stream.Send(c.Context, argsDoneEvent)
+	return c.Stream.Send(argsDoneEvent)
 }
 
 func (c *ChatInvokeContext) sendAIChatIncomplete(message *messages.AgentMessage) error {
@@ -246,7 +246,7 @@ func (c *ChatInvokeContext) sendAIChatIncomplete(message *messages.AgentMessage)
 			AgentMessage: message,
 		},
 	}
-	return c.Stream.Send(c.Context, incompleteEvent)
+	return c.Stream.Send(incompleteEvent)
 }
 
 type ChatControlContext struct {

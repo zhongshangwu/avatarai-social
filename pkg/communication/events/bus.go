@@ -119,35 +119,40 @@ func (eb *DefaultEventBus[T]) worker(id int) {
 	defer eb.wg.Done()
 
 	for {
-		event, finished, err := eb.eventStream.Recv()
-		if finished {
-			return // 流已关闭，退出工作线程
-		}
+		result := eb.eventStream.Recv()
 
-		if err != nil {
-			eb.handleError(fmt.Errorf("worker %d error receiving event: %w", id, err))
+		if result.HasData {
+			event := result.Data
+			ctx := eb.tracer.StartEventTrace(eb.ctx, event)
+
+			eb.tracer.EventDispatchStarted(ctx, event)
+			start := time.Now()
+
+			err := eb.dispatcher.Dispatch(ctx, event)
+
+			duration := time.Since(start)
+
+			eb.tracer.EventDispatchFinished(ctx, event, duration, err)
+
+			eb.metrics.EventProcessed(event.Type(), duration)
+
+			if err != nil {
+				eb.handleError(err)
+				eb.metrics.EventError(event.Type(), err)
+			}
+
+			eb.tracer.EndEventTrace(ctx, err)
 			continue
 		}
 
-		ctx := eb.tracer.StartEventTrace(eb.ctx, event)
-
-		eb.tracer.EventDispatchStarted(ctx, event)
-		start := time.Now()
-
-		err = eb.dispatcher.Dispatch(ctx, event)
-
-		duration := time.Since(start)
-
-		eb.tracer.EventDispatchFinished(ctx, event, duration, err)
-
-		eb.metrics.EventProcessed(event.Type(), duration)
-
-		if err != nil {
-			eb.handleError(err)
-			eb.metrics.EventError(event.Type(), err)
+		if result.Completed {
+			if result.Error != nil {
+				eb.handleError(fmt.Errorf("worker %d error receiving event: %w", id, result.Error))
+				continue
+			}
+			return
 		}
-
-		eb.tracer.EndEventTrace(ctx, err)
+		panic("unreachable")
 	}
 }
 
@@ -219,7 +224,7 @@ func (eb *DefaultEventBus[T]) Publish(ctx context.Context, event T) error {
 	eb.metrics.EventPublished(event.Type())
 
 	// 发送事件到流
-	err := eb.eventStream.Send(ctx, event)
+	err := eb.eventStream.Send(event)
 	if err != nil {
 		return fmt.Errorf("failed to publish event: %w", err)
 	}

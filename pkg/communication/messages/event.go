@@ -39,8 +39,12 @@ func (e *ChatEvent) UnmarshalJSON(data []byte) error {
 	// 根据EventType确定Event的具体类型
 	var eventBody ChatEventBody
 	switch e.EventType {
-	case EventTypeSendMsg:
+	case EventTypeMessageSend:
 		eventBody = &SendMsgEvent{}
+	case EventTypeMessageSent:
+		eventBody = &MessageSentEvent{}
+	case EventTypeMessageReceived:
+		eventBody = &MessageReceivedEvent{}
 	case EventTypeAgentMessageInterrupt:
 		eventBody = &InterruptEvent{}
 	case EventTypeAgentMessageCompleted:

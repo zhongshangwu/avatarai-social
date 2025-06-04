@@ -260,7 +260,7 @@ func (Thread) TableName() string {
 	return "threads"
 }
 
-type AIChatMessage struct {
+type AgentMessage struct {
 	ID                string `gorm:"primaryKey"`
 	MessageID         string `gorm:"column:message_id"`
 	Role              string `gorm:"column:role"`
@@ -277,21 +277,21 @@ type AIChatMessage struct {
 	Deleted           bool   `gorm:"column:deleted"`
 }
 
-func (AIChatMessage) TableName() string {
-	return "ai_chat_messages"
+func (AgentMessage) TableName() string {
+	return "agent_messages"
 }
 
-type AIChatMessageItem struct {
-	ID        string `gorm:"primaryKey"`
-	MessageID string `gorm:"column:message_id"`
-	ItemType  string `gorm:"column:item_type"`
-	Item      string `gorm:"column:item"`
-	Position  int    `gorm:"column:position"`
-	CreatedAt int64  `gorm:"column:created_at"`
-	UpdatedAt int64  `gorm:"column:updated_at"`
-	Deleted   bool   `gorm:"column:deleted"`
+type AgentMessageItem struct {
+	ID             string `gorm:"primaryKey"`
+	AgentMessageID string `gorm:"column:agent_message_id"`
+	ItemType       string `gorm:"column:item_type"`
+	Item           string `gorm:"column:item"`
+	Position       int    `gorm:"column:position"`
+	CreatedAt      int64  `gorm:"column:created_at"`
+	UpdatedAt      int64  `gorm:"column:updated_at"`
+	Deleted        bool   `gorm:"column:deleted"`
 }
 
-func (AIChatMessageItem) TableName() string {
-	return "ai_chat_message_items"
+func (AgentMessageItem) TableName() string {
+	return "agent_message_items"
 }

@@ -31,7 +31,7 @@ type ContentPartDoneEvent struct {
 func (e *ContentPartDoneEvent) isChatEventBody() {}
 
 type CreatedEvent struct {
-	AgentMessage *AgentMessage `json:"response"` // 创建的响应
+	AgentMessage *AgentMessage `json:"agentMessage"` // 创建的响应
 }
 
 func (e *CreatedEvent) isChatEventBody() {}

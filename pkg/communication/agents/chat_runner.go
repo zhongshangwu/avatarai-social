@@ -114,9 +114,10 @@ func (a *ChatRunner) processLLMInteraction(ctx *ChatInvokeContext, promptMessage
 
 	chatStream, err := a.LLMManager.ChatStream(llmCtx, promptMessages, modelParameters, tools, nil)
 	if err != nil {
-		return a.handleServerInterrupt(ctx, messages.ResponseErrorCodeServerError, "LLM 请求失败: "+err.Error())
+		return ctx.sendAIChatFailed(ctx.Response, messages.ResponseErrorCodeServerError, "LLM 请求失败: "+err.Error())
 	}
 
+	// FIXME: 将 Recv 改成 non-blocking 模式
 	for {
 		select {
 		case ctrlType := <-ctx.ControlChan:
@@ -124,57 +125,56 @@ func (a *ChatRunner) processLLMInteraction(ctx *ChatInvokeContext, promptMessage
 			switch ctrlType {
 			case CtrlTypeInterrupt:
 				logrus.Info("收到中断信号，停止流处理")
-				return a.handleInterrupt(ctx)
+				return a.handleManuallyInterrupt(ctx)
 			default:
 				logrus.Warnf("未知的控制事件类型: %s", ctrlType)
 			}
-
-		case <-ctx.Context.Done():
-			logrus.Info("上下文已取消，停止流处理")
-			return a.handleContextCancellation(ctx)
-
 		default:
-			// 检查流是否已关闭
-			if chatStream.Closed() {
-				logrus.Info("流已关闭，退出处理")
-				return nil
-			}
+			result := chatStream.Recv()
 
-			// 使用非阻塞接收
-			chunk, finished, err := chatStream.Recv()
-			if finished {
-				logrus.Info("流已完成")
-				return a.handleServerInterrupt(ctx, messages.ResponseErrorCodeServerError, "流已完成")
-			}
-			if err != nil {
-				if errors.Is(err, streams.ErrContextAlreadyDone) || errors.Is(err, streams.ErrChannelClosed) {
-					logrus.Infof("流已关闭或上下文已取消: %v", err)
-					return a.handleServerInterrupt(ctx, messages.ResponseErrorCodeServerError, "流已关闭或上下文已取消")
+			if result.HasData {
+				chunk := result.Data
+				if err := a.processChunk(ctx, chunk); err != nil {
+					logrus.Errorf("处理块失败: %v", err)
+					return a.handleServerInterrupt(ctx, messages.ResponseErrorCodeServerError, "处理块失败: "+err.Error())
 				}
-				logrus.Errorf("接收流数据错误: %v", err)
-				return a.handleServerInterrupt(ctx, messages.ResponseErrorCodeServerError, "接收流数据错误: "+err.Error())
-			}
 
-			if err := a.processChunk(ctx, chunk); err != nil {
-				logrus.Errorf("处理块失败: %v", err)
-				return a.handleServerInterrupt(ctx, messages.ResponseErrorCodeServerError, "处理块失败: "+err.Error())
-			}
-
-			// 处理完成信息
-			if chunk.Delta.FinishReason != "" {
-				logrus.Infof("收到完成原因: %s", chunk.Delta.FinishReason)
-				if chunk.Delta.Usage != nil {
-					ctx.Response.Usage = &messages.ResponseUsage{
-						InputTokens:  chunk.Delta.Usage.PromptTokens,
-						OutputTokens: chunk.Delta.Usage.CompletionTokens,
-						TotalTokens:  chunk.Delta.Usage.TotalTokens,
+				// 处理完成信息
+				if chunk.Delta.FinishReason != "" {
+					logrus.Infof("收到完成原因: %s", chunk.Delta.FinishReason)
+					if chunk.Delta.Usage != nil {
+						ctx.Response.Usage = &messages.ResponseUsage{
+							InputTokens:  chunk.Delta.Usage.PromptTokens,
+							OutputTokens: chunk.Delta.Usage.CompletionTokens,
+							TotalTokens:  chunk.Delta.Usage.TotalTokens,
+						}
 					}
+
+					if err := a.finalizeAllOutputItems(ctx); err != nil {
+						return err
+					}
+
+					return ctx.sendAIChatCompleted(ctx.Response)
+				}
+				continue
+			}
+
+			if result.Completed {
+				logrus.Info("流已完成")
+
+				if result.Error != nil {
+					if errors.Is(result.Error, streams.ErrContextAlreadyDone) || errors.Is(result.Error, streams.ErrChannelClosed) {
+						logrus.Infof("流已关闭或上下文已取消: %v", result.Error)
+						return a.handleServerInterrupt(ctx, messages.ResponseErrorCodeServerError, "流已关闭或上下文已取消")
+					}
+					logrus.Errorf("接收流数据错误: %v", result.Error)
+					return a.handleServerInterrupt(ctx, messages.ResponseErrorCodeServerError, "接收流数据错误: "+result.Error.Error())
 				}
 
+				logrus.Info("流已完成，开始处理完成事件")
 				if err := a.finalizeAllOutputItems(ctx); err != nil {
 					return err
 				}
-
 				return ctx.sendAIChatCompleted(ctx.Response)
 			}
 		}
@@ -281,8 +281,7 @@ func (a *ChatRunner) finalizeOutputMessage(ctx *ChatInvokeContext, outputMsg *me
 
 	return ctx.sendOutputItemDone(index, outputMsg)
 }
-
-func (a *ChatRunner) handleInterrupt(ctx *ChatInvokeContext) error {
+func (a *ChatRunner) handleManuallyInterrupt(ctx *ChatInvokeContext) error {
 	logrus.Info("处理中断事件")
 	ctx.Response.Status = messages.AgentMessageStatusIncomplete
 	ctx.Response.InterruptType = int32(messages.InterruptTypeUser)
@@ -291,7 +290,7 @@ func (a *ChatRunner) handleInterrupt(ctx *ChatInvokeContext) error {
 
 func (a *ChatRunner) handleContextCancellation(ctx *ChatInvokeContext) error {
 	logrus.Info("处理上下文取消")
-	return a.handleInterrupt(ctx) // 上下文取消也按中断处理
+	return a.handleManuallyInterrupt(ctx) // 上下文取消也按中断处理
 }
 
 func (a *ChatRunner) handleServerInterrupt(ctx *ChatInvokeContext, code messages.ResponseErrorCode, msg string) error {

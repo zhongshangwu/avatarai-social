@@ -2,14 +2,12 @@ package chat
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/agents"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/events"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
-	"github.com/zhongshangwu/avatarai-social/pkg/streams"
 )
 
 func (actor *ChatActor) AIRespond(actorCtx events.ActorContext[*messages.ChatEvent], message *messages.Message) error {
@@ -26,6 +24,7 @@ func (actor *ChatActor) AIRespond(actorCtx events.ActorContext[*messages.ChatEve
 		logrus.Errorf("初始化响应消息失败: %v", err)
 		return actor.sendError(actorCtx, "init_respond_message_failed", "初始化响应消息失败")
 	}
+	actor.sendMsgReceived(actorCtx, respondMessage)
 
 	ctx, cancel := context.WithTimeout(actorCtx.Context, 5*time.Minute)
 
@@ -36,7 +35,7 @@ func (actor *ChatActor) AIRespond(actorCtx events.ActorContext[*messages.ChatEve
 
 	go func() {
 		defer cancel()
-		actor.HandleResponseStream(actorCtx, invokeCtx.Stream)
+		actor.HandleAIResponseStream(invokeCtx)
 		logrus.Info("所有响应处理完成")
 	}()
 
@@ -51,33 +50,31 @@ func (actor *ChatActor) AIRespond(actorCtx events.ActorContext[*messages.ChatEve
 	return nil
 }
 
-func (actor *ChatActor) HandleResponseStream(
-	actorCtx events.ActorContext[*messages.ChatEvent],
-	responseStream *streams.Stream[*messages.ChatEvent],
+func (actor *ChatActor) HandleAIResponseStream(
+	invokeCtx *agents.ChatInvokeContext,
 ) {
 	logrus.Info("开始处理响应流...")
 	defer logrus.Info("响应流处理器退出")
 
 	for {
-		serverEvent, closed, err := responseStream.Recv()
-		if err != nil {
-			if errors.Is(err, streams.ErrContextAlreadyDone) {
-				logrus.Info("响应流上下文已取消")
+		result := invokeCtx.Stream.Recv()
+
+		if result.HasData {
+			serverEvent := result.Data
+			logrus.Infof("收到事件响应: %v", serverEvent)
+			if err := actor.PublishToOutbox(invokeCtx.Context, serverEvent); err != nil {
+				logrus.Errorf("发布响应到 outbox 失败: %v", err)
 				return
 			}
-			logrus.Errorf("接收事件响应失败: %v", err)
-			return
+			continue
 		}
 
-		logrus.Infof("收到事件响应: %v", serverEvent)
-
-		if err := actor.PublishToOutbox(actorCtx.Context, serverEvent); err != nil {
-			logrus.Errorf("发布响应到 outbox 失败: %v", err)
-			return
-		}
-
-		if closed {
-			logrus.Info("事件响应流发送通道已关闭")
+		if result.Completed {
+			logrus.Info("响应流已关闭")
+			if result.Error != nil {
+				logrus.Errorf("接收事件响应失败: %v", result.Error)
+				return
+			}
 			return
 		}
 	}

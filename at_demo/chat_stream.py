@@ -18,6 +18,7 @@ class AIChatStreamClient:
         self.server_url = server_url
         self.websocket = None
         self.running = False
+        self.current_agent_message_id = None
 
     async def connect(self):
         """建立 WebSocket 连接"""
@@ -51,7 +52,7 @@ class AIChatStreamClient:
 
         message = {
             "eventId": str(uuid.uuid4()),
-            "eventType": "send_msg",
+            "eventType": "message.send",
             "event": {
                 "roomId": "123",
                 "msgType": 1,
@@ -92,9 +93,9 @@ class AIChatStreamClient:
 
         message = {
             "eventId": str(uuid.uuid4()),
-            "eventType": "ai_chat.interrupt",
+            "eventType": "agent_message.interrupt",
             "event": {
-                "responseId": "default-response-id"
+                "agentMessageId": self.current_agent_message_id
             }
         }
 
@@ -158,16 +159,20 @@ class AIChatStreamClient:
                         print(f"无法解析JSON消息: {message}")
                         continue
 
-                    event_type = event.get("type", "")
+                    event_type = event.get("eventType", "")
+                    event_data = event.get("event", {})
+                    event_id = event.get("eventId", "")
 
                     # 打印事件类型和时间戳
                     timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
                     print(f"[{timestamp}] 收到事件: {event_type}")
 
                     # 根据事件类型处理不同的事件
-                    if event_type == "created":
+                    if event_type == "agent_message.created":
                         print("响应已创建")
                         current_response = {"text": "", "items": []}
+                        self.current_agent_message_id = event_data.get("agentMessage", {}).get("id", "")
+                        print(f"当前响应ID: {self.current_agent_message_id}")
 
                     elif event_type == "text_delta":
                         delta = event.get("delta", "")

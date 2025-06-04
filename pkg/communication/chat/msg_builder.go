@@ -62,7 +62,6 @@ func BuildMessageFromSendMsgEvent(sendMsgEvent *messages.SendMsgEvent) (*message
 		message.Content = &messages.AgentMessageContent{
 			AgentMessage: messages.AgentMessage{
 				ID:           GenerateMessageID(),
-				MessageID:    body.MessageID,
 				Role:         messages.RoleType(body.Role),
 				MessageItems: messageItems,
 				Metadata:     body.Metadata,
@@ -111,9 +110,9 @@ func (actor *ChatActor) InitRespondMessage(input *messages.Message) (*messages.M
 		UpdatedAt:  time.Now().UnixMilli(),
 		Deleted:    false,
 	}
-	aiChatMessage := &messages.AgentMessage{
+	agentMessage := &messages.AgentMessage{
 		ID:            GenerateAgentMessageID(),
-		MessageID:     "",
+		MessageID:     message.ID,
 		Role:          messages.RoleTypeAssistant,
 		AltText:       "",
 		MessageItems:  make([]messages.MessageItem, 0),
@@ -124,14 +123,14 @@ func (actor *ChatActor) InitRespondMessage(input *messages.Message) (*messages.M
 		UpdatedAt:     time.Now().UnixMilli(),
 		Metadata:      make(map[string]interface{}),
 	}
-	dbAgentMessage := aiChatMessage.ToDB()
+	dbAgentMessage := agentMessage.ToDB()
 	if err := database.InsertAgentMessage(actor.DB, dbAgentMessage); err != nil {
 		logrus.Errorf("insert ai chat message failed: %v", err)
 		return nil, err
 	}
 
 	message.Content = &messages.AgentMessageContent{
-		AgentMessage: *aiChatMessage,
+		AgentMessage: *agentMessage,
 	}
 	dbMessage := message.ToDB()
 	if err := database.InsertMessage(actor.DB, dbMessage); err != nil {

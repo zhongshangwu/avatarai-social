@@ -21,9 +21,10 @@ const (
 type ChatEventType string
 
 const (
-	EventTypeSendMsg                               ChatEventType = "send_msg"
-	EventTypeSendMsgCompleted                      ChatEventType = "send_msg_completed"
 	EventTypeError                                 ChatEventType = "error"
+	EventTypeMessageSend                           ChatEventType = "message.send"
+	EventTypeMessageSent                           ChatEventType = "message.sent"
+	EventTypeMessageReceived                       ChatEventType = "message.received"
 	EventTypeAgentMessageCreated                   ChatEventType = "agent_message.created"
 	EventTypeAgentMessageInProgress                ChatEventType = "agent_message.in_progress"
 	EventTypeAgentMessageInterrupt                 ChatEventType = "agent_message.interrupt"

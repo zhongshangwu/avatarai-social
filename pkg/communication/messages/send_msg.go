@@ -114,9 +114,9 @@ func (a *AudioMsgBody) isSendMsgBody() {}
 
 type AgentMsgBody struct {
 	Role         string         `json:"role"`         // 角色
-	MessageID    string         `json:"messageId"`    // 消息ID （由创建方提供的 messageid )
 	MessageItems []InputItem    `json:"messageItems"` // 消息项列表
 	Metadata     map[string]any `json:"metadata"`     // 元数据
+	// MessageID    string         `json:"messageId"`    // 消息ID （由创建方提供的 messageid )
 }
 
 func (a *AgentMsgBody) isSendMsgBody() {}
@@ -241,3 +241,16 @@ func (p *PostMsgBody) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
+type MessageSentEvent struct {
+	MessageID string `json:"messageId"` // 消息ID
+	EventID   string `json:"eventId"`   // 原始发送消息的事件ID
+}
+
+func (s *MessageSentEvent) isChatEventBody() {}
+
+type MessageReceivedEvent struct {
+	Message *Message `json:"message"` // 消息
+}
+
+func (o *MessageReceivedEvent) isChatEventBody() {}

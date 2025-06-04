@@ -942,12 +942,12 @@ func (c *CodeInterpreterToolCall) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (a *AgentMessage) ToDB() *database.AIChatMessage {
+func (a *AgentMessage) ToDB() *database.AgentMessage {
 	errStr, _ := json.Marshal(a.Error)
 	usageStr, _ := json.Marshal(a.Usage)
 	metadataStr, _ := json.Marshal(a.Metadata)
 	incompleteDetailsStr, _ := json.Marshal(a.IncompleteDetails)
-	return &database.AIChatMessage{
+	return &database.AgentMessage{
 		ID:                a.ID,
 		MessageID:         a.MessageID,
 		Role:              string(a.Role),

@@ -26,5 +26,6 @@ func (actor *ChatActor) SendMsg(sendMsgEvent *messages.SendMsgEvent) (*messages.
 	if err := database.InsertMessage(actor.DB, dbMessage); err != nil {
 		return nil, err
 	}
+
 	return message, nil
 }
