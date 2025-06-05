@@ -16,10 +16,10 @@ type ChatInvokeContext struct {
 	Context     context.Context
 	ControlChan chan CtrlType
 
-	Memory     *memory.Memory
+	Memory     memory.Memory
 	InputItems []messages.InputItem
-	Response   *messages.AgentMessage
 
+	Response             *messages.AgentMessage
 	CurrentOutputItemIdx int
 	CurrentOutputMessage *messages.OutputMessage
 	CurrentTextContent   *messages.OutputTextContent
@@ -46,7 +46,7 @@ func (c *ChatInvokeContext) WithInputItems(items []messages.InputItem) *ChatInvo
 	return c
 }
 
-func (c *ChatInvokeContext) WithMemory(memory *memory.Memory) *ChatInvokeContext {
+func (c *ChatInvokeContext) WithMemory(memory memory.Memory) *ChatInvokeContext {
 	c.Memory = memory
 	return c
 }

@@ -2,12 +2,16 @@ package chat
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/agents"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/events"
+	"github.com/zhongshangwu/avatarai-social/pkg/communication/memory"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
+	"github.com/zhongshangwu/avatarai-social/pkg/database"
 )
 
 func (actor *ChatActor) AIRespond(actorCtx events.ActorContext[*messages.ChatEvent], message *messages.Message) error {
@@ -28,10 +32,12 @@ func (actor *ChatActor) AIRespond(actorCtx events.ActorContext[*messages.ChatEve
 
 	ctx, cancel := context.WithTimeout(actorCtx.Context, 5*time.Minute)
 
+	mem := memory.NewSimpleThreadMemory(actor.DB, message.RoomID, message.ThreadID)
+
 	invokeCtx := agents.NewChatInvokeContext(ctx).
 		WithInputItems(inputItems).
 		WithAgentMessage(&respondMessage.Content.(*messages.AgentMessageContent).AgentMessage).
-		WithMemory(actor.memory)
+		WithMemory(mem)
 
 	go func() {
 		defer cancel()
@@ -56,12 +62,22 @@ func (actor *ChatActor) HandleAIResponseStream(
 	logrus.Info("开始处理响应流...")
 	defer logrus.Info("响应流处理器退出")
 
+	var currentAgentMessageID string
+	if invokeCtx.Response != nil {
+		currentAgentMessageID = invokeCtx.Response.ID
+	}
+
 	for {
 		result := invokeCtx.Stream.Recv()
 
 		if result.HasData {
 			serverEvent := result.Data
 			logrus.Infof("收到事件响应: %v", serverEvent)
+
+			if err := actor.handleEventPersistence(serverEvent, currentAgentMessageID); err != nil {
+				logrus.Errorf("持久化事件失败: %v", err)
+			}
+
 			if err := actor.PublishToOutbox(invokeCtx.Context, serverEvent); err != nil {
 				logrus.Errorf("发布响应到 outbox 失败: %v", err)
 				return
@@ -78,6 +94,156 @@ func (actor *ChatActor) HandleAIResponseStream(
 			return
 		}
 	}
+}
+
+func (actor *ChatActor) handleEventPersistence(event *messages.ChatEvent, agentMessageID string) error {
+	switch event.EventType {
+	case messages.EventTypeAgentMessageCreated:
+		return actor.handleAgentMessageCreated(event)
+	case messages.EventTypeAgentMessageInProgress:
+		return actor.handleAgentMessageInProgress(event)
+	case messages.EventTypeAgentMessageCompleted:
+		return actor.handleAgentMessageCompleted(event)
+	case messages.EventTypeAgentMessageFailed:
+		return actor.handleAgentMessageFailed(event)
+	case messages.EventTypeAgentMessageIncomplete:
+		return actor.handleAgentMessageIncomplete(event)
+	case messages.EventTypeAgentMessageOutputItemAdded:
+		return actor.handleOutputItemAdded(event, agentMessageID)
+	case messages.EventTypeAgentMessageOutputItemDone:
+		return actor.handleOutputItemDone(event, agentMessageID)
+	default:
+		// 对于不需要持久化的事件，直接返回nil
+		return nil
+	}
+}
+
+func (actor *ChatActor) handleAgentMessageCreated(event *messages.ChatEvent) error {
+	createdEvent, ok := event.Event.(*messages.CreatedEvent)
+	if !ok {
+		return nil
+	}
+
+	agentMessage := createdEvent.AgentMessage
+	logrus.Infof("持久化AI消息创建事件: %s", agentMessage.ID)
+
+	return database.UpdateAgentMessageStatus(actor.DB, agentMessage.ID, string(agentMessage.Status))
+}
+
+func (actor *ChatActor) handleAgentMessageInProgress(event *messages.ChatEvent) error {
+	inProgressEvent, ok := event.Event.(*messages.InProgressEvent)
+	if !ok {
+		return nil
+	}
+
+	agentMessage := inProgressEvent.AgentMessage
+	logrus.Infof("持久化AI消息进行中事件: %s", agentMessage.ID)
+
+	return database.UpdateAgentMessageStatus(actor.DB, agentMessage.ID, string(agentMessage.Status))
+}
+
+func (actor *ChatActor) handleAgentMessageCompleted(event *messages.ChatEvent) error {
+	completedEvent, ok := event.Event.(*messages.CompletedEvent)
+	if !ok {
+		return nil
+	}
+
+	agentMessage := completedEvent.AgentMessage
+	logrus.Infof("持久化AI消息完成事件: %s", agentMessage.ID)
+
+	return database.UpdateAgentMessageWithUsage(
+		actor.DB,
+		agentMessage.ID,
+		string(agentMessage.Status),
+		agentMessage.Usage,
+		agentMessage.AltText,
+	)
+}
+
+func (actor *ChatActor) handleAgentMessageFailed(event *messages.ChatEvent) error {
+	failedEvent, ok := event.Event.(*messages.FailedEvent)
+	if !ok {
+		return nil
+	}
+
+	agentMessage := failedEvent.AgentMessage
+	logrus.Infof("持久化AI消息失败事件: %s", agentMessage.ID)
+
+	return database.UpdateAgentMessageWithError(
+		actor.DB,
+		agentMessage.ID,
+		string(agentMessage.Status),
+		agentMessage.Error,
+	)
+}
+
+func (actor *ChatActor) handleAgentMessageIncomplete(event *messages.ChatEvent) error {
+	incompleteEvent, ok := event.Event.(*messages.IncompleteEvent)
+	if !ok {
+		return nil
+	}
+
+	agentMessage := incompleteEvent.AgentMessage
+	logrus.Infof("持久化AI消息不完整事件: %s", agentMessage.ID)
+
+	return database.UpdateAgentMessageIncomplete(
+		actor.DB,
+		agentMessage.ID,
+		agentMessage.InterruptType,
+		agentMessage.Error,
+		agentMessage.IncompleteDetails,
+	)
+}
+
+func (actor *ChatActor) handleOutputItemAdded(event *messages.ChatEvent, agentMessageID string) error {
+	outputItemEvent, ok := event.Event.(*messages.OutputItemAddedEvent)
+	if !ok {
+		return nil
+	}
+
+	logrus.Infof("持久化输出项添加事件: AgentMessageID=%s, OutputIndex=%d, ItemType=%s",
+		agentMessageID, outputItemEvent.OutputIndex, outputItemEvent.Item.GetType())
+
+	itemJSON, err := json.Marshal(outputItemEvent.Item)
+	if err != nil {
+		logrus.Errorf("序列化输出项失败: %v", err)
+		return err
+	}
+
+	agentMessageItem := &database.AgentMessageItem{
+		ID:             uuid.New().String(),
+		AgentMessageID: agentMessageID,
+		ItemType:       outputItemEvent.Item.GetType(),
+		Item:           string(itemJSON),
+		Position:       outputItemEvent.OutputIndex,
+		CreatedAt:      time.Now().UnixMilli(),
+		UpdatedAt:      time.Now().UnixMilli(),
+		Deleted:        false,
+	}
+
+	return database.InsertAgentMessageItem(actor.DB, agentMessageItem)
+}
+
+func (actor *ChatActor) handleOutputItemDone(event *messages.ChatEvent, agentMessageID string) error {
+	outputItemEvent, ok := event.Event.(*messages.OutputItemDoneEvent)
+	if !ok {
+		return nil
+	}
+
+	logrus.Infof("持久化输出项完成事件: AgentMessageID=%s, OutputIndex=%d, ItemType=%s",
+		agentMessageID, outputItemEvent.OutputIndex, outputItemEvent.Item.GetType())
+
+	itemJSON, err := json.Marshal(outputItemEvent.Item)
+	if err != nil {
+		logrus.Errorf("序列化输出项失败: %v", err)
+		return err
+	}
+
+	updates := map[string]interface{}{
+		"item": string(itemJSON),
+	}
+
+	return database.UpdateAgentMessageItemByPosition(actor.DB, agentMessageID, outputItemEvent.OutputIndex, updates)
 }
 
 func (actor *ChatActor) extractTools() []map[string]interface{} {

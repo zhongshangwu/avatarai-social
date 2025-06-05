@@ -22,7 +22,7 @@ func (actor *ChatActor) SendMsg(sendMsgEvent *messages.SendMsgEvent) (*messages.
 	// 	return nil, errors.New("invalid sender id")
 	// }
 
-	dbMessage := message.ToDB()
+	dbMessage := messages.MessageToDB(message)
 	if err := database.InsertMessage(actor.DB, dbMessage); err != nil {
 		return nil, err
 	}

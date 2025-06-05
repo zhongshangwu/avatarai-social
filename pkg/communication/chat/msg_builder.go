@@ -123,7 +123,7 @@ func (actor *ChatActor) InitRespondMessage(input *messages.Message) (*messages.M
 		UpdatedAt:     time.Now().UnixMilli(),
 		Metadata:      make(map[string]interface{}),
 	}
-	dbAgentMessage := agentMessage.ToDB()
+	dbAgentMessage := messages.AgentMessageToDB(agentMessage)
 	if err := database.InsertAgentMessage(actor.DB, dbAgentMessage); err != nil {
 		logrus.Errorf("insert ai chat message failed: %v", err)
 		return nil, err
@@ -132,7 +132,7 @@ func (actor *ChatActor) InitRespondMessage(input *messages.Message) (*messages.M
 	message.Content = &messages.AgentMessageContent{
 		AgentMessage: *agentMessage,
 	}
-	dbMessage := message.ToDB()
+	dbMessage := messages.MessageToDB(message)
 	if err := database.InsertMessage(actor.DB, dbMessage); err != nil {
 		logrus.Errorf("insert message failed: %v", err)
 		return nil, err

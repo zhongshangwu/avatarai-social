@@ -3,8 +3,6 @@ package messages
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/zhongshangwu/avatarai-social/pkg/database"
 )
 
 type AgentMessage struct {
@@ -940,26 +938,4 @@ func (c *CodeInterpreterToolCall) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
-}
-
-func (a *AgentMessage) ToDB() *database.AgentMessage {
-	errStr, _ := json.Marshal(a.Error)
-	usageStr, _ := json.Marshal(a.Usage)
-	metadataStr, _ := json.Marshal(a.Metadata)
-	incompleteDetailsStr, _ := json.Marshal(a.IncompleteDetails)
-	return &database.AgentMessage{
-		ID:                a.ID,
-		MessageID:         a.MessageID,
-		Role:              string(a.Role),
-		AltText:           a.AltText,
-		Status:            string(a.Status),
-		InterruptType:     a.InterruptType,
-		Error:             string(errStr),
-		Usage:             string(usageStr),
-		Metadata:          string(metadataStr),
-		IncompleteDetails: string(incompleteDetailsStr),
-		Creator:           a.Creator,
-		CreatedAt:         a.CreatedAt,
-		UpdatedAt:         a.UpdatedAt,
-	}
 }

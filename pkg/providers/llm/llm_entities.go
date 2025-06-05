@@ -9,14 +9,14 @@ type LLMResultChunkDelta struct {
 
 type LLMResultChunk struct {
 	Model             string              `json:"model"`
-	PromptMessages    []PromptMessage     `json:"prompt_messages"`
+	PromptMessages    []*PromptMessage    `json:"prompt_messages"`
 	SystemFingerprint string              `json:"system_fingerprint,omitempty"`
 	Delta             LLMResultChunkDelta `json:"delta"`
 }
 
 type LLMResult struct {
 	Model             string                  `json:"model"`
-	PromptMessages    []PromptMessage         `json:"prompt_messages"`
+	PromptMessages    []*PromptMessage        `json:"prompt_messages"`
 	Message           *AssistantPromptMessage `json:"message"`
 	Usage             *Usage                  `json:"usage,omitempty"`
 	SystemFingerprint string                  `json:"system_fingerprint,omitempty"`

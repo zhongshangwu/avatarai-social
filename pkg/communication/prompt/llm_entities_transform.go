@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/zhongshangwu/avatarai-social/pkg/communication/memory"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
 	"github.com/zhongshangwu/avatarai-social/pkg/providers/llm"
 )
 
 type LLMEntitiesTransform struct {
+}
+
+func (t *LLMEntitiesTransform) Chunk2Entities(chunks []memory.Chunk) ([]*llm.PromptMessage, error) {
+	return nil, nil
 }
 
 func (t *LLMEntitiesTransform) TransformInputItems(items []messages.InputItem) ([]llm.PromptMessage, error) {
@@ -149,7 +154,6 @@ func (t *LLMEntitiesTransform) TransformTools(tools []map[string]interface{}) []
 }
 
 func (t *LLMEntitiesTransform) convertInputMessage(inputMsg *messages.InputMessage) (*llm.PromptMessage, error) {
-	// 转换角色
 	var role llm.PromptMessageRole
 	switch inputMsg.Role {
 	case "user":
@@ -164,7 +168,6 @@ func (t *LLMEntitiesTransform) convertInputMessage(inputMsg *messages.InputMessa
 		role = llm.PromptMessageRoleUser
 	}
 
-	// 转换内容
 	var content interface{}
 	if len(inputMsg.Content) == 1 {
 		// 单个内容项，如果是文本则直接使用字符串
@@ -226,28 +229,26 @@ func (t *LLMEntitiesTransform) convertFunctionToolCall(toolCall *messages.Functi
 	}
 
 	assistantMsg := &llm.AssistantPromptMessage{
-		PromptMessage: llm.PromptMessage{
+		PromptMessage: &llm.PromptMessage{
 			Role:    llm.PromptMessageRoleAssistant,
 			Content: nil, // 工具调用通常没有文本内容
 		},
 		ToolCalls: []llm.ToolCall{llmToolCall},
 	}
 
-	// 返回嵌入的 PromptMessage
-	return &assistantMsg.PromptMessage, nil
+	return assistantMsg.PromptMessage, nil
 }
 
 func (t *LLMEntitiesTransform) convertFunctionToolCallOutput(toolOutput *messages.FunctionToolCallOutput) (*llm.PromptMessage, error) {
 	toolMsg := &llm.ToolPromptMessage{
-		PromptMessage: llm.PromptMessage{
+		PromptMessage: &llm.PromptMessage{
 			Role:    llm.PromptMessageRoleTool,
 			Content: toolOutput.Output,
 		},
 		ToolCallID: toolOutput.CallID,
 	}
 
-	// 返回嵌入的 PromptMessage
-	return &toolMsg.PromptMessage, nil
+	return toolMsg.PromptMessage, nil
 }
 
 func (t *LLMEntitiesTransform) convertItemReference(itemRef *messages.ItemReferenceParam) (*llm.PromptMessage, error) {
@@ -322,15 +323,14 @@ func (t *LLMEntitiesTransform) convertComputerToolCallOutput(computerOutput *mes
 	}
 
 	toolMsg := &llm.ToolPromptMessage{
-		PromptMessage: llm.PromptMessage{
+		PromptMessage: &llm.PromptMessage{
 			Role:    llm.PromptMessageRoleTool,
 			Content: content,
 		},
 		ToolCallID: computerOutput.CallID,
 	}
 
-	// 返回嵌入的 PromptMessage
-	return &toolMsg.PromptMessage, nil
+	return toolMsg.PromptMessage, nil
 }
 
 func (t *LLMEntitiesTransform) convertInputContents(contents []messages.InputContent) []llm.PromptMessageContent {

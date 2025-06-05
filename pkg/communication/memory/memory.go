@@ -1,49 +1,9 @@
 package memory
 
-import "github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
-
-type Chunk interface {
-	ID() string
-	Type() string
-	Metadata() map[string]interface{}
-}
-
-type ChunkType string
-
-const (
-	ChunkTypeText ChunkType = "text"
-)
-
 type Memory interface {
 	Write(chunk Chunk) error
 	Retrieve(query Chunk) ([]Chunk, error)
 	Close() error
-}
-
-type SimpleTextChunk struct {
-	id        string
-	chunkType ChunkType
-	metadata  map[string]interface{}
-	content   string
-}
-
-func (c *SimpleTextChunk) ID() string {
-	return c.id
-}
-
-func (c *SimpleTextChunk) Type() ChunkType {
-	return ChunkTypeText
-}
-
-func (c *SimpleTextChunk) Metadata() map[string]interface{} {
-	return c.metadata
-}
-
-type MessageChunk struct {
-	id        string
-	chunkType ChunkType
-	metadata  map[string]interface{}
-	content   *messages.Message
 }
 
 // - 连续上下文

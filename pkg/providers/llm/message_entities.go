@@ -273,13 +273,13 @@ type ToolCallFunction struct {
 }
 
 type AssistantPromptMessage struct {
-	PromptMessage
+	*PromptMessage
 	ToolCalls []ToolCall `json:"tool_calls,omitempty"`
 }
 
 func NewAssistantPromptMessage(content interface{}, name string, toolCalls []ToolCall) *AssistantPromptMessage {
 	return &AssistantPromptMessage{
-		PromptMessage: PromptMessage{
+		PromptMessage: &PromptMessage{
 			Role:    PromptMessageRoleAssistant,
 			Content: content,
 			Name:    name,
@@ -293,12 +293,12 @@ func (a *AssistantPromptMessage) IsEmpty() bool {
 }
 
 type SystemPromptMessage struct {
-	PromptMessage
+	*PromptMessage
 }
 
 func NewSystemPromptMessage(content interface{}, name string) *SystemPromptMessage {
 	return &SystemPromptMessage{
-		PromptMessage: PromptMessage{
+		PromptMessage: &PromptMessage{
 			Role:    PromptMessageRoleSystem,
 			Content: content,
 			Name:    name,
@@ -307,13 +307,13 @@ func NewSystemPromptMessage(content interface{}, name string) *SystemPromptMessa
 }
 
 type ToolPromptMessage struct {
-	PromptMessage
+	*PromptMessage
 	ToolCallID string `json:"tool_call_id"`
 }
 
 func NewToolPromptMessage(content interface{}, name string, toolCallID string) *ToolPromptMessage {
 	return &ToolPromptMessage{
-		PromptMessage: PromptMessage{
+		PromptMessage: &PromptMessage{
 			Role:    PromptMessageRoleTool,
 			Content: content,
 			Name:    name,

@@ -3,8 +3,6 @@ package messages
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/zhongshangwu/avatarai-social/pkg/database"
 )
 
 type Room struct {
@@ -226,89 +224,4 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 		m.Content = body
 	}
 	return nil
-}
-
-func (m *Message) ToDB() *database.Message {
-	var content map[string]interface{}
-
-	switch m.MsgType {
-	case MessageTypeText:
-		textContent, _ := m.Content.(*TextMessageContent)
-		content = map[string]interface{}{
-			"text": textContent.Text,
-		}
-	case MessageTypeImage:
-		imageContent, _ := m.Content.(*ImageMessageContent)
-		content = map[string]interface{}{
-			"imageCid": imageContent.ImageCID,
-			"width":    imageContent.Width,
-			"height":   imageContent.Height,
-			"alt":      imageContent.Alt,
-		}
-	case MessageTypeVideo:
-		videoContent, _ := m.Content.(*VideoMessageContent)
-		content = map[string]interface{}{
-			"videoCid": videoContent.VideoCID,
-			"duration": videoContent.Duration,
-			"thumbCid": videoContent.ThumbCID,
-			"width":    videoContent.Width,
-			"height":   videoContent.Height,
-		}
-	case MessageTypeFile:
-		fileContent, _ := m.Content.(*FileMessageContent)
-		content = map[string]interface{}{
-			"fileCid":  fileContent.FileCID,
-			"size":     fileContent.Size,
-			"fileName": fileContent.FileName,
-			"mimeType": fileContent.MimeType,
-			"fileType": fileContent.FileType,
-		}
-	case MessageTypeAudio:
-		audioContent, _ := m.Content.(*AudioMessageContent)
-		content = map[string]interface{}{
-			"audioCid":   audioContent.AudioCID,
-			"duration":   audioContent.Duration,
-			"transcript": audioContent.Transcript,
-		}
-	case MessageTypeAgent:
-		agentContent, _ := m.Content.(*AgentMessageContent)
-		content = map[string]interface{}{
-			"agentMessageId": agentContent.AgentMessage.ID,
-		}
-	case MessageTypePost:
-		postContent, _ := m.Content.(*PostMessageContent)
-		content = map[string]interface{}{
-			"title":   postContent.Title,
-			"content": postContent.Content,
-		}
-	case MessageTypeSticker:
-		stickerContent, _ := m.Content.(*StickerMessageContent)
-		content = map[string]interface{}{
-			"stickerCid": stickerContent.StickerCID,
-			"alt":        stickerContent.Alt,
-			"width":      stickerContent.Width,
-			"height":     stickerContent.Height,
-			"isAnimated": stickerContent.IsAnimated,
-		}
-
-	default:
-		return nil
-	}
-
-	contentStr, _ := json.Marshal(content)
-	return &database.Message{
-		ID:         m.ID,
-		RoomID:     m.RoomID,
-		ThreadID:   m.ThreadID,
-		MsgType:    int(m.MsgType),
-		Content:    string(contentStr),
-		SenderID:   m.SenderID,
-		ReceiverID: m.ReceiverID,
-		QuoteMID:   m.QuoteMID,
-		SenderAt:   m.SenderAt,
-		ExternalID: m.ExternalID,
-		CreatedAt:  m.CreatedAt,
-		UpdatedAt:  m.UpdatedAt,
-		Deleted:    m.Deleted,
-	}
 }

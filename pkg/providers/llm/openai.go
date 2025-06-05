@@ -19,7 +19,7 @@ func (o *OpenAIClient) ChatStream(
 	ctx context.Context,
 	model string,
 	credentials map[string]interface{},
-	promptMessages []PromptMessage,
+	promptMessages []*PromptMessage,
 	modelParameters map[string]interface{},
 	tools []PromptMessageTool,
 	stop []string,
@@ -44,7 +44,7 @@ func (o *OpenAIClient) Chat(
 	ctx context.Context,
 	model string,
 	credentials map[string]interface{},
-	promptMessages []PromptMessage,
+	promptMessages []*PromptMessage,
 	modelParameters map[string]interface{},
 	tools []PromptMessageTool,
 	stop []string,
@@ -69,7 +69,7 @@ func (o *OpenAIClient) generate(
 	ctx context.Context,
 	model string,
 	credentials map[string]interface{},
-	promptMessages []PromptMessage,
+	promptMessages []*PromptMessage,
 	modelParameters map[string]interface{},
 	tools []PromptMessageTool,
 	stop []string,
@@ -154,7 +154,7 @@ func (o *OpenAIClient) handleChatGenerateResponse(
 	ctx context.Context,
 	model string,
 	response *openai.ChatCompletion,
-	promptMessages []PromptMessage,
+	promptMessages []*PromptMessage,
 	tools []PromptMessageTool,
 ) *LLMResult {
 	if len(response.Choices) == 0 {
@@ -192,7 +192,7 @@ func (o *OpenAIClient) handleChatGenerateResponse(
 	)
 
 	promptTokens := o.numTokensFromMessages(model, promptMessages, tools)
-	completionTokens := o.numTokensFromMessages(model, []PromptMessage{assistantPromptMessage.PromptMessage}, nil)
+	completionTokens := o.numTokensFromMessages(model, []*PromptMessage{assistantPromptMessage.PromptMessage}, nil)
 
 	usage := &Usage{
 		PromptTokens:     promptTokens,
@@ -213,7 +213,7 @@ func (o *OpenAIClient) handleChatGenerateStreamResponse(
 	ctx context.Context,
 	model string,
 	openaiStream *ssestream.Stream[openai.ChatCompletionChunk],
-	promptMessages []PromptMessage,
+	promptMessages []*PromptMessage,
 	tools []PromptMessageTool,
 ) (*streams.Stream[*LLMResultChunk], error) {
 	respStream := streams.NewStream[*LLMResultChunk](ctx, 5)
@@ -253,6 +253,8 @@ func (o *OpenAIClient) handleChatGenerateStreamResponse(
 				finalToolCalls = append(finalToolCalls, functionCall)
 			}
 
+			logrus.Infof("chunk: %v", chunk)
+
 			// 处理 usage 信息
 			if chunk.Usage.TotalTokens > 0 {
 				usage = &Usage{
@@ -268,7 +270,6 @@ func (o *OpenAIClient) handleChatGenerateStreamResponse(
 			}
 
 			delta := chunk.Choices[0]
-			hasFinishReason := delta.FinishReason != ""
 
 			// 提取增量内容
 			content := delta.Delta.Content
@@ -303,15 +304,12 @@ func (o *OpenAIClient) handleChatGenerateStreamResponse(
 				},
 			}
 
-			// 如果是最终块，添加完成原因和使用情况
-			if hasFinishReason {
-				resultChunk.Delta.FinishReason = delta.FinishReason
-				resultChunk.Delta.Usage = usage
-			}
+			resultChunk.Delta.FinishReason = delta.FinishReason
+			resultChunk.Delta.Usage = usage
 
 			respStream.Send(resultChunk)
 			logrus.Infof("send result chunk sleep 3 seconds....: %v", resultChunk.Delta.Message.Content)
-			time.Sleep(3 * time.Second)
+			time.Sleep(1 * time.Second)
 		}
 
 		// 处理流错误
@@ -327,7 +325,7 @@ func (o *OpenAIClient) handleChatGenerateStreamResponse(
 func (o *OpenAIClient) handleChatBlockAsStreamResponse(
 	ctx context.Context,
 	blockResult *LLMResult,
-	promptMessages []PromptMessage,
+	promptMessages []*PromptMessage,
 	stop []string,
 ) (*streams.Stream[*LLMResultChunk], error) {
 	respStream := streams.NewStream[*LLMResultChunk](ctx, 5)
@@ -361,7 +359,7 @@ func (o *OpenAIClient) handleChatBlockAsStreamResponse(
 	return respStream, nil
 }
 
-func (o *OpenAIClient) convertPromptMessagesToOpenAIMessages(messages []PromptMessage) []openai.ChatCompletionMessageParamUnion {
+func (o *OpenAIClient) convertPromptMessagesToOpenAIMessages(messages []*PromptMessage) []openai.ChatCompletionMessageParamUnion {
 	result := make([]openai.ChatCompletionMessageParamUnion, 0, len(messages))
 
 	for _, message := range messages {
@@ -431,7 +429,7 @@ func (o *OpenAIClient) convertPromptMessagesToOpenAIMessages(messages []PromptMe
 	return result
 }
 
-func (o *OpenAIClient) clearIllegalPromptMessages(model string, promptMessages []PromptMessage) []PromptMessage {
+func (o *OpenAIClient) clearIllegalPromptMessages(model string, promptMessages []*PromptMessage) []*PromptMessage {
 	if strings.Contains(model, "gpt-4-turbo") {
 		userMessageCount := 0
 		for _, msg := range promptMessages {
@@ -471,7 +469,7 @@ func (o *OpenAIClient) clearIllegalPromptMessages(model string, promptMessages [
 		}
 
 		if systemMessageCount > 0 {
-			newPromptMessages := make([]PromptMessage, 0, len(promptMessages))
+			newPromptMessages := make([]*PromptMessage, 0, len(promptMessages))
 			for _, msg := range promptMessages {
 				if msg.Role == PromptMessageRoleSystem {
 					newMsg := PromptMessage{
@@ -479,7 +477,7 @@ func (o *OpenAIClient) clearIllegalPromptMessages(model string, promptMessages [
 						Content: msg.Content,
 						Name:    msg.Name,
 					}
-					newPromptMessages = append(newPromptMessages, newMsg)
+					newPromptMessages = append(newPromptMessages, &newMsg)
 				} else {
 					newPromptMessages = append(newPromptMessages, msg)
 				}
@@ -549,7 +547,7 @@ func (o *OpenAIClient) numTokensFromString(model string, text string) int64 {
 }
 
 // numTokensFromMessages calculates the number of tokens in messages
-func (o *OpenAIClient) numTokensFromMessages(model string, messages []PromptMessage, tools []PromptMessageTool) int64 {
+func (o *OpenAIClient) numTokensFromMessages(model string, messages []*PromptMessage, tools []PromptMessageTool) int64 {
 	// This is a simplified implementation
 	var (
 		tokensPerMessage int64 = 3

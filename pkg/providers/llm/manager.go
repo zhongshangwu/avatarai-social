@@ -58,7 +58,7 @@ func (m *ModelManager) ExecuteTool(ctx context.Context, toolName, arguments stri
 
 func (m *ModelManager) ChatStream(
 	ctx context.Context,
-	promptMessages []PromptMessage,
+	promptMessages []*PromptMessage,
 	modelParameters map[string]interface{},
 	tools []PromptMessageTool,
 	stop []string,
@@ -81,7 +81,7 @@ func (m *ModelManager) ChatStream(
 // Chat 非流式聊天
 func (m *ModelManager) Chat(
 	ctx context.Context,
-	promptMessages []PromptMessage,
+	promptMessages []*PromptMessage,
 	modelParameters map[string]interface{},
 	tools []PromptMessageTool,
 	stop []string,

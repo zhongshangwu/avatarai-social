@@ -31,7 +31,7 @@ avatar:
     provider: "openai"
     api_url: "https://openrouter.ai/api/v1"
     model: "mistralai/ministral-3b"
-    api_key: "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"
+    api_key: "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"
 
 security:
   rsa_private_key: |

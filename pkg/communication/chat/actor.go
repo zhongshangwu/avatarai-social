@@ -26,7 +26,7 @@ type ChatActor struct {
 	config     *config.SocialConfig
 
 	runner *agents.ChatRunner
-	memory *memory.Memory
+	memory memory.Memory
 	mu     sync.RWMutex
 }
 

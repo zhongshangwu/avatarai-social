@@ -8,6 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"github.com/zhongshangwu/avatarai-social/pkg/communication/memory"
+	"github.com/zhongshangwu/avatarai-social/pkg/communication/memory/converters"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/prompt"
 	"github.com/zhongshangwu/avatarai-social/pkg/providers/llm"
@@ -84,13 +86,28 @@ func (a *ChatRunner) _invoke(ctx *ChatInvokeContext) error {
 		return err
 	}
 
-	transformer := &prompt.LLMEntitiesTransform{}
-	promptMessages, err := transformer.TransformInputItems(ctx.InputItems)
+	chunks, err := ctx.Memory.Retrieve(&memory.MessageChunk{
+		ID: ctx.Response.MessageID,
+		Content: &messages.Message{
+			ID: ctx.Response.MessageID,
+			Content: &messages.TextMessageContent{
+				Text: ctx.Response.AltText,
+			},
+		},
+	})
 	if err != nil {
-		logrus.Errorf("转换提示消息失败: %v", err)
-		return ctx.sendAIChatFailed(ctx.Response, "conversion_error", "转换提示消息失败: "+err.Error())
+		logrus.Errorf("获取记忆失败: %v", err)
+		return ctx.sendAIChatFailed(ctx.Response, "memory_error", "获取记忆失败: "+err.Error())
 	}
 
+	var promptMessages []*llm.PromptMessage
+
+	for _, chunk := range chunks {
+		p := converters.ChunkToLLM(chunk)
+		logrus.Infof("promptMessages: %+v", p)
+		promptMessages = append(promptMessages, p)
+	}
+	transformer := &prompt.LLMEntitiesTransform{}
 	tools := transformer.TransformTools(ctx.Response.Tools)
 
 	if err := a.processLLMInteraction(ctx, promptMessages, tools); err != nil {
@@ -101,7 +118,7 @@ func (a *ChatRunner) _invoke(ctx *ChatInvokeContext) error {
 	return nil
 }
 
-func (a *ChatRunner) processLLMInteraction(ctx *ChatInvokeContext, promptMessages []llm.PromptMessage, tools []llm.PromptMessageTool) error {
+func (a *ChatRunner) processLLMInteraction(ctx *ChatInvokeContext, promptMessages []*llm.PromptMessage, tools []llm.PromptMessageTool) error {
 	modelParameters := map[string]interface{}{
 		"temperature": 0.7,
 	}
@@ -139,22 +156,12 @@ func (a *ChatRunner) processLLMInteraction(ctx *ChatInvokeContext, promptMessage
 					return a.handleServerInterrupt(ctx, messages.ResponseErrorCodeServerError, "处理块失败: "+err.Error())
 				}
 
-				// 处理完成信息
-				if chunk.Delta.FinishReason != "" {
+				if chunk.Delta.FinishReason != "" && chunk.Delta.FinishReason != "stop" {
 					logrus.Infof("收到完成原因: %s", chunk.Delta.FinishReason)
-					if chunk.Delta.Usage != nil {
-						ctx.Response.Usage = &messages.ResponseUsage{
-							InputTokens:  chunk.Delta.Usage.PromptTokens,
-							OutputTokens: chunk.Delta.Usage.CompletionTokens,
-							TotalTokens:  chunk.Delta.Usage.TotalTokens,
-						}
-					}
 
-					if err := a.finalizeAllOutputItems(ctx); err != nil {
+					if err := a.handleFinishReason(ctx, chunk.Delta.FinishReason); err != nil {
 						return err
 					}
-
-					return ctx.sendAIChatCompleted(ctx.Response)
 				}
 				continue
 			}
@@ -192,6 +199,14 @@ func (a *ChatRunner) processChunk(ctx *ChatInvokeContext, chunk *llm.LLMResultCh
 	if len(message.ToolCalls) > 0 {
 		// toolAgent := NewToolEngine(ctx.Sender, a.LLMManager)
 		// return toolAgent.HandleToolCalls(ctx, message.ToolCalls)
+	}
+
+	if chunk.Delta.Usage != nil {
+		ctx.Response.Usage = &messages.ResponseUsage{
+			InputTokens:  chunk.Delta.Usage.PromptTokens,
+			OutputTokens: chunk.Delta.Usage.CompletionTokens,
+			TotalTokens:  chunk.Delta.Usage.TotalTokens,
+		}
 	}
 
 	return nil
@@ -302,4 +317,18 @@ func (a *ChatRunner) handleServerInterrupt(ctx *ChatInvokeContext, code messages
 		Message: msg,
 	}
 	return ctx.sendAIChatIncomplete(ctx.Response)
+}
+
+func (a *ChatRunner) handleFinishReason(ctx *ChatInvokeContext, finishReason string) error {
+	if finishReason == "stop" {
+		return nil
+	}
+
+	code := messages.ResponseErrorCodeServerError
+	msg := "LLM 请求终止"
+	if finishReason == "length" {
+		code = messages.ResponseErrorCodeLLMRequestLength
+		msg = "LLM 请求长度超出限制"
+	}
+	return a.handleServerInterrupt(ctx, code, msg)
 }

@@ -207,6 +207,7 @@ const (
 	ResponseErrorCodeEmptyImageFile              ResponseErrorCode = "empty_image_file"
 	ResponseErrorCodeFailedToDownloadImage       ResponseErrorCode = "failed_to_download_image"
 	ResponseErrorCodeImageFileNotFound           ResponseErrorCode = "image_file_not_found"
+	ResponseErrorCodeLLMRequestLength            ResponseErrorCode = "llm_request_length"
 )
 
 type RichTextNodeTextStypeType string
