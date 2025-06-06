@@ -19,6 +19,74 @@ func ListMessagesHistory(db *gorm.DB, roomID string, threadID string) ([]*Messag
 	return messages, nil
 }
 
+// ListMessagesHistoryWithPagination 根据 before/after 参数获取历史消息
+func ListMessagesHistoryWithPagination(db *gorm.DB, roomID string, threadID string, beforeMsgID string, beforeCount int, afterMsgID string, afterCount int) ([]*Message, error) {
+	var messages []*Message
+
+	// 构建基础查询
+	query := db.Where("room_id = ? AND thread_id = ? AND deleted = ?", roomID, threadID, false)
+
+	// 如果指定了 beforeMsgID，获取该消息之前的消息
+	if beforeMsgID != "" && beforeCount > 0 {
+		// 先获取指定消息的创建时间
+		var refMessage Message
+		if err := db.Where("id = ?", beforeMsgID).First(&refMessage).Error; err != nil {
+			return nil, err
+		}
+
+		// 获取该时间之前的消息
+		beforeQuery := query.Where("created_at < ?", refMessage.CreatedAt).
+			Order("created_at DESC").
+			Limit(beforeCount)
+
+		var beforeMessages []*Message
+		if err := beforeQuery.Find(&beforeMessages).Error; err != nil {
+			return nil, err
+		}
+		messages = append(messages, beforeMessages...)
+	}
+
+	// 如果指定了 afterMsgID，获取该消息之后的消息
+	if afterMsgID != "" && afterCount > 0 {
+		// 先获取指定消息的创建时间
+		var refMessage Message
+		if err := db.Where("id = ?", afterMsgID).First(&refMessage).Error; err != nil {
+			return nil, err
+		}
+
+		// 获取该时间之后的消息
+		afterQuery := query.Where("created_at > ?", refMessage.CreatedAt).
+			Order("created_at ASC").
+			Limit(afterCount)
+
+		var afterMessages []*Message
+		if err := afterQuery.Find(&afterMessages).Error; err != nil {
+			return nil, err
+		}
+
+		// 将 after 消息按时间倒序插入到结果中
+		for i := len(afterMessages) - 1; i >= 0; i-- {
+			messages = append([]*Message{afterMessages[i]}, messages...)
+		}
+	}
+
+	// 如果没有指定任何参数，返回最新的消息
+	if beforeMsgID == "" && afterMsgID == "" {
+		limit := 20 // 默认限制
+		if beforeCount > 0 {
+			limit = beforeCount
+		} else if afterCount > 0 {
+			limit = afterCount
+		}
+
+		if err := query.Order("created_at DESC").Limit(limit).Find(&messages).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	return messages, nil
+}
+
 func InsertAgentMessage(db *gorm.DB, message *AgentMessage) error {
 	return db.Create(message).Error
 }

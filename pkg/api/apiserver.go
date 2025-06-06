@@ -83,6 +83,11 @@ func (a *AvatarAIAPI) InstallRoutes() {
 	blob := api.Group("/blobs")
 	blob.Use(mw.NewRequireAuth(a.metaStore, a.Config))
 	blob.POST("", a.UploadBlobHandler)
+	blob.GET("", a.GetUploadFilesHandler)
+
+	messages := api.Group("/messages")
+	// messages.Use(mw.NewRequireAuth(a.metaStore, a.Config))
+	messages.GET("/history", a.GetMessagesHistoryHandler)
 }
 
 func (a *AvatarAIAPI) InstallMiddleware() {

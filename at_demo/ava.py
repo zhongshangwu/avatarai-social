@@ -179,5 +179,125 @@ def feed():
     print(response.text)
 
 
+def messages_history(room_id=None, thread_id=None, before=None, after=None, limit=None):
+    """
+    测试获取历史消息接口
+
+    Args:
+        room_id: 房间ID (必需)
+        thread_id: 线程ID (必需)
+        before: 获取指定消息ID之前的消息
+        limit: 获取before/after消息的数量
+        after: 获取指定消息ID之后的消息
+
+    Examples:
+        # 获取最新的20条消息
+        python ava.py messages_history --room_id="room123" --thread_id="thread456"
+
+        # 获取指定消息之前的10条消息
+        python ava.py messages_history --room_id="room123" --thread_id="thread456" --before="msg_id" --limit=10
+
+        # 获取指定消息之后的5条消息
+        python ava.py messages_history --room_id="room123" --thread_id="thread456" --after="msg_id" --limit=5
+    """
+    # 默认测试数据
+    if not room_id:
+        room_id = "123"
+    if not thread_id:
+        thread_id = "123"
+
+    url = f"{HOST}/api/messages/history"
+    headers = get_headers()
+
+    # 构建查询参数
+    params = {
+        "roomId": room_id,
+        "threadId": thread_id
+    }
+
+    if before:
+        params["before"] = before
+    if limit:
+        params["limit"] = limit
+    if after:
+        params["after"] = after
+
+    print(f"请求URL: {url}")
+    print(f"查询参数: {params}")
+
+    response = requests.get(url, headers=headers, params=params, verify=False)
+
+    print(f"响应状态码: {response.status_code}")
+    print(f"响应内容: {response.text}")
+
+    if response.status_code == 200:
+        data = response.json()
+        messages = data.get("messages", [])
+        pagination = data.get("pagination", {})
+
+        print(f"\n=== 消息历史查询结果 ===")
+        print(f"消息数量: {len(messages)}")
+        print(f"分页信息: {pagination}")
+
+        if messages:
+            print(f"\n=== 消息列表 ===")
+            for i, msg in enumerate(messages):
+                print(f"消息 {i+1}:")
+                print(f"  ID: {msg.get('id')}")
+                print(f"  类型: {msg.get('msgType')}")
+                print(f"  发送者: {msg.get('senderId')}")
+                print(f"  接收者: {msg.get('receiverId')}")
+                print(f"  创建时间: {msg.get('createdAt')}")
+                print(f"  内容: {msg.get('content')}")
+                print()
+        else:
+            print("没有找到消息")
+    else:
+        print(f"请求失败: {response.text}")
+
+    return response
+
+
+def test_messages_history_scenarios():
+    """
+    测试多种历史消息查询场景
+    """
+    print("=== 开始测试历史消息接口的各种场景 ===\n")
+
+    # 场景1: 获取最新消息（默认）
+    print("场景1: 获取最新的消息")
+    messages_history()
+    print("\n" + "="*50 + "\n")
+
+    # 场景2: 获取指定数量的最新消息
+    print("场景2: 获取最新的5条消息")
+    messages_history(limit=5)
+    print("\n" + "="*50 + "\n")
+
+    # 场景3: 获取指定消息之前的消息（需要先有消息ID）
+    print("场景3: 获取指定消息之前的消息")
+    print("注意: 这需要一个真实的消息ID，这里使用示例ID")
+    messages_history(before="example_message_id", limit=3)
+    print("\n" + "="*50 + "\n")
+
+    # 场景4: 获取指定消息之后的消息
+    print("场景4: 获取指定消息之后的消息")
+    print("注意: 这需要一个真实的消息ID，这里使用示例ID")
+    messages_history(after="example_message_id", limit=3)
+    print("\n" + "="*50 + "\n")
+
+    # 场景5: 测试错误情况 - 缺少必需参数
+    print("场景5: 测试错误情况 - 缺少roomId参数")
+    url = f"{HOST}/api/messages/history"
+    headers = get_headers()
+    params = {"threadId": "test_thread"}
+    response = requests.get(url, headers=headers, params=params, verify=False)
+    print(f"响应状态码: {response.status_code}")
+    print(f"错误信息: {response.text}")
+    print("\n" + "="*50 + "\n")
+
+    print("=== 历史消息接口测试完成 ===")
+
+
 if __name__ == "__main__":
     fire.Fire()

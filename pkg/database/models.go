@@ -295,3 +295,19 @@ type AgentMessageItem struct {
 func (AgentMessageItem) TableName() string {
 	return "agent_message_items"
 }
+
+type UploadFile struct {
+	ID        string `gorm:"primaryKey"`
+	Size      int64  `gorm:"column:size"`
+	Filename  string `gorm:"column:filename"`
+	Extension string `gorm:"column:extension"`
+	MimeType  string `gorm:"column:mime_type"`
+	CID       string `gorm:"column:cid"`
+	URL       string `gorm:"-" json:"url,omitempty"` // 不存储在数据库中，仅用于API响应
+	CreatedBy string `gorm:"column:created_by"`
+	CreatedAt int64  `gorm:"column:created_at"`
+}
+
+func (UploadFile) TableName() string {
+	return "upload_files"
+}

@@ -41,6 +41,9 @@ func (ms *MetaStore) Init() error {
 		&Thread{},
 		&AgentMessage{},
 		&AgentMessageItem{},
+
+		// files
+		&UploadFile{},
 	)
 }
 
