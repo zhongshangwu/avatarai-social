@@ -1,6 +1,8 @@
 package api
 
 import (
+	_ "embed"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/zhongshangwu/avatarai-social/pkg/api/handlers"
@@ -8,6 +10,9 @@ import (
 	"github.com/zhongshangwu/avatarai-social/pkg/config"
 	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 )
+
+//go:embed templates/app-return.html
+var appReturnHTML string
 
 type AvatarAIAPI struct {
 	Config          *config.SocialConfig
@@ -18,6 +23,7 @@ type AvatarAIAPI struct {
 	UserHandler     *handlers.UserHandler
 	AsterHandler    *handlers.AsterHandler
 	MomentsHandler  *handlers.MomentHandler
+	FeedHandler     *handlers.FeedHandler
 	BlobsHandler    *handlers.BlobHandler
 	MessagesHandler *handlers.MessageHandler
 	ChatHandler     *handlers.ChatHandler
@@ -30,7 +36,7 @@ func NewAvatarAIAPI(config *config.SocialConfig, metaStore *repositories.MetaSto
 	e.Renderer = renderer
 
 	healthHandler := handlers.NewHealthHandler(config, metaStore)
-	oauthHandler := handlers.NewOAuthHandler(config, metaStore)
+	oauthHandler := handlers.NewOAuthHandler(config, metaStore, appReturnHTML)
 	userHandler := handlers.NewUserHandler(config, metaStore)
 	asterHandler := handlers.NewAsterHandler(config, metaStore)
 	momentHandler := handlers.NewMomentHandler(config, metaStore)
@@ -57,6 +63,7 @@ func (a *AvatarAIAPI) InstallRoutes() {
 	a.echo.GET("/healthz", a.HealthHandler.Healthz)
 
 	api := a.echo.Group("/api")
+	withAuth := mw.NewContextWrapper(a.MetaStore, a.Config)
 
 	oauth := api.Group("/oauth")
 	oauth.GET("/login", a.AuthHandler.OAuthLogin)
@@ -65,45 +72,34 @@ func (a *AvatarAIAPI) InstallRoutes() {
 	oauth.GET("/callback", a.AuthHandler.HandleOAuthCallback)
 	oauth.GET("/token", a.AuthHandler.HandleOAuthToken)
 	oauth.GET("/app-return/:bundleID", a.AuthHandler.HandleAppReturn)
-	oauth.GET("/:platform/client-metadata.json", a.AuthHandler.HandleOAuthClientMetadata)
-	oauth.GET("/refresh", mw.NewRequireAuth(a.MetaStore, a.Config)(a.AuthHandler.HandleOAuthRefresh))
-	oauth.POST("/refresh", mw.NewRequireAuth(a.MetaStore, a.Config)(a.AuthHandler.HandleOAuthRefresh))
-	oauth.GET("/logout", mw.NewRequireAuth(a.MetaStore, a.Config)(a.AuthHandler.HandleOAuthLogout))
+	oauth.GET("/:platform/client-metadata.json", a.AuthHandler.OAuthClientMetadata)
+	oauth.POST("/refresh", withAuth(a.AuthHandler.HandleOAuthRefresh, false))
+	oauth.GET("/logout", withAuth(a.AuthHandler.HandleOAuthLogout, true))
 
 	avatar := api.Group("/avatar")
-	avatar.Use(mw.NewRequireAuth(a.MetaStore, a.Config))
-	avatar.GET("/profile", mw.WrapHandler(a.UserHandler.CurrentUserProfile))
-	avatar.POST("/profile", mw.WrapHandler(a.UserHandler.UpdateUserProfile))
+	avatar.GET("/profile", withAuth(a.UserHandler.CurrentUserProfile, true))
 
 	aster := api.Group("/aster")
-	aster.Use(mw.NewRequireAuth(a.MetaStore, a.Config))
-	aster.POST("/mint", mw.WrapHandler(a.AsterHandler.HandleAsterMint))
-	aster.GET("/profile", mw.WrapHandler(a.AsterHandler.GetAsterProfile))
+	aster.POST("/mint", withAuth(a.AsterHandler.HandleAsterMint, true))
+	aster.GET("/profile", withAuth(a.AsterHandler.GetAsterProfile, true))
 
 	// 聊天相关路由
-	api.GET("/demo/chat-stream", mw.WrapHandler(a.ChatHandler.ChatStream))
-
 	chat := api.Group("/chat")
-	// chat.Use(mw.NewRequireAuth(a.MetaStore, a.Config))
-	chat.GET("/history", mw.WrapHandler(a.ChatHandler.ChatHistoryMessages))
+	chat.GET("/stream", withAuth(a.ChatHandler.ChatStream, true))
 
 	moment := api.Group("/moments")
-	moment.Use(mw.NewRequireAuth(a.MetaStore, a.Config))
-	moment.POST("", a.MomentsHandler.HandleMomentCreate)
-	moment.GET("/detail", a.MomentsHandler.HandleMomentDetail)
+	moment.POST("", withAuth(a.MomentsHandler.CreateMoment, true))
+	moment.GET("/detail", withAuth(a.MomentsHandler.GetMoment, true))
 
-	feed := api.Group("/feed")
-	feed.Use(mw.NewRequireAuth(a.MetaStore, a.Config))
-	feed.GET("", a.MomentsHandler.HandleMomentFeed)
+	feed := api.Group("/feeds")
+	feed.GET("", withAuth(a.FeedHandler.Feeds, true))
 
 	blob := api.Group("/blobs")
-	blob.Use(mw.NewRequireAuth(a.MetaStore, a.Config))
-	blob.POST("", mw.WrapHandler(a.BlobsHandler.UploadBlobHandler))
-	blob.GET("", mw.WrapHandler(a.BlobsHandler.GetUploadFilesHandler))
+	blob.POST("", withAuth(a.BlobsHandler.UploadFile, true))
+	blob.GET("", withAuth(a.BlobsHandler.GetFile, true))
 
 	messages := api.Group("/messages")
-	// messages.Use(mw.NewRequireAuth(a.MetaStore, a.Config))
-	messages.GET("/history", a.MessagesHandler.GetMessagesHistoryHandler)
+	messages.GET("/history", withAuth(a.MessagesHandler.HistoryMessages, true))
 }
 
 func (a *AvatarAIAPI) InstallMiddleware() {

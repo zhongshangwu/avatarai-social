@@ -7,6 +7,7 @@ toolchain go1.24.2
 require (
 	github.com/adrg/xdg v0.5.0
 	github.com/bluesky-social/indigo v0.0.0-20250417233640-6b0010a646ae
+	github.com/gabriel-vasile/mimetype v1.4.9
 	github.com/go-jose/go-jose/v4 v4.1.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/golang/protobuf v1.5.4
@@ -26,7 +27,6 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

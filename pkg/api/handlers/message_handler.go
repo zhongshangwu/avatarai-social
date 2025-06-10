@@ -8,6 +8,7 @@ import (
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
 	"github.com/zhongshangwu/avatarai-social/pkg/config"
 	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
+	"github.com/zhongshangwu/avatarai-social/types"
 )
 
 type GetMessagesHistoryResponse struct {
@@ -37,15 +38,7 @@ func NewMessageHandler(config *config.SocialConfig, metaStore *repositories.Meta
 	}
 }
 
-func (h *MessageHandler) GetMessagesHistoryHandler(c echo.Context) error {
-	// ac := c.(*utils.AvatarAIContext)
-	// avatar := ac.Avatar
-
-	// if avatar == nil {
-	// 	return echo.NewHTTPError(http.StatusUnauthorized, "未授权访问")
-	// }
-
-	// 获取查询参数
+func (h *MessageHandler) HistoryMessages(c *types.APIContext) error {
 	roomID := c.QueryParam("roomId")
 	threadID := c.QueryParam("threadId")
 	beforeMsgID := c.QueryParam("before")

@@ -2,7 +2,6 @@ package chat
 
 import (
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
-	"github.com/zhongshangwu/avatarai-social/pkg/database"
 )
 
 func (actor *ChatActor) SendMsg(sendMsgEvent *messages.SendMsgEvent) (*messages.Message, error) {
@@ -23,7 +22,7 @@ func (actor *ChatActor) SendMsg(sendMsgEvent *messages.SendMsgEvent) (*messages.
 	// }
 
 	dbMessage := messages.MessageToDB(message)
-	if err := database.InsertMessage(actor.DB, dbMessage); err != nil {
+	if err := actor.MessageRepo.InsertMessage(dbMessage); err != nil {
 		return nil, err
 	}
 

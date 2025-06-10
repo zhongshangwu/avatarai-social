@@ -20,3 +20,13 @@ func NewTemplateRenderer(pattern string) *TemplateRenderer {
 		templates: template.Must(template.ParseGlob(pattern)),
 	}
 }
+
+type LoginPageData struct {
+	User     *LoginPageUserData
+	Messages []string
+	URLs     map[string]string
+}
+
+type LoginPageUserData struct {
+	Handle string
+}

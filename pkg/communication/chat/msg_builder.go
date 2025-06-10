@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
-	"github.com/zhongshangwu/avatarai-social/pkg/database"
 )
 
 func BuildMessageFromSendMsgEvent(sendMsgEvent *messages.SendMsgEvent) (*messages.Message, error) {
@@ -124,7 +123,7 @@ func (actor *ChatActor) InitRespondMessage(input *messages.Message) (*messages.M
 		Metadata:      make(map[string]interface{}),
 	}
 	dbAgentMessage := messages.AgentMessageToDB(agentMessage)
-	if err := database.InsertAgentMessage(actor.DB, dbAgentMessage); err != nil {
+	if err := actor.MessageRepo.InsertAgentMessage(dbAgentMessage); err != nil {
 		logrus.Errorf("insert ai chat message failed: %v", err)
 		return nil, err
 	}
@@ -133,7 +132,7 @@ func (actor *ChatActor) InitRespondMessage(input *messages.Message) (*messages.M
 		AgentMessage: *agentMessage,
 	}
 	dbMessage := messages.MessageToDB(message)
-	if err := database.InsertMessage(actor.DB, dbMessage); err != nil {
+	if err := actor.MessageRepo.InsertMessage(dbMessage); err != nil {
 		logrus.Errorf("insert message failed: %v", err)
 		return nil, err
 	}

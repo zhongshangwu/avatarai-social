@@ -95,3 +95,15 @@ func (r *OAuthRepository) UpdateOAuthCodeUsed(code string, used bool) error {
 		Update("used", used).
 		Error
 }
+
+func (r *OAuthRepository) GetSessionByID(id string) (*Session, error) {
+	var session Session
+	if err := r.metaStore.DB.Where("id = ?", id).First(&session).Error; err != nil {
+		return nil, err
+	}
+	return &session, nil
+}
+
+func (r *OAuthRepository) SaveSession(session *Session) error {
+	return r.metaStore.DB.Create(session).Error
+}

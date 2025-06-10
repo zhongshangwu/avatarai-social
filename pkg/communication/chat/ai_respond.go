@@ -11,7 +11,7 @@ import (
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/events"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/memory"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
-	"github.com/zhongshangwu/avatarai-social/pkg/database"
+	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 )
 
 func (actor *ChatActor) AIRespond(actorCtx events.ActorContext[*messages.ChatEvent], message *messages.Message) error {
@@ -127,7 +127,7 @@ func (actor *ChatActor) handleAgentMessageCreated(event *messages.ChatEvent) err
 	agentMessage := createdEvent.AgentMessage
 	logrus.Infof("持久化AI消息创建事件: %s", agentMessage.ID)
 
-	return database.UpdateAgentMessageStatus(actor.DB, agentMessage.ID, string(agentMessage.Status))
+	return actor.MessageRepo.UpdateAgentMessageStatus(agentMessage.ID, string(agentMessage.Status))
 }
 
 func (actor *ChatActor) handleAgentMessageInProgress(event *messages.ChatEvent) error {
@@ -139,7 +139,7 @@ func (actor *ChatActor) handleAgentMessageInProgress(event *messages.ChatEvent) 
 	agentMessage := inProgressEvent.AgentMessage
 	logrus.Infof("持久化AI消息进行中事件: %s", agentMessage.ID)
 
-	return database.UpdateAgentMessageStatus(actor.DB, agentMessage.ID, string(agentMessage.Status))
+	return actor.MessageRepo.UpdateAgentMessageStatus(agentMessage.ID, string(agentMessage.Status))
 }
 
 func (actor *ChatActor) handleAgentMessageCompleted(event *messages.ChatEvent) error {
@@ -151,8 +151,7 @@ func (actor *ChatActor) handleAgentMessageCompleted(event *messages.ChatEvent) e
 	agentMessage := completedEvent.AgentMessage
 	logrus.Infof("持久化AI消息完成事件: %s", agentMessage.ID)
 
-	return database.UpdateAgentMessageWithUsage(
-		actor.DB,
+	return actor.MessageRepo.UpdateAgentMessageWithUsage(
 		agentMessage.ID,
 		string(agentMessage.Status),
 		agentMessage.Usage,
@@ -169,8 +168,7 @@ func (actor *ChatActor) handleAgentMessageFailed(event *messages.ChatEvent) erro
 	agentMessage := failedEvent.AgentMessage
 	logrus.Infof("持久化AI消息失败事件: %s", agentMessage.ID)
 
-	return database.UpdateAgentMessageWithError(
-		actor.DB,
+	return actor.MessageRepo.UpdateAgentMessageWithError(
 		agentMessage.ID,
 		string(agentMessage.Status),
 		agentMessage.Error,
@@ -186,8 +184,7 @@ func (actor *ChatActor) handleAgentMessageIncomplete(event *messages.ChatEvent) 
 	agentMessage := incompleteEvent.AgentMessage
 	logrus.Infof("持久化AI消息不完整事件: %s", agentMessage.ID)
 
-	return database.UpdateAgentMessageIncomplete(
-		actor.DB,
+	return actor.MessageRepo.UpdateAgentMessageIncomplete(
 		agentMessage.ID,
 		agentMessage.InterruptType,
 		agentMessage.Error,
@@ -210,7 +207,7 @@ func (actor *ChatActor) handleOutputItemAdded(event *messages.ChatEvent, agentMe
 		return err
 	}
 
-	agentMessageItem := &database.AgentMessageItem{
+	agentMessageItem := &repositories.AgentMessageItem{
 		ID:             uuid.New().String(),
 		AgentMessageID: agentMessageID,
 		ItemType:       outputItemEvent.Item.GetType(),
@@ -221,7 +218,7 @@ func (actor *ChatActor) handleOutputItemAdded(event *messages.ChatEvent, agentMe
 		Deleted:        false,
 	}
 
-	return database.InsertAgentMessageItem(actor.DB, agentMessageItem)
+	return actor.MessageRepo.InsertAgentMessageItem(agentMessageItem)
 }
 
 func (actor *ChatActor) handleOutputItemDone(event *messages.ChatEvent, agentMessageID string) error {
@@ -243,7 +240,7 @@ func (actor *ChatActor) handleOutputItemDone(event *messages.ChatEvent, agentMes
 		"item": string(itemJSON),
 	}
 
-	return database.UpdateAgentMessageItemByPosition(actor.DB, agentMessageID, outputItemEvent.OutputIndex, updates)
+	return actor.MessageRepo.UpdateAgentMessageItemByPosition(agentMessageID, outputItemEvent.OutputIndex, updates)
 }
 
 func (actor *ChatActor) extractTools() []map[string]interface{} {

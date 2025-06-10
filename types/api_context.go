@@ -3,6 +3,7 @@ package types
 import (
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -57,6 +58,25 @@ func (c *APIContext) InternalServerError(message string) error {
 		Message: message,
 		Data:    nil,
 	})
+}
+
+func (c *APIContext) AuthToken() string {
+	var token string
+	jwtCookie, err := c.Cookie("avatarai_token")
+	if err != nil || jwtCookie.Value == "" {
+		// 尝试从 Authorization header 中获取
+		authHeader := c.Request().Header.Get("Authorization")
+		if authHeader != "" {
+			parts := strings.Split(authHeader, " ")
+			if len(parts) == 2 && parts[0] == "Bearer" {
+				token = parts[1]
+			}
+		}
+	} else {
+		token = jwtCookie.Value
+	}
+
+	return token
 }
 
 type APIResponse struct {

@@ -10,20 +10,21 @@ import (
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/memory"
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
 	"github.com/zhongshangwu/avatarai-social/pkg/config"
-	"github.com/zhongshangwu/avatarai-social/pkg/database"
 	"github.com/zhongshangwu/avatarai-social/pkg/providers/llm"
+	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 	"gorm.io/gorm"
 )
 
 type ChatActor struct {
 	*events.BaseActor[*messages.ChatEvent]
 
-	User         *database.Avatar       // 发送者用户
-	OAuthSession *database.OAuthSession // 发送者 OAuth 会话
+	User         *repositories.Avatar       // 发送者用户
+	OAuthSession *repositories.OAuthSession // 发送者 OAuth 会话
 
-	DB         *gorm.DB
-	llmManager *llm.ModelManager
-	config     *config.SocialConfig
+	DB          *gorm.DB
+	MessageRepo *repositories.MessageRepository // 消息仓库
+	llmManager  *llm.ModelManager
+	config      *config.SocialConfig
 
 	runner *agents.ChatRunner
 	memory memory.Memory

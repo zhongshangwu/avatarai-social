@@ -36,7 +36,7 @@ func NewBlobHandler(config *config.SocialConfig, metaStore *repositories.MetaSto
 	}
 }
 
-func (h *BlobHandler) UploadBlobHandler(c *types.APIContext) error {
+func (h *BlobHandler) UploadFile(c *types.APIContext) error {
 	file, err := c.FormFile("file")
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "未找到上传文件: "+err.Error())
@@ -72,7 +72,7 @@ func (h *BlobHandler) UploadBlobHandler(c *types.APIContext) error {
 	})
 }
 
-func (h *BlobHandler) GetFileHandler(c *types.APIContext) error {
+func (h *BlobHandler) GetFile(c *types.APIContext) error {
 	fileID := c.Param("id")
 	if fileID == "" {
 		return c.InvalidRequest("file_id is required", "file_id is required")

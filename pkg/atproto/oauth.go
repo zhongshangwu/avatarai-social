@@ -221,12 +221,10 @@ func (c *OAuthClient) RefreshToken(req *RefreshRequest, session *repositories.OA
 	}, nil
 }
 
-// IsSessionExpired 检查会话是否过期
 func (c *OAuthClient) IsSessionExpired(session *repositories.OAuthSession) bool {
-	return time.Now().Unix() > session.CreatedAt.Unix()+session.ExpiresIn
+	return time.Now().Unix() > session.CreatedAt+session.ExpiresIn
 }
 
-// GenerateClientMetadata 生成客户端元数据
 func (c *OAuthClient) GenerateClientMetadata(platform string) map[string]interface{} {
 	clientID := c.buildClientID(platform)
 
@@ -246,7 +244,6 @@ func (c *OAuthClient) GenerateClientMetadata(platform string) map[string]interfa
 	}
 }
 
-// GenerateJWKS 生成 JWKS
 func (c *OAuthClient) GenerateJWKS() map[string]interface{} {
 	return map[string]interface{}{
 		"keys": []interface{}{c.clientSecretJWK.Public()},
@@ -265,7 +262,6 @@ func (c *OAuthClient) createHTTPClient() *http.Client {
 	}
 }
 
-// 通用 HTTP 请求方法
 func (c *OAuthClient) makeHTTPRequest(method, url string, body io.Reader, headers map[string]string) (*http.Response, error) {
 	if !utils.IsSafeURL(url) {
 		return nil, fmt.Errorf("不安全的 URL: %s", url)

@@ -2,186 +2,221 @@ package middleware
 
 import (
 	"fmt"
-	"net/http"
-	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
-	"github.com/zhongshangwu/avatarai-social/pkg/atproto"
 	"github.com/zhongshangwu/avatarai-social/pkg/config"
 	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 	"github.com/zhongshangwu/avatarai-social/pkg/utils"
 	"github.com/zhongshangwu/avatarai-social/types"
-	"gorm.io/gorm"
 )
 
-// WrapHandler 将 types.APIContext 处理函数适配为 echo.HandlerFunc
-func WrapHandler(handler func(*types.APIContext) error) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		// 将 echo.Context 转换为 types.APIContext
-		apiCtx := &types.APIContext{
-			Context: c,
-		}
+type WrapperFunc func(next ContextualHandlerFunc, mustAuth bool) echo.HandlerFunc
+type ContextualHandlerFunc func(c *types.APIContext) error
 
-		// 如果是 AvatarAIContext，提取认证信息
-		if avatarCtx, ok := c.(*utils.AvatarAIContext); ok {
-			apiCtx.IsAuthenticated = avatarCtx.Avatar != nil
-			if avatarCtx.Avatar != nil {
-				// 构建头像和横幅 URL
-				avatarURL := ""
-				if avatarCtx.Avatar.AvatarCID != "" {
-					avatarURL = fmt.Sprintf("https://bsky.avatar.ai/img/avatar/plain/%s/%s@jpeg",
-						avatarCtx.Avatar.Did,
-						avatarCtx.Avatar.AvatarCID)
-				}
+type AuthenticationError struct {
+	Code    string
+	Message string
+	Err     error
+}
 
-				apiCtx.User = &types.User{
-					Did:         avatarCtx.Avatar.Did,
-					Handle:      avatarCtx.Avatar.Handle,
-					DisplayName: avatarCtx.Avatar.DisplayName,
-					Description: avatarCtx.Avatar.Description,
-					AvatarCID:   avatarCtx.Avatar.AvatarCID,
-					AvatarURL:   avatarURL,
-					BannerCID:   "", // repositories.Avatar 没有 BannerCID 字段
-					BannerURL:   "", // repositories.Avatar 没有 BannerURL 字段
-					IsAster:     avatarCtx.Avatar.IsAster,
-					Creator:     avatarCtx.Avatar.CreatorDid,
-					LastLoginAt: avatarCtx.Avatar.LastLoginAt.Unix(),
-					UpdatedAt:   avatarCtx.Avatar.UpdatedAt.Unix(),
-					CreatedAt:   avatarCtx.Avatar.CreatedAt.Unix(),
-				}
-			}
+func (e *AuthenticationError) Error() string {
+	if e.Err != nil {
+		return e.Message + ": " + e.Err.Error()
+	}
+	return e.Message
+}
 
-			// 转换 OAuthSession
-			if avatarCtx.OauthSession != nil {
-				apiCtx.OauthSession = &types.OAuthSession{
-					ID:                  fmt.Sprintf("%d", avatarCtx.OauthSession.ID),
-					Did:                 avatarCtx.OauthSession.Did,
-					Handle:              avatarCtx.OauthSession.Handle,
-					PdsUrl:              avatarCtx.OauthSession.PdsUrl,
-					AuthserverIss:       avatarCtx.OauthSession.AuthserverIss,
-					AccessToken:         avatarCtx.OauthSession.AccessToken,
-					RefreshToken:        avatarCtx.OauthSession.RefreshToken,
-					DpopAuthserverNonce: avatarCtx.OauthSession.DpopAuthserverNonce,
-					DpopPdsNonce:        avatarCtx.OauthSession.DpopPdsNonce,
-					DpopPrivateJwk:      avatarCtx.OauthSession.DpopPrivateJwk,
-					ExpiresIn:           avatarCtx.OauthSession.ExpiresIn,
-					CreatedAt:           avatarCtx.OauthSession.CreatedAt.Unix(),
-					Provider:            types.OAuthProviderTypeBsky,
-					ReturnURI:           avatarCtx.OauthSession.ReturnURI,
-				}
-			}
-		}
-
-		return handler(apiCtx)
+func convertRepositorySessionToTypes(repoSession *repositories.Session) *types.Session {
+	if repoSession == nil {
+		return nil
+	}
+	return &types.Session{
+		ID:             repoSession.ID,
+		UserDid:        repoSession.UserDid,
+		AccessToken:    repoSession.AccessToken,
+		RefreshToken:   repoSession.RefreshToken,
+		OAuthSessionID: fmt.Sprintf("%d", repoSession.OAuthSessionID), // 转换 uint 到 string
+		ExpiredAt:      repoSession.ExpiredAt,
+		CreatedAt:      repoSession.CreatedAt,
 	}
 }
 
-func NewRequireAuth(metaStore *repositories.MetaStore, config *config.SocialConfig) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
+func convertRepositoryOAuthSessionToTypes(repoOAuthSession *repositories.OAuthSession) *types.OAuthSession {
+	if repoOAuthSession == nil {
+		return nil
+	}
+	return &types.OAuthSession{
+		ID:                  fmt.Sprintf("%d", repoOAuthSession.ID), // 转换 uint 到 string
+		Did:                 repoOAuthSession.Did,
+		Handle:              repoOAuthSession.Handle,
+		PdsUrl:              repoOAuthSession.PdsUrl,
+		AuthserverIss:       repoOAuthSession.AuthserverIss,
+		AccessToken:         repoOAuthSession.AccessToken,
+		RefreshToken:        repoOAuthSession.RefreshToken,
+		DpopAuthserverNonce: repoOAuthSession.DpopAuthserverNonce,
+		DpopPdsNonce:        repoOAuthSession.DpopPdsNonce,
+		DpopPrivateJwk:      repoOAuthSession.DpopPrivateJwk,
+		ExpiresIn:           repoOAuthSession.ExpiresIn,
+		CreatedAt:           repoOAuthSession.CreatedAt,
+		Provider:            types.OAuthProviderType(repoOAuthSession.Platform),
+		ReturnURI:           repoOAuthSession.ReturnURI,
+	}
+}
+
+func convertRepositoryAvatarToUser(repoAvatar *repositories.Avatar) *types.User {
+	if repoAvatar == nil {
+		return nil
+	}
+	return &types.User{
+		Did:         repoAvatar.Did,
+		Handle:      repoAvatar.Handle,
+		PdsUrl:      repoAvatar.PdsUrl,
+		DisplayName: repoAvatar.DisplayName,
+		AvatarCID:   repoAvatar.AvatarCID,
+		Description: repoAvatar.Description,
+		IsAster:     repoAvatar.IsAster,
+		Creator:     repoAvatar.Creator,
+		LastLoginAt: repoAvatar.LastLoginAt,
+		UpdatedAt:   repoAvatar.UpdatedAt,
+		CreatedAt:   repoAvatar.CreatedAt,
+	}
+}
+
+func authenticateUser(metaStore *repositories.MetaStore, config *config.SocialConfig, token string) (*repositories.Session, *repositories.OAuthSession, *repositories.Avatar, *AuthenticationError) {
+	if token == "" {
+		return nil, nil, nil, &AuthenticationError{
+			Code:    "missing_token",
+			Message: "缺少认证令牌",
+		}
+	}
+
+	claims, err := utils.ValidateAccessToken(config, token)
+	if err != nil {
+		return nil, nil, nil, &AuthenticationError{
+			Code:    "invalid_token",
+			Message: "无效的访问令牌",
+			Err:     err,
+		}
+	}
+
+	session, err := metaStore.UserRepo.GetSessionByID(claims.ID)
+	if err != nil {
+		return nil, nil, nil, &AuthenticationError{
+			Code:    "session_not_found",
+			Message: "会话不存在",
+			Err:     err,
+		}
+	}
+
+	oauthSession, err := metaStore.OAuthRepo.GetOAuthSessionByID(session.OAuthSessionID)
+	if err != nil {
+		return nil, nil, nil, &AuthenticationError{
+			Code:    "oauth_session_not_found",
+			Message: "OAuth会话不存在",
+			Err:     err,
+		}
+	}
+
+	if isOAuthSessionExpired(oauthSession) {
+		return nil, nil, nil, &AuthenticationError{
+			Code:    "oauth_session_expired",
+			Message: "OAuth会话已过期",
+		}
+	}
+
+	avatar, err := metaStore.UserRepo.GetAvatarByDID(session.UserDid)
+	if err != nil {
+		return nil, nil, nil, &AuthenticationError{
+			Code:    "user_not_found",
+			Message: "用户不存在",
+			Err:     err,
+		}
+	}
+
+	return session, oauthSession, avatar, nil
+}
+
+func handleAuthenticationFailure(c *types.APIContext, authErr *AuthenticationError, mustAuth bool) error {
+	log.Errorf("认证失败 [%s]: %s", authErr.Code, authErr.Error())
+
+	if !mustAuth {
+		// 如果不强制认证，继续执行但不设置用户信息
+		c.IsAuthenticated = false
+		return nil
+	}
+
+	// 根据错误类型决定重定向策略
+	switch authErr.Code {
+	case "missing_token", "invalid_token":
+		return c.RedirectToLogin("")
+	case "session_not_found", "oauth_session_not_found", "user_not_found":
+		return c.RedirectToLogin("")
+	case "oauth_session_expired":
+		// OAuth 会话过期，可以尝试自动刷新或重定向到登录
+		log.Warnf("OAuth会话已过期，重定向到登录页面")
+		return c.RedirectToLogin("")
+	default:
+		return c.RedirectToLogin("")
+	}
+}
+
+func NewContextWrapper(metaStore *repositories.MetaStore, config *config.SocialConfig) WrapperFunc {
+	return func(next ContextualHandlerFunc, mustAuth bool) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			cc := &utils.AvatarAIContext{Context: c}
-			var token string
-			jwtCookie, err := cc.Cookie("avatarai_token")
-			if err != nil || jwtCookie.Value == "" {
-				// 尝试从 Authorization header 中获取
-				authHeader := c.Request().Header.Get("Authorization")
-				if authHeader != "" {
-					parts := strings.Split(authHeader, " ")
-					if len(parts) == 2 && parts[0] == "Bearer" {
-						token = parts[1]
-					}
+			cc := &types.APIContext{
+				Context:         c,
+				IsAuthenticated: false,
+				User:            nil,
+				Session:         nil,
+				OauthProvider:   types.OAuthProviderType(c.QueryParam("provider")),
+				OauthSession:    nil,
+			}
+
+			token := cc.AuthToken()
+
+			session, oauthSession, avatar, authErr := authenticateUser(metaStore, config, token)
+
+			if authErr != nil {
+				if err := handleAuthenticationFailure(cc, authErr, mustAuth); err != nil {
+					return err
 				}
-				if token == "" {
-					return cc.Redirect(http.StatusFound, "/api/oauth/login")
+
+				if !mustAuth {
+					return next(cc)
 				}
-			} else {
-				token = jwtCookie.Value
+
+				return nil
 			}
 
-			claims, err := utils.ValidateAccessToken(config, token)
-			if err != nil {
-				log.Errorf("验证token失败: %v", err)
-				return cc.Redirect(http.StatusFound, "/api/oauth/login")
-			}
+			cc.IsAuthenticated = true
+			cc.Session = convertRepositorySessionToTypes(session)
+			cc.OauthSession = convertRepositoryOAuthSessionToTypes(oauthSession)
+			cc.User = convertRepositoryAvatarToUser(avatar)
 
-			session, err := metaStore.UserRepo.GetSessionByID(claims.ID)
-			if err != nil {
-				log.Errorf("获取Session失败: %v", err)
-				return cc.Redirect(http.StatusFound, "/api/oauth/login")
-			}
-
-			oauthSession, err := metaStore.OAuthRepo.GetOAuthSessionByID(session.OAuthSessionID)
-			if err != nil {
-				log.Errorf("获取OAuthSession失败: %v", err)
-				return cc.Redirect(http.StatusFound, "/api/oauth/login")
-			}
-
-			avatar, err := metaStore.UserRepo.GetAvatarByDID(session.AvatarDid)
-			if err != nil {
-				log.Errorf("获取Avatar失败: %v", err)
-				return cc.Redirect(http.StatusFound, "/api/oauth/login")
-			}
-
-			cc.Session = session
-			cc.OauthSession = oauthSession
-			cc.Avatar = avatar
-
-			// 检查 OAuth 会话是否过期
-			if oauthSession.ExpiresIn > 0 {
-				expiryTime := oauthSession.CreatedAt.Add(time.Duration(oauthSession.ExpiresIn) * time.Second)
-				if time.Now().After(expiryTime) {
-					log.Warnf("OAuth会话已过期，需要刷新令牌")
-					// 这里可以尝试自动刷新令牌，或者重定向到登录页面
-					return cc.Redirect(http.StatusFound, "/api/oauth/login")
-				}
-			}
+			log.Infof("用户认证成功: %s (%s)", avatar.Handle, avatar.Did)
 
 			return next(cc)
 		}
 	}
 }
 
+// func NewRequireAuth(metaStore *repositories.MetaStore, config *config.SocialConfig) echo.MiddlewareFunc {
+// 	wrapper := NewContextWrapper(metaStore, config)
+// 	return func(next echo.HandlerFunc) echo.HandlerFunc {
+// 		return wrapper(next, true)
+// 	}
+// }
+
 func IsSessionExpired(session *repositories.OAuthSession) bool {
-	log.Infof("session.CreatedAt: %s", session.CreatedAt.Unix())
-	log.Infof("session.ExpiresIn: %d", session.ExpiresIn)
-	log.Infof("time.Now().Unix(): %d", time.Now().Unix())
-	log.Infof("expired: %t", time.Now().Unix() > session.CreatedAt.Unix()+int64(session.ExpiresIn))
-	return time.Now().Unix() > session.CreatedAt.Unix()+int64(session.ExpiresIn)
+	return isOAuthSessionExpired(session)
 }
 
-func RefreshSession(c echo.Context, db *gorm.DB, session *repositories.OAuthSession, config *config.SocialConfig) error {
-	appURL := utils.GetAPPURL(c)
-	tokens, dpopAuthserverNonce, err := atproto.RefreshTokenRequest(
-		session,
-		atproto.BuildClientID(appURL, session.Platform),
-		atproto.BuildRedirectURL(appURL, session.Platform),
-		config.ATP.ClientSecretJWK(),
-	)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "刷新令牌失败: " + err.Error(),
-		})
+func isOAuthSessionExpired(session *repositories.OAuthSession) bool {
+	if session.ExpiresIn <= 0 {
+		return false
 	}
-
-	// 将更新的令牌(和 DPoP nonce)保存到数据库
-	session.AccessToken = tokens["access_token"].(string)
-	session.RefreshToken = tokens["refresh_token"].(string)
-	session.DpopAuthserverNonce = dpopAuthserverNonce
-
-	// 这里需要通过 MetaStore 来更新，但我们只有 db，所以保持原来的方式
-	// 或者我们需要传递 MetaStore 而不是 db
-	if err := db.Model(&repositories.OAuthSession{}).
-		Where("did = ?", session.Did).
-		Updates(map[string]interface{}{
-			"access_token":          session.AccessToken,
-			"refresh_token":         session.RefreshToken,
-			"dpop_authserver_nonce": session.DpopAuthserverNonce,
-		}).Error; err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "更新会话失败",
-		})
-	}
-	return nil
+	expiryTime := time.Unix(session.CreatedAt, 0).Add(time.Duration(session.ExpiresIn) * time.Second)
+	return time.Now().After(expiryTime)
 }

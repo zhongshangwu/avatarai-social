@@ -51,7 +51,6 @@ func GetClientMetadata(host string, platform string, appBundleId string) *OAuthC
 }
 
 func GetClientMetadataWithOptions(host string, platform string, appBundleId string, options *ClientMetadataOptions) *OAuthClientMetadata {
-	// 设置默认选项
 	if options == nil {
 		options = &ClientMetadataOptions{}
 	}
@@ -67,8 +66,9 @@ func GetClientMetadataWithOptions(host string, platform string, appBundleId stri
 	}
 
 	meta := &OAuthClientMetadata{
-		ClientID:                BuildClientID(host, platform),
-		ClientURI:               fmt.Sprintf("https://%s", host),
+		ClientID: BuildClientID(host, platform),
+		// ClientURI:               fmt.Sprintf("https://%s", ),
+		ClientURI:               host,
 		Scope:                   "atproto transition:generic",
 		TokenEndpointAuthMethod: options.TokenEndpointAuthMethod,
 		ClientName:              options.ClientName,
@@ -89,10 +89,10 @@ func GetClientMetadataWithOptions(host string, platform string, appBundleId stri
 
 	// 根据平台设置重定向URI和应用类型
 	if platform == "web" {
-		meta.RedirectURIs = []string{fmt.Sprintf("https://%s/api/oauth/callback", host)}
+		meta.RedirectURIs = []string{fmt.Sprintf("%sapi/oauth/callback", host)}
 		meta.ApplicationType = "web"
 	} else {
-		meta.RedirectURIs = []string{fmt.Sprintf("https://%s/api/app-return/%s", host, appBundleId)}
+		meta.RedirectURIs = []string{fmt.Sprintf("%sapi/app-return/%s", host, appBundleId)}
 		meta.ApplicationType = "native"
 	}
 	return meta
@@ -107,12 +107,15 @@ func BuildClientID(host string, platform string) string {
 }
 
 func BuildRedirectURL(host string, platform string) string {
+	// if strings.Contains(host, "localhost") || strings.Contains(host, "127.0.0.1") {
+	// 	return fmt.Sprintf("http://127.0.0.1:8082/api/oauth/callback")
+	// }
 	return fmt.Sprintf("%sapi/oauth/callback", host)
 }
 
 func BuildCallbackRedirectURI(host string, platform string) string {
 	if platform == "web" {
-		return fmt.Sprintf("https://%s/login", host)
+		return fmt.Sprintf("%s/login", host)
 	}
 	return fmt.Sprintf("https://%s/app-callback", host)
 }
