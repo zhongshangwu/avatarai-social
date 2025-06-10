@@ -1,6 +1,9 @@
 package atproto
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 var AllowedPlatforms = []string{"ios", "android", "web"}
 
@@ -36,26 +39,82 @@ type OAuthClientMetadata struct {
 	// Jwks                                  *JWKSet  `json:"jwks,omitempty"`             // You'll need to define JWKSet type
 }
 
-func GetMetadata(host string, platform string, appBundleId string) *OAuthClientMetadata {
+type ClientMetadataOptions struct {
+	ClientName              string // 客户端名称，默认为 "AvatarAI Social"
+	TokenEndpointAuthMethod string // 认证方法，默认为 "private_key_jwt"
+	JwksURI                 string // JWKS URI，可选
+	UsePrivateKeyJWT        bool   // 是否使用私钥JWT认证，默认为 true
+}
+
+func GetClientMetadata(host string, platform string, appBundleId string) *OAuthClientMetadata {
+	return GetClientMetadataWithOptions(host, platform, appBundleId, nil)
+}
+
+func GetClientMetadataWithOptions(host string, platform string, appBundleId string, options *ClientMetadataOptions) *OAuthClientMetadata {
+	// 设置默认选项
+	if options == nil {
+		options = &ClientMetadataOptions{}
+	}
+	if options.ClientName == "" {
+		options.ClientName = "AvatarAI Social"
+	}
+	if options.TokenEndpointAuthMethod == "" {
+		if options.UsePrivateKeyJWT {
+			options.TokenEndpointAuthMethod = "private_key_jwt"
+		} else {
+			options.TokenEndpointAuthMethod = "none"
+		}
+	}
+
 	meta := &OAuthClientMetadata{
-		ClientID:  fmt.Sprintf("https://%s/api/atproto-oauth/%s", host, platform),
-		ClientURI: fmt.Sprintf("https://%s", host),
-		// RedirectURIs:            []string{fmt.Sprintf("https://%s/login", host)},
+		ClientID:                BuildClientID(host, platform),
+		ClientURI:               fmt.Sprintf("https://%s", host),
 		Scope:                   "atproto transition:generic",
-		TokenEndpointAuthMethod: "none",
-		ClientName:              "Streamplace",
+		TokenEndpointAuthMethod: options.TokenEndpointAuthMethod,
+		ClientName:              options.ClientName,
 		ResponseTypes:           []string{"code"},
 		GrantTypes:              []string{"authorization_code", "refresh_token"},
 		DPoPBoundAccessTokens:   boolPtr(true),
 	}
+
+	// 如果使用私钥JWT认证，设置相关参数
+	if options.TokenEndpointAuthMethod == "private_key_jwt" {
+		meta.TokenEndpointAuthSigningAlg = "ES256"
+		if options.JwksURI != "" {
+			meta.JwksURI = options.JwksURI
+		} else {
+			meta.JwksURI = fmt.Sprintf("https://%s/api/oauth/jwks.json", host)
+		}
+	}
+
+	// 根据平台设置重定向URI和应用类型
 	if platform == "web" {
-		meta.RedirectURIs = []string{fmt.Sprintf("https://%s/login", host)}
+		meta.RedirectURIs = []string{fmt.Sprintf("https://%s/api/oauth/callback", host)}
 		meta.ApplicationType = "web"
 	} else {
 		meta.RedirectURIs = []string{fmt.Sprintf("https://%s/api/app-return/%s", host, appBundleId)}
 		meta.ApplicationType = "native"
 	}
 	return meta
+}
+
+func BuildClientID(host string, platform string) string {
+	// 兼容 localhost 开发环境
+	if strings.Contains(host, "localhost") || strings.Contains(host, "127.0.0.1") {
+		return fmt.Sprintf("http://localhost/?scope=atproto transition:generic&redirect_uri=%sapi/oauth/callback", host)
+	}
+	return fmt.Sprintf("%sapi/oauth/%s/client-metadata.json", host, platform)
+}
+
+func BuildRedirectURL(host string, platform string) string {
+	return fmt.Sprintf("%sapi/oauth/callback", host)
+}
+
+func BuildCallbackRedirectURI(host string, platform string) string {
+	if platform == "web" {
+		return fmt.Sprintf("https://%s/login", host)
+	}
+	return fmt.Sprintf("https://%s/app-callback", host)
 }
 
 func boolPtr(b bool) *bool {

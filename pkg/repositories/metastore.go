@@ -1,4 +1,4 @@
-package database
+package repositories
 
 import (
 	"context"
@@ -8,10 +8,28 @@ import (
 
 type MetaStore struct {
 	DB *gorm.DB
+
+	// Repositories
+	UserRepo    *UserRepository
+	OAuthRepo   *OAuthRepository
+	MessageRepo *MessageRepository
+	MomentRepo  *MomentRepository
+	AtpRepo     *AtpRepository
+	FileRepo    *FileRepository
 }
 
 func NewMetaStore(db *gorm.DB) *MetaStore {
-	return &MetaStore{DB: db}
+	metaStore := &MetaStore{DB: db}
+
+	// 初始化所有 repositories
+	metaStore.UserRepo = NewUserRepository(metaStore)
+	metaStore.OAuthRepo = NewOAuthRepository(metaStore)
+	metaStore.MessageRepo = NewMessageRepository(metaStore)
+	metaStore.MomentRepo = NewMomentRepository(metaStore)
+	metaStore.AtpRepo = NewAtpRepository(metaStore)
+	metaStore.FileRepo = NewFileRepository(metaStore)
+
+	return metaStore
 }
 
 func (ms *MetaStore) Init() error {

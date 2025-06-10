@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/zhongshangwu/avatarai-social/pkg/database"
+	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 	"github.com/zhongshangwu/avatarai-social/pkg/utils"
 )
 
-func DBToMessage(dbMsg *database.Message) *Message {
+func DBToMessage(dbMsg *repositories.Message) *Message {
 	if dbMsg == nil {
 		return nil
 	}
@@ -40,7 +40,7 @@ func DBToMessage(dbMsg *database.Message) *Message {
 	return message
 }
 
-func MessageToDB(message *Message) *database.Message {
+func MessageToDB(message *Message) *repositories.Message {
 	if message == nil {
 		return nil
 	}
@@ -54,7 +54,7 @@ func MessageToDB(message *Message) *database.Message {
 		}
 	}
 
-	return &database.Message{
+	return &repositories.Message{
 		ID:         message.ID,
 		RoomID:     message.RoomID,
 		ThreadID:   message.ThreadID,
@@ -71,7 +71,7 @@ func MessageToDB(message *Message) *database.Message {
 	}
 }
 
-func DBToAgentMessage(dbAgentMessage *database.AgentMessage) *AgentMessage {
+func DBToAgentMessage(dbAgentMessage *repositories.AgentMessage) *AgentMessage {
 	if dbAgentMessage == nil {
 		return nil
 	}
@@ -122,7 +122,7 @@ func DBToAgentMessage(dbAgentMessage *database.AgentMessage) *AgentMessage {
 	return agentMessage
 }
 
-func AgentMessageToDB(agentMessage *AgentMessage) *database.AgentMessage {
+func AgentMessageToDB(agentMessage *AgentMessage) *repositories.AgentMessage {
 	if agentMessage == nil {
 		return nil
 	}
@@ -153,7 +153,7 @@ func AgentMessageToDB(agentMessage *AgentMessage) *database.AgentMessage {
 		}
 	}
 
-	return &database.AgentMessage{
+	return &repositories.AgentMessage{
 		ID:                agentMessage.ID,
 		MessageID:         agentMessage.MessageID,
 		Role:              string(agentMessage.Role),

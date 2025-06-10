@@ -11,14 +11,14 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/zhongshangwu/avatarai-social/pkg/config"
-	"github.com/zhongshangwu/avatarai-social/pkg/database"
+	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 )
 
 type AvatarAIContext struct {
 	echo.Context
-	Avatar       *database.Avatar
-	Session      *database.Session
-	OauthSession *database.OAuthSession
+	Avatar       *repositories.Avatar
+	Session      *repositories.Session
+	OauthSession *repositories.OAuthSession
 }
 
 // IsSafeURL 检查URL是否安全，防止SSRF攻击
@@ -167,7 +167,7 @@ type Claims struct {
 	jwt.RegisteredClaims           // 嵌入标准 JWT 字段
 }
 
-func GenerateAvataraiToken(config *config.SocialConfig, sessionID string, avatar *database.Avatar) (string, error) {
+func GenerateAvataraiToken(config *config.SocialConfig, sessionID string, avatar *repositories.Avatar) (string, error) {
 	now := time.Now()
 	expiresAt := now.Add(time.Hour * 24 * 30) // 30天过期
 
@@ -218,7 +218,7 @@ func ValidateAccessToken(config *config.SocialConfig, tokenString string) (*Clai
 }
 
 // GenerateAccessToken 生成短期访问令牌
-func GenerateAccessToken(config *config.SocialConfig, sessionID string, avatar *database.Avatar) (string, error) {
+func GenerateAccessToken(config *config.SocialConfig, sessionID string, avatar *repositories.Avatar) (string, error) {
 	now := time.Now()
 	expiresAt := now.Add(time.Hour * 24) // 访问令牌有效期24小时
 

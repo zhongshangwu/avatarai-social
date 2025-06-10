@@ -9,14 +9,16 @@ import (
 	"syscall"
 
 	"github.com/urfave/cli/v2"
-	"github.com/zhongshangwu/avatarai-social/pkg/api"
-	"github.com/zhongshangwu/avatarai-social/pkg/config"
-	"github.com/zhongshangwu/avatarai-social/pkg/database"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
+
+	"github.com/zhongshangwu/avatarai-social/pkg/api"
+	"github.com/zhongshangwu/avatarai-social/pkg/config"
+	"github.com/zhongshangwu/avatarai-social/pkg/pds/syncers"
+	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 )
 
 var log = slog.Default().With("system", "avatarai-engine")
@@ -74,24 +76,29 @@ func runAvatarEngine(cctx *cli.Context) error {
 	}
 
 	// 初始化元数据存储
-	metaStore := database.NewMetaStore(db)
+	metaStore := repositories.NewMetaStore(db)
 	if err := metaStore.Init(); err != nil {
 		return fmt.Errorf("初始化元数据存储失败: %w", err)
 	}
+
+	// 创建同步器管理器
+	syncerConfig := syncers.DefaultSyncerConfig()
+	syncerManager := syncers.NewSyncerManager(metaStore, syncerConfig)
 
 	// 创建 API 服务器
 	apiServer := api.NewAvatarAIAPI(cfg, metaStore)
 
 	// 启动服务
-	// engineErr := make(chan error, 1)
 	apiErr := make(chan error, 1)
+	syncerErr := make(chan error, 1)
 
-	// 启动引擎服务
-	// go func() {
-	// 	log.Info("启动头像引擎服务", "地址", cfg.Server.HTTP.Address)
-	// 	err := avatarEngine.Start(cfg.Server.HTTP.Address, os.Stdout)
-	// 	engineErr <- err
-	// }()
+	// 启动同步器管理器
+	go func() {
+		log.Info("启动同步器管理器")
+		if err := syncerManager.Start(); err != nil {
+			syncerErr <- fmt.Errorf("同步器管理器启动失败: %w", err)
+		}
+	}()
 
 	// 启动 API 服务器
 	go func() {
@@ -106,17 +113,17 @@ func runAvatarEngine(cctx *cli.Context) error {
 	select {
 	case <-signals:
 		log.Info("收到关闭信号")
-		// shutdownServices(avatarEngine)
-	// case err := <-engineErr:
-	// 	if err != nil {
-	// 		log.Error("引擎服务错误", "err", err)
-	// 	}
-	// shutdownServices(avatarEngine)
+		shutdownServices(syncerManager)
+	case err := <-syncerErr:
+		if err != nil {
+			log.Error("同步器管理器错误", "err", err)
+		}
+		shutdownServices(syncerManager)
 	case err := <-apiErr:
 		if err != nil {
 			log.Error("API 服务器错误", "err", err)
 		}
-		// shutdownServices(avatarEngine)
+		shutdownServices(syncerManager)
 	}
 
 	log.Info("关闭完成")
@@ -160,21 +167,15 @@ func setupDatabase(cfg config.DatabaseConfig) (*gorm.DB, error) {
 	return db, nil
 }
 
-// func createModelClient() avatarai.ModelClient {
-// 	// 创建一个简单的模型客户端实现
-// 	// 实际实现应当根据配置创建合适的客户端
-// 	return &mockModelClient{}
-// }
+// 关闭服务
+func shutdownServices(syncerManager *syncers.SyncerManager) {
+	log.Info("正在关闭服务...")
 
-// // 关闭服务
-// func shutdownServices(engine *avatarai.AvatarEngine) {
-// 	log.Info("正在关闭服务...")
-// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-// 	defer cancel()
-// 	if err := engine.Shutdown(ctx); err != nil {
-// 		log.Error("关闭 AvatarAI 引擎时出错", "err", err)
-// 	}
-// }
+	// 停止同步器管理器
+	if err := syncerManager.Stop(); err != nil {
+		log.Error("关闭同步器管理器时出错", "err", err)
+	}
+}
 
 // mock 实现模型客户端接口
 type mockModelClient struct{}

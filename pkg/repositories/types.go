@@ -1,9 +1,12 @@
-package database
+package repositories
 
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 )
+
+var ErrAsterNotFound = errors.New("aster not found")
 
 type StringArray []string
 

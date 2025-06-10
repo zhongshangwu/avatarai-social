@@ -17,7 +17,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"github.com/zhongshangwu/avatarai-social/pkg/atproto"
-	"github.com/zhongshangwu/avatarai-social/pkg/database"
+	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 	"github.com/zhongshangwu/avatarai-social/pkg/utils"
 )
 
@@ -79,22 +79,16 @@ type UserData struct {
 func (a *AvatarAIAPI) HandleOAuthClientMetadata(c echo.Context) error {
 	appURL := utils.GetAPPURL(c)
 	platform := c.Param("platform")
-	clientID := atproto.BuildClientID(appURL, platform)
 
-	metadata := OAuthClientMetadata{
-		ClientID:                    clientID,
-		DpopBoundAccessTokens:       true,
-		ApplicationType:             "web",
-		RedirectURIs:                []string{appURL + "api/oauth/callback"},
-		GrantTypes:                  []string{"authorization_code", "refresh_token"},
-		ResponseTypes:               []string{"code"},
-		Scope:                       "atproto transition:generic",
-		TokenEndpointAuthMethod:     "private_key_jwt",
-		TokenEndpointAuthSigningAlg: "ES256",
-		JwksURI:                     appURL + "api/oauth/jwks.json",
-		ClientName:                  "ATProto OAuth Go Backend",
-		ClientURI:                   appURL,
+	// 使用 atproto 模块的统一实现
+	options := &atproto.ClientMetadataOptions{
+		ClientName:              "ATProto OAuth Go Backend",
+		TokenEndpointAuthMethod: "private_key_jwt",
+		JwksURI:                 appURL + "api/oauth/jwks.json",
+		UsePrivateKeyJWT:        true,
 	}
+
+	metadata := atproto.GetMetadataWithOptions(appURL, platform, "", options)
 	return c.JSON(http.StatusOK, metadata)
 }
 
@@ -251,7 +245,7 @@ func (a *AvatarAIAPI) HandleOAuthLogin(c echo.Context) error {
 	}
 	fmt.Printf("%s\n", dpopPrivateJWKStr)
 
-	authRequest := database.OAuthAuthRequest{
+	authRequest := repositories.OAuthAuthRequest{
 		State:               state,
 		AuthserverIss:       authserverMeta["issuer"].(string),
 		Did:                 did,
@@ -267,7 +261,7 @@ func (a *AvatarAIAPI) HandleOAuthLogin(c echo.Context) error {
 
 	log.Infof("HandleOAuthLogin， authRequest: %+v", authRequest)
 
-	if err := database.InsertOAuthAuthRequest(a.metaStore.DB, &authRequest); err != nil {
+	if err := repositories.InsertOAuthAuthRequest(a.metaStore.DB, &authRequest); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "保存授权请求失败",
 		})
@@ -294,7 +288,7 @@ func (a *AvatarAIAPI) HandleOAuthCallback(c echo.Context) error {
 	authorizationCode := c.QueryParam("code")
 
 	// 通过 state 令牌查找授权请求
-	authRequest, err := database.GetOAuthAuthRequest(a.metaStore.DB, state)
+	authRequest, err := repositories.GetOAuthAuthRequest(a.metaStore.DB, state)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "未找到 OAuth 请求",
@@ -302,7 +296,7 @@ func (a *AvatarAIAPI) HandleOAuthCallback(c echo.Context) error {
 	}
 
 	// 删除行以防止响应重放
-	if err := database.DeleteOAuthAuthRequest(a.metaStore.DB, state); err != nil {
+	if err := repositories.DeleteOAuthAuthRequest(a.metaStore.DB, state); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "无法删除授权请求",
 		})
@@ -381,7 +375,7 @@ func (a *AvatarAIAPI) HandleOAuthCallback(c echo.Context) error {
 	}
 
 	// 保存会话(包括身份验证令牌)到数据库
-	oauthSession := database.OAuthSession{
+	oauthSession := repositories.OAuthSession{
 		Did:                 did,
 		Handle:              handle,
 		PdsUrl:              pdsURL,
@@ -396,13 +390,13 @@ func (a *AvatarAIAPI) HandleOAuthCallback(c echo.Context) error {
 		ReturnURI:           "",
 	}
 
-	if err := database.SaveOAuthSession(a.metaStore.DB, &oauthSession); err != nil {
+	if err := repositories.SaveOAuthSession(a.metaStore.DB, &oauthSession); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "保存会话失败",
 		})
 	}
 
-	avatar, err := database.GetOrCreateAvatar(a.metaStore.DB, did, handle, pdsURL)
+	avatar, err := repositories.GetOrCreateAvatar(a.metaStore.DB, did, handle, pdsURL)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "创建或获取 Avatar 失败",
@@ -416,7 +410,7 @@ func (a *AvatarAIAPI) HandleOAuthCallback(c echo.Context) error {
 		})
 	}
 
-	oauthCode := database.OAuthCode{
+	oauthCode := repositories.OAuthCode{
 		Code:           code,
 		OAuthSessionID: oauthSession.ID,
 		AvatarDid:      avatar.Did,
@@ -425,7 +419,7 @@ func (a *AvatarAIAPI) HandleOAuthCallback(c echo.Context) error {
 		ReturnURI:      "",
 		ExpiresAt:      time.Now().Add(time.Hour * 24 * 30),
 	}
-	if err := database.SaveOAuthCode(a.metaStore.DB, &oauthCode); err != nil {
+	if err := repositories.SaveOAuthCode(a.metaStore.DB, &oauthCode); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "保存授权码失败",
 		})
@@ -455,7 +449,7 @@ func (a *AvatarAIAPI) HandleOAuthToken(c echo.Context) error {
 		})
 	}
 
-	oauthCode, err := database.GetOAuthCode(a.metaStore.DB, code)
+	oauthCode, err := repositories.GetOAuthCode(a.metaStore.DB, code)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "无法找到授权码",
@@ -469,13 +463,13 @@ func (a *AvatarAIAPI) HandleOAuthToken(c echo.Context) error {
 		})
 	}
 
-	oauthSession, err := database.GetOauthSessionByID(a.metaStore.DB, oauthCode.OAuthSessionID)
+	oauthSession, err := repositories.GetOauthSessionByID(a.metaStore.DB, oauthCode.OAuthSessionID)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "无法找到授权会话",
 		})
 	}
-	avatar, err := database.GetAvatarByDID(a.metaStore.DB, oauthCode.AvatarDid)
+	avatar, err := repositories.GetAvatarByDID(a.metaStore.DB, oauthCode.AvatarDid)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
 			"error": "无法找到用户信息",
@@ -500,7 +494,7 @@ func (a *AvatarAIAPI) HandleOAuthToken(c echo.Context) error {
 		})
 	}
 
-	session := database.Session{
+	session := repositories.Session{
 		ID:             sessionID,
 		AvatarDid:      oauthSession.Did,
 		AccessToken:    accessToken,
@@ -509,7 +503,7 @@ func (a *AvatarAIAPI) HandleOAuthToken(c echo.Context) error {
 		ExpiredAt:      time.Now().Add(time.Hour * 24 * 30),
 		Platform:       oauthSession.Platform,
 	}
-	if err := database.SaveSession(a.metaStore.DB, &session); err != nil {
+	if err := repositories.SaveSession(a.metaStore.DB, &session); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "保存会话失败",
 		})
@@ -552,7 +546,7 @@ func (a *AvatarAIAPI) HandleOAuthRefresh(c echo.Context) error {
 	}
 
 	// 获取会话信息
-	session, err := database.GetSessionByID(a.metaStore.DB, sessionID)
+	session, err := repositories.GetSessionByID(a.metaStore.DB, sessionID)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
 			"error": "无法找到会话",
@@ -560,7 +554,7 @@ func (a *AvatarAIAPI) HandleOAuthRefresh(c echo.Context) error {
 	}
 
 	// 获取 OAuth 会话信息
-	oauthSession, err := database.GetOauthSessionByID(a.metaStore.DB, session.OAuthSessionID)
+	oauthSession, err := repositories.GetOauthSessionByID(a.metaStore.DB, session.OAuthSessionID)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
 			"error": "无法找到 OAuth 会话",
@@ -568,7 +562,7 @@ func (a *AvatarAIAPI) HandleOAuthRefresh(c echo.Context) error {
 	}
 
 	// 获取用户信息
-	avatar, err := database.GetAvatarByDID(a.metaStore.DB, session.AvatarDid)
+	avatar, err := repositories.GetAvatarByDID(a.metaStore.DB, session.AvatarDid)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
 			"error": "无法找到用户信息",
@@ -594,7 +588,7 @@ func (a *AvatarAIAPI) HandleOAuthRefresh(c echo.Context) error {
 	oauthSession.RefreshToken = atpTokens["refresh_token"].(string)
 	oauthSession.DpopAuthserverNonce = dpopAuthserverNonce
 
-	if err := database.UpdateOAuthSession(a.metaStore.DB, oauthSession); err != nil {
+	if err := repositories.UpdateOAuthSession(a.metaStore.DB, oauthSession); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "更新 OAuth 会话失败",
 		})
@@ -631,7 +625,7 @@ func (a *AvatarAIAPI) HandleOAuthRefresh(c echo.Context) error {
 func (a *AvatarAIAPI) HandleOAuthLogout(c echo.Context) error {
 	userDID, err := c.Cookie("user_did")
 	if err == nil {
-		database.DeleteOAuthSessionByDID(a.metaStore.DB, userDID.Value)
+		repositories.DeleteOAuthSessionByDID(a.metaStore.DB, userDID.Value)
 	}
 
 	c.SetCookie(&http.Cookie{
@@ -656,7 +650,7 @@ func (a *AvatarAIAPI) HandleBskyPost(c echo.Context) error {
 		return c.Redirect(http.StatusFound, "/api/oauth/login")
 	}
 
-	session, err := database.GetOAuthSessionByDID(a.metaStore.DB, userDID.Value)
+	session, err := repositories.GetOAuthSessionByDID(a.metaStore.DB, userDID.Value)
 	if err != nil {
 		return c.Redirect(http.StatusFound, "/api/oauth/login")
 	}
@@ -693,7 +687,7 @@ func (a *AvatarAIAPI) HandleBskyPost(c echo.Context) error {
 	})
 }
 
-func pdsAuthedReq(method string, url string, body interface{}, session *database.OAuthSession) (string, error) {
+func pdsAuthedReq(method string, url string, body interface{}, session *repositories.OAuthSession) (string, error) {
 	// 实现对 PDS 进行身份验证请求的逻辑
 	return "", nil
 }

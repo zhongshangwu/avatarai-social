@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
-	"github.com/zhongshangwu/avatarai-social/pkg/database"
+	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 	"gorm.io/gorm"
 )
 
@@ -29,7 +29,11 @@ func (m *SimpleThreadMemory) Retrieve(query Chunk) ([]Chunk, error) {
 		return nil, fmt.Errorf("数据库连接为空")
 	}
 
-	dbMessages, err := database.ListMessagesHistory(m.db, m.roomID, m.threadID)
+	// 创建临时的 MessageRepository 来查询消息
+	metaStore := &repositories.MetaStore{DB: m.db}
+	messageRepo := repositories.NewMessageRepository(metaStore)
+
+	dbMessages, err := messageRepo.ListMessagesHistory(m.roomID, m.threadID)
 	if err != nil {
 		return nil, fmt.Errorf("查询消息失败: %w", err)
 	}
