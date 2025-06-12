@@ -29,6 +29,7 @@ type ServerConfig struct {
 	HTTP     HTTPConfig    `mapstructure:"http"`
 	Metrics  MetricsConfig `mapstructure:"metrics"`
 	AdminKey string        `mapstructure:"admin_key"`
+	Domain   string        `mapstructure:"domain"`
 }
 
 type HTTPConfig struct {

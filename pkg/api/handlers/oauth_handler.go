@@ -51,10 +51,7 @@ type ExchangeTokenRequest struct {
 }
 
 func NewOAuthHandler(config *config.SocialConfig, metaStore *repositories.MetaStore, appReturnHTML string) *OAuthHandler {
-	appURL := fmt.Sprintf("http://%s", config.Server.HTTP.Address)
-	if !utils.IsSafeURL(appURL) {
-		appURL = "http://localhost:8080/"
-	}
+	appURL := fmt.Sprintf("http://%s/", config.Server.HTTP.Address)
 	client := atproto.NewOAuthClient(appURL, config.ATP.ClientSecretJWK())
 	return &OAuthHandler{
 		config:        config,
@@ -96,6 +93,12 @@ func (h *OAuthHandler) OAuthLogin(c echo.Context) error {
 	}
 	log.Info("HandleOAuthLogin", "method", c.Request().Method, "platform", platform)
 	if c.Request().Method == http.MethodGet {
+		// 对于web平台，重定向到前端页面
+		if platform == "web" {
+			return c.Redirect(http.StatusFound, "/")
+		}
+
+		// 对于其他平台，使用模板渲染
 		data := LoginPageData{
 			User: nil,
 			URLs: map[string]string{"OAuthLogin": "/api/oauth/signin?platform=" + platform},
@@ -112,6 +115,9 @@ func (h *OAuthHandler) OAuthLogin(c echo.Context) error {
 		loginHint = username
 		ident, err := atproto.ResolveIdentity(context.Background(), username)
 		if err != nil {
+			if platform == "web" {
+				return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("无法解析身份: "+err.Error()))
+			}
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"error": "无法解析身份: " + err.Error(),
 			})
@@ -121,6 +127,9 @@ func (h *OAuthHandler) OAuthLogin(c echo.Context) error {
 		pdsURL = atproto.PDSEndpoint(ident)
 		authserverURL, err = atproto.ResolvePDSAuthserver(pdsURL)
 		if err != nil {
+			if platform == "web" {
+				return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("无法解析授权服务器 URL: "+err.Error()))
+			}
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"error": "无法解析授权服务器 URL: " + err.Error(),
 			})
@@ -136,11 +145,17 @@ func (h *OAuthHandler) OAuthLogin(c echo.Context) error {
 		var err error
 		authserverURL, err = atproto.ResolvePDSAuthserver(initialURL)
 		if err != nil {
+			if platform == "web" {
+				return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("无法解析授权服务器 URL: "+err.Error()))
+			}
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"error": "无法解析授权服务器 URL: " + err.Error(),
 			})
 		}
 	} else {
+		if platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("不是有效的 handle、DID 或授权服务器 URL"))
+		}
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "不是有效的 handle、DID 或授权服务器 URL",
 		})
@@ -149,6 +164,9 @@ func (h *OAuthHandler) OAuthLogin(c echo.Context) error {
 	// 获取授权服务器元数据
 	authserverMeta, err := atproto.FetchAuthserverMeta(authserverURL)
 	if err != nil {
+		if platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("无法获取授权服务器元数据: "+err.Error()))
+		}
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": fmt.Sprintf("无法获取授权服务器元数据: %s", err),
 		})
@@ -169,6 +187,9 @@ func (h *OAuthHandler) OAuthLogin(c echo.Context) error {
 	}
 
 	if err != nil {
+		if platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("无法生成 DPoP 私钥"))
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "无法生成 DPoP 私钥",
 		})
@@ -195,6 +216,9 @@ func (h *OAuthHandler) OAuthLogin(c echo.Context) error {
 		dpopPrivateJWK,
 	)
 	if err != nil {
+		if platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("PAR 请求失败: "+err.Error()))
+		}
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "PAR 请求失败: " + err.Error(),
 		})
@@ -205,6 +229,9 @@ func (h *OAuthHandler) OAuthLogin(c echo.Context) error {
 	defer resp.Body.Close()
 	if err != nil {
 		log.Error("读取 PAR 响应体失败", "error", err)
+		if platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("读取 PAR 响应失败"))
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "读取 PAR 响应失败",
 		})
@@ -212,6 +239,9 @@ func (h *OAuthHandler) OAuthLogin(c echo.Context) error {
 
 	// 检查响应体是否为空
 	if len(body) == 0 {
+		if platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("PAR 响应为空"))
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "PAR 响应为空",
 		})
@@ -219,6 +249,9 @@ func (h *OAuthHandler) OAuthLogin(c echo.Context) error {
 
 	var parResponse map[string]interface{}
 	if err := json.Unmarshal(body, &parResponse); err != nil {
+		if platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("无法解析 PAR 响应"))
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "无法解析 PAR 响应",
 		})
@@ -250,6 +283,9 @@ func (h *OAuthHandler) OAuthLogin(c echo.Context) error {
 	log.Infof("HandleOAuthLogin， authRequest: %+v", authRequest)
 
 	if err := h.metaStore.OAuthRepo.InsertOAuthAuthRequest(&authRequest); err != nil {
+		if platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("保存授权请求失败"))
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "保存授权请求失败",
 		})
@@ -258,6 +294,9 @@ func (h *OAuthHandler) OAuthLogin(c echo.Context) error {
 	// 重定向用户到授权服务器完成浏览器身份验证流程
 	authURL := authserverMeta["authorization_endpoint"].(string)
 	if !utils.IsSafeURL(authURL) {
+		if platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("不安全的授权 URL"))
+		}
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "不安全的授权 URL",
 		})
@@ -278,13 +317,15 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 	// 通过 state 令牌查找授权请求
 	authRequest, err := h.metaStore.OAuthRepo.GetOAuthAuthRequest(state)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "未找到 OAuth 请求",
-		})
+		// 对于web平台，重定向到前端页面显示错误
+		return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("未找到 OAuth 请求"))
 	}
 
 	// 删除行以防止响应重放
 	if err := h.metaStore.OAuthRepo.DeleteOAuthAuthRequest(state); err != nil {
+		if authRequest.Platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("无法删除授权请求"))
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "无法删除授权请求",
 		})
@@ -292,6 +333,9 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 
 	// 验证查询参数 "iss" 与早期 oauth 请求 "iss" 相符
 	if authRequest.AuthserverIss != authserverISS {
+		if authRequest.Platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("授权服务器不匹配"))
+		}
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "授权服务器不匹配",
 		})
@@ -307,6 +351,9 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 		h.config.ATP.ClientSecretJWK(),
 	)
 	if err != nil {
+		if authRequest.Platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("获取令牌失败: "+err.Error()))
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "获取令牌失败: " + err.Error(),
 		})
@@ -320,6 +367,9 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 		// 如果我们以账号标识符开始，这很简单
 		did, handle, pdsURL = authRequest.Did, authRequest.Handle, authRequest.PdsUrl
 		if tokens["sub"].(string) != did {
+			if authRequest.Platform == "web" {
+				return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("令牌主题与请求的 DID 不匹配"))
+			}
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"error": "令牌主题与请求的 DID 不匹配",
 			})
@@ -328,6 +378,9 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 		// 如果我们以授权服务器 URL 开始，现在需要解析身份
 		did = tokens["sub"].(string)
 		if !atproto.IsValidDID(did) {
+			if authRequest.Platform == "web" {
+				return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("无效的 DID"))
+			}
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"error": "无效的 DID",
 			})
@@ -335,6 +388,9 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 
 		ident, err := atproto.ResolveIdentity(context.Background(), did)
 		if err != nil {
+			if authRequest.Platform == "web" {
+				return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("无法解析身份: "+err.Error()))
+			}
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"error": "无法解析身份: " + err.Error(),
 			})
@@ -342,6 +398,9 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 		pdsURL = atproto.PDSEndpoint(ident)
 		authserverURL, err := atproto.ResolvePDSAuthserver(pdsURL)
 		if err != nil {
+			if authRequest.Platform == "web" {
+				return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("无法解析授权服务器 URL: "+err.Error()))
+			}
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"error": "无法解析授权服务器 URL: " + err.Error(),
 			})
@@ -349,6 +408,9 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 
 		// 验证授权服务器匹配
 		if authserverURL != authserverISS {
+			if authRequest.Platform == "web" {
+				return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("授权服务器不匹配"))
+			}
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"error": "授权服务器不匹配",
 			})
@@ -357,6 +419,9 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 
 	// 验证返回的作用域与请求匹配
 	if authRequest.Scope != tokens["scope"].(string) {
+		if authRequest.Platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("作用域不匹配"))
+		}
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "作用域不匹配",
 		})
@@ -379,6 +444,9 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 	}
 
 	if err := h.metaStore.OAuthRepo.SaveOAuthSession(&oauthSession); err != nil {
+		if authRequest.Platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("保存会话失败"))
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "保存会话失败",
 		})
@@ -386,6 +454,9 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 
 	avatar, err := h.metaStore.UserRepo.GetOrCreateAvatar(did, handle, pdsURL)
 	if err != nil {
+		if authRequest.Platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("创建或获取 Avatar 失败"))
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "创建或获取 Avatar 失败",
 		})
@@ -393,6 +464,9 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 
 	code, err := utils.GenerateCode()
 	if err != nil {
+		if authRequest.Platform == "web" {
+			return c.Redirect(http.StatusFound, "/?error="+url.QueryEscape("生成授权码失败"))
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "生成授权码失败",
 		})
@@ -413,18 +487,27 @@ func (h *OAuthHandler) HandleOAuthCallback(c echo.Context) error {
 		})
 	}
 
+	// 对于web平台，重定向到前端页面
+	if authRequest.Platform == "web" {
+		return c.Redirect(http.StatusFound, fmt.Sprintf("/?code=%s", code))
+	}
+
+	// 对于其他平台，使用原来的重定向逻辑
 	redirectURI := atproto.BuildCallbackRedirectURI(appURL, authRequest.Platform)
 	return c.Redirect(http.StatusFound, redirectURI+fmt.Sprintf("?code=%s", code))
 }
 
 func (h *OAuthHandler) HandleOAuthToken(c echo.Context) error {
 	code := c.QueryParam("code")
-	request := ExchangeTokenRequest{}
-	if err := c.Bind(&request); err != nil {
-		log.Errorf("HandleOAuthToken，从请求中获取code失败: %+v", err)
-	}
-	if request.Code != "" {
-		code = request.Code
+
+	// 支持POST请求的JSON格式
+	if c.Request().Method == http.MethodPost {
+		request := ExchangeTokenRequest{}
+		if err := c.Bind(&request); err != nil {
+			log.Errorf("HandleOAuthToken，从请求中获取code失败: %+v", err)
+		} else if request.Code != "" {
+			code = request.Code
+		}
 	}
 
 	if code == "" {
@@ -508,20 +591,9 @@ func (h *OAuthHandler) HandleOAuthToken(c echo.Context) error {
 }
 
 func (h *OAuthHandler) HandleOAuthRefresh(c *types.APIContext) error {
-	refreshToken := c.QueryParam("refresh_token")
-	if refreshToken == "" {
-		var request struct {
-			RefreshToken string `json:"refresh_token"`
-		}
-		if err := c.Bind(&request); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{
-				"error": "无法解析请求",
-			})
-		}
-		refreshToken = request.RefreshToken
-	}
-
+	refreshToken := c.RefreshToken()
 	// 验证刷新令牌
+	log.Infof("HandleOAuthRefresh， refreshToken: %+v", refreshToken)
 	sessionID, err := utils.ValidateRefreshToken(h.config, refreshToken)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
@@ -627,11 +699,10 @@ func (a *OAuthHandler) HandleAppReturn(c echo.Context) error {
 
 func (a *OAuthHandler) HandleBskyPost(c *types.APIContext) error {
 	if !c.IsAuthenticated {
-		return c.Redirect(http.StatusFound, "/api/oauth/login")
+		return c.RedirectToLogin("")
 	}
 
 	userDID := c.User.Did
-
 	session, err := a.metaStore.OAuthRepo.GetOAuthSessionByDID(userDID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
@@ -668,7 +739,7 @@ func (a *OAuthHandler) HandleBskyPost(c *types.APIContext) error {
 		return c.InternalServerError("创建Aster PDS记录失败: " + err.Error())
 	}
 
-	return c.Render(http.StatusOK, "bsky_post.html", map[string]interface{}{
+	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "帖子已在 PDS 中创建！",
 		"record":  putOutput,
 	})

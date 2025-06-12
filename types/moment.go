@@ -5,18 +5,20 @@ import (
 )
 
 type Moment struct {
-	ID        string                        `json:"id"`
-	Text      string                        `json:"text"`
-	Facets    []*appbskytypes.RichtextFacet `json:"facets,omitempty"`
-	Langs     []string                      `json:"langs"`
-	Tags      []string                      `json:"tags"`
-	Reply     *MomentRelyRef                `json:"reply,omitempty"`
-	Embed     *EmbedContent                 `json:"embed,omitempty"`
-	CreatedAt int64                         `json:"createdAt"`
-	UpdatedAt int64                         `json:"updatedAt"`
-	IndexedAt int64                         `json:"indexedAt"`
-	CreatedBy string                        `json:"createdBy"`
-	Deleted   bool                          `json:"deleted"`
+	ID         string                        `json:"id"`
+	Text       string                        `json:"text"`
+	Facets     []*appbskytypes.RichtextFacet `json:"facets,omitempty"`
+	Langs      []string                      `json:"langs"`
+	Tags       []string                      `json:"tags"`
+	Reply      *MomentRelyRef                `json:"reply,omitempty"`
+	Embed      *EmbedContent                 `json:"embed,omitempty"`
+	ReplyCount int64                         `json:"replyCount"`
+	LikeCount  int64                         `json:"likeCount"`
+	CreatedAt  int64                         `json:"createdAt"`
+	UpdatedAt  int64                         `json:"updatedAt"`
+	IndexedAt  int64                         `json:"indexedAt"`
+	CreatedBy  string                        `json:"createdBy"`
+	Deleted    bool                          `json:"deleted"`
 }
 
 type MomentRelyRef struct {

@@ -27,9 +27,9 @@ func (r *FileRepository) GetUploadFileByID(id string) (*UploadFile, error) {
 	return &file, nil
 }
 
-func (r *FileRepository) GetUploadFileByCID(cid string) (*UploadFile, error) {
+func (r *FileRepository) GetUploadFileByBlobCID(cid string) (*UploadFile, error) {
 	var file UploadFile
-	if err := r.metaStore.DB.Where("cid = ?", cid).First(&file).Error; err != nil {
+	if err := r.metaStore.DB.Where("blob_cid = ?", cid).First(&file).Error; err != nil {
 		return nil, err
 	}
 	return &file, nil

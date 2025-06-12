@@ -9,20 +9,21 @@ import (
 	"time"
 
 	appbskytypes "github.com/bluesky-social/indigo/api/bsky"
+	"github.com/zhongshangwu/avatarai-social/pkg/atproto/helper"
 	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 	"github.com/zhongshangwu/avatarai-social/types"
 )
 
 type CreateMomentRequest struct {
-	Text           string                        `json:"text"`                     // 文本内容
-	Facets         []*appbskytypes.RichtextFacet `json:"facets,omitempty"`         // 富文本注解
-	RootMomentID   string                        `json:"rootMomentId,omitempty"`   // 根帖子ID
-	ParentMomentID string                        `json:"parentMomentId,omitempty"` // 父帖子ID
-	Images         []*BlobData                   `json:"images,omitempty"`         // 图片引用
-	Video          *BlobData                     `json:"video,omitempty"`          // 视频引用
-	External       *ExternalData                 `json:"external,omitempty"`       // 外部链接
-	Langs          []string                      `json:"langs,omitempty"`          // 语言标签
-	Tags           []string                      `json:"tags,omitempty"`           // 标签
+	Text     string                        `json:"text"`               // 文本内容
+	Facets   []*appbskytypes.RichtextFacet `json:"facets,omitempty"`   // 富文本注解
+	RootID   string                        `json:"rootId,omitempty"`   // 根帖子ID
+	ParentID string                        `json:"parentId,omitempty"` // 父帖子ID
+	Images   []*BlobData                   `json:"images,omitempty"`   // 图片引用
+	Video    *BlobData                     `json:"video,omitempty"`    // 视频引用
+	External *ExternalData                 `json:"external,omitempty"` // 外部链接
+	Langs    []string                      `json:"langs,omitempty"`    // 语言标签
+	Tags     []string                      `json:"tags,omitempty"`     // 标签
 }
 
 type BlobData struct {
@@ -58,7 +59,7 @@ func (s *MomentService) CreateMoment(ctx context.Context, creatorDid string, req
 	}()
 
 	now := time.Now().Unix()
-	momentId := s.metaStore.MomentRepo.GenerateMomentID()
+	momentId := s.GenerateMomentID()
 
 	facets, err := json.Marshal(req.Facets)
 	if err != nil {
@@ -67,7 +68,7 @@ func (s *MomentService) CreateMoment(ctx context.Context, creatorDid string, req
 
 	dbMoment := &repositories.Moment{
 		ID:        momentId,
-		URI:       "",
+		URI:       s.BuildAtURI(creatorDid, momentId),
 		CID:       "",
 		Creator:   creatorDid,
 		Text:      req.Text,
@@ -78,12 +79,33 @@ func (s *MomentService) CreateMoment(ctx context.Context, creatorDid string, req
 		IndexedAt: 0,
 	}
 
-	if req.RootMomentID != "" {
-		dbMoment.ReplyRootID = req.RootMomentID
-	}
+	// 处理回复逻辑
+	if req.ParentID != "" {
+		dbMoment.ReplyParentID = req.ParentID
 
-	if req.ParentMomentID != "" {
-		dbMoment.ReplyParentID = req.ParentMomentID
+		// 如果没有指定 RootID，需要自动查找或设置
+		if req.RootID != "" {
+			dbMoment.ReplyRootID = req.RootID
+		} else {
+			// 获取父 moment，确定根 moment
+			parentMoment, err := s.metaStore.MomentRepo.GetMomentByID(req.ParentID)
+			if err != nil {
+				tx.Rollback()
+				return nil, fmt.Errorf("获取父 moment 失败: %w", err)
+			}
+
+			if parentMoment.ReplyRootID != "" {
+				// 父 moment 是回复，使用相同的根
+				dbMoment.ReplyRootID = parentMoment.ReplyRootID
+			} else {
+				// 父 moment 是顶级帖子，它就是根
+				dbMoment.ReplyRootID = parentMoment.ID
+			}
+		}
+	} else if req.RootID != "" {
+		// 如果只指定了 RootID 而没有 ParentID，则是直接回复根帖子
+		dbMoment.ReplyRootID = req.RootID
+		dbMoment.ReplyParentID = req.RootID
 	}
 
 	if err := s.metaStore.MomentRepo.CreateMoment(dbMoment); err != nil {
@@ -96,7 +118,6 @@ func (s *MomentService) CreateMoment(ctx context.Context, creatorDid string, req
 		external *repositories.MomentExternal
 	)
 
-	// 保存图片
 	if len(req.Images) > 0 {
 		for i, img := range req.Images {
 			dbImage := &repositories.MomentImage{
@@ -113,7 +134,6 @@ func (s *MomentService) CreateMoment(ctx context.Context, creatorDid string, req
 		}
 	}
 
-	// 保存视频
 	if req.Video != nil {
 		video = &repositories.MomentVideo{
 			MomentID: momentId,
@@ -126,7 +146,6 @@ func (s *MomentService) CreateMoment(ctx context.Context, creatorDid string, req
 		}
 	}
 
-	// 保存外部链接
 	if req.External != nil {
 		external = &repositories.MomentExternal{
 			MomentID:    momentId,
@@ -161,6 +180,64 @@ func (s *MomentService) GetMomentByID(ctx context.Context, id string) (*types.Mo
 	return s.ConvertDBToMoment(moment, images, video, external), nil
 }
 
+func (s *MomentService) LikeMoment(ctx context.Context, uri string, did string) (*repositories.Like, error) {
+	aturi, err := helper.BuildAtURI(uri)
+	if err != nil {
+		return nil, err
+	}
+
+	if aturi.Collection() != "app.vtri.activity.moment" {
+		return nil, fmt.Errorf("只能点赞 moment 记录的帖子")
+	}
+
+	momentID := string(aturi.RecordKey())
+
+	moment, err := s.metaStore.MomentRepo.GetMomentByID(momentID)
+	if err != nil {
+		return nil, fmt.Errorf("获取 moment 失败: %w", err)
+	}
+
+	id := helper.GenerateTID()
+	like := &repositories.Like{
+		ID:         id,
+		URI:        s.BuildLikeURI(did, id),
+		CID:        "",
+		Creator:    did,
+		SubjectURI: moment.URI,
+		SubjectCid: moment.CID,
+		CreatedAt:  time.Now().Unix(),
+		IndexedAt:  0,
+	}
+	if err := s.metaStore.MomentRepo.CreateLike(like); err != nil {
+		return nil, fmt.Errorf("点赞失败: %w", err)
+	}
+	return like, nil
+}
+
+func (s *MomentService) UndoLikeMoment(ctx context.Context, uri string, did string, likeURI string) error {
+	aturi, err := helper.BuildAtURI(uri)
+	if err != nil {
+		return err
+	}
+
+	if aturi.Collection() != "app.vtri.activity.moment" {
+		return fmt.Errorf("只能点赞 moment 记录的帖子")
+	}
+
+	likeAturi, err := helper.BuildAtURI(likeURI)
+	if err != nil {
+		return err
+	}
+	if likeAturi.Collection() != "app.vtri.activity.like" {
+		return fmt.Errorf("只能取消点赞 moment 记录的帖子")
+	}
+
+	if err := s.metaStore.MomentRepo.DeleteLike(likeURI); err != nil {
+		return fmt.Errorf("取消点赞失败: %w", err)
+	}
+	return nil
+}
+
 func (s *MomentService) loadEmbedContent(momentID string) (
 	[]*repositories.MomentImage,
 	*repositories.MomentVideo,
@@ -168,8 +245,14 @@ func (s *MomentService) loadEmbedContent(momentID string) (
 	error,
 ) {
 	images, err := s.metaStore.MomentRepo.GetMomentImages(momentID)
-	video, err2 := s.metaStore.MomentRepo.GetMomentVideo(momentID)
-	external, err3 := s.metaStore.MomentRepo.GetMomentExternal(momentID)
+	// 需要先获取 moment 来得到 URI（或者修改数据库方法使用 moment_id）
+	moment, errMoment := s.metaStore.MomentRepo.GetMomentByID(momentID)
+	if errMoment != nil {
+		return nil, nil, nil, errMoment
+	}
+
+	video, err2 := s.metaStore.MomentRepo.GetMomentVideo(moment.URI)
+	external, err3 := s.metaStore.MomentRepo.GetMomentExternal(moment.URI)
 	unionError := errors.Join(err, err2, err3)
 	return images, video, external, unionError
 }
@@ -188,14 +271,16 @@ func (s *MomentService) ConvertDBToMoment(
 			log.Printf("反序列化富文本注解失败: %v", err)
 		}
 	}
-
-	reply := &types.MomentRelyRef{
-		Root: &types.RefLink{
-			ID: moment.ReplyRootID,
-		},
-		Parent: &types.RefLink{
-			ID: moment.ReplyParentID,
-		},
+	var reply *types.MomentRelyRef
+	if moment.ReplyRootID != "" || moment.ReplyParentID != "" {
+		reply = &types.MomentRelyRef{
+			Root: &types.RefLink{
+				ID: moment.ReplyRootID,
+			},
+			Parent: &types.RefLink{
+				ID: moment.ReplyParentID,
+			},
+		}
 	}
 
 	embed := &types.EmbedContent{
@@ -252,4 +337,16 @@ func parseTime(timeStr string) time.Time {
 	}
 
 	return t
+}
+
+func (s *MomentService) GenerateMomentID() string {
+	return helper.GenerateTID()
+}
+
+func (s *MomentService) BuildAtURI(did string, rkey string) string {
+	return fmt.Sprintf("at://%s/app.vtri.activity.moment/%s", did, rkey)
+}
+
+func (s *MomentService) BuildLikeURI(did string, rkey string) string {
+	return fmt.Sprintf("at://%s/app.vtri.activity.like/%s", did, rkey)
 }

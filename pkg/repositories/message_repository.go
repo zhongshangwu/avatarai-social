@@ -15,7 +15,6 @@ func NewMessageRepository(metastore *MetaStore) *MessageRepository {
 	}
 }
 
-// Message 相关操作
 func (r *MessageRepository) InsertMessage(message *Message) error {
 	return r.metaStore.DB.Create(message).Error
 }
@@ -36,7 +35,6 @@ func (r *MessageRepository) ListMessagesHistory(roomID string, threadID string) 
 	return messages, nil
 }
 
-// MessagePaginationResult 分页查询结果
 type MessagePaginationResult struct {
 	Messages []*Message `json:"messages"`
 	HasMore  bool       `json:"hasMore"`
@@ -141,8 +139,6 @@ func (r *MessageRepository) ListMessagesHistoryWithPagination(roomID string, thr
 	return result, nil
 }
 
-// 保留原有方法以保持兼容性，但标记为废弃
-// Deprecated: 使用 ListMessagesHistoryWithPagination 替代
 func (r *MessageRepository) ListMessagesHistoryWithPaginationOld(roomID string, threadID string, beforeMsgID string, beforeCount int, afterMsgID string, afterCount int) ([]*Message, error) {
 	result, err := r.ListMessagesHistoryWithPagination(roomID, threadID, beforeMsgID, beforeCount, afterMsgID, afterCount)
 	if err != nil {
@@ -160,7 +156,6 @@ func (r *MessageRepository) DeleteMessage(id string) error {
 	return r.metaStore.DB.Model(&Message{}).Where("id = ?", id).Update("deleted", true).Error
 }
 
-// Room 相关操作
 func (r *MessageRepository) CreateRoom(room *Room) error {
 	return r.metaStore.DB.Create(room).Error
 }
@@ -178,7 +173,6 @@ func (r *MessageRepository) UpdateRoom(id string, updates map[string]interface{}
 	return r.metaStore.DB.Model(&Room{}).Where("id = ?", id).Updates(updates).Error
 }
 
-// Thread 相关操作
 func (r *MessageRepository) CreateThread(thread *Thread) error {
 	return r.metaStore.DB.Create(thread).Error
 }
@@ -196,7 +190,6 @@ func (r *MessageRepository) UpdateThread(id string, updates map[string]interface
 	return r.metaStore.DB.Model(&Thread{}).Where("id = ?", id).Updates(updates).Error
 }
 
-// UserRoomStatus 相关操作
 func (r *MessageRepository) CreateUserRoomStatus(status *UserRoomStatus) error {
 	return r.metaStore.DB.Create(status).Error
 }
@@ -216,7 +209,6 @@ func (r *MessageRepository) UpdateUserRoomStatus(userID, roomID string, updates 
 		Updates(updates).Error
 }
 
-// AgentMessage 相关操作
 func (r *MessageRepository) InsertAgentMessage(message *AgentMessage) error {
 	return r.metaStore.DB.Create(message).Error
 }
@@ -279,9 +271,18 @@ func (r *MessageRepository) UpdateAgentMessageIncomplete(agentMessageID string, 
 	return r.UpdateAgentMessage(agentMessageID, updates)
 }
 
-// AgentMessageItem 相关操作
 func (r *MessageRepository) InsertAgentMessageItem(item *AgentMessageItem) error {
 	return r.metaStore.DB.Create(item).Error
+}
+
+func (r *MessageRepository) GetAgentMessageItems(agentMessageID string) ([]*AgentMessageItem, error) {
+	var items []*AgentMessageItem
+	if err := r.metaStore.DB.Where("agent_message_id = ? AND deleted = ?", agentMessageID, false).
+		Order("position ASC").
+		Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 func (r *MessageRepository) UpdateAgentMessageItem(itemID string, updates map[string]interface{}) error {
@@ -296,7 +297,6 @@ func (r *MessageRepository) UpdateAgentMessageItemByPosition(agentMessageID stri
 		Updates(updates).Error
 }
 
-// GetMessageCountByRoom 获取房间内的消息总数
 func (r *MessageRepository) GetMessageCountByRoom(roomID string, threadID string) (int64, error) {
 	var count int64
 	err := r.metaStore.DB.Model(&Message{}).
@@ -305,7 +305,6 @@ func (r *MessageRepository) GetMessageCountByRoom(roomID string, threadID string
 	return count, err
 }
 
-// GetUnreadMessageCount 获取用户在房间内的未读消息数
 func (r *MessageRepository) GetUnreadMessageCount(roomID string, threadID string, lastReadMessageID string) (int64, error) {
 	var count int64
 	query := r.metaStore.DB.Model(&Message{}).
@@ -324,7 +323,6 @@ func (r *MessageRepository) GetUnreadMessageCount(roomID string, threadID string
 	return count, err
 }
 
-// GetMessagesByTimeRange 按时间范围查询消息
 func (r *MessageRepository) GetMessagesByTimeRange(roomID string, threadID string, startTime, endTime int64, limit int) ([]*Message, error) {
 	var messages []*Message
 	query := r.metaStore.DB.Where("room_id = ? AND thread_id = ? AND deleted = ? AND created_at BETWEEN ? AND ?",
@@ -339,7 +337,6 @@ func (r *MessageRepository) GetMessagesByTimeRange(roomID string, threadID strin
 	return messages, err
 }
 
-// GetLatestMessageInRoom 获取房间内最新的一条消息
 func (r *MessageRepository) GetLatestMessageInRoom(roomID string, threadID string) (*Message, error) {
 	var message Message
 	err := r.metaStore.DB.Where("room_id = ? AND thread_id = ? AND deleted = ?", roomID, threadID, false).
@@ -351,7 +348,6 @@ func (r *MessageRepository) GetLatestMessageInRoom(roomID string, threadID strin
 	return &message, nil
 }
 
-// GetMessagesByIDs 批量获取消息
 func (r *MessageRepository) GetMessagesByIDs(messageIDs []string) ([]*Message, error) {
 	var messages []*Message
 	err := r.metaStore.DB.Where("id IN ? AND deleted = ?", messageIDs, false).
@@ -360,7 +356,6 @@ func (r *MessageRepository) GetMessagesByIDs(messageIDs []string) ([]*Message, e
 	return messages, err
 }
 
-// SearchMessages 搜索消息内容
 func (r *MessageRepository) SearchMessages(roomID string, threadID string, keyword string, limit int, offset int) ([]*Message, error) {
 	var messages []*Message
 	query := r.metaStore.DB.Where("room_id = ? AND thread_id = ? AND deleted = ? AND content LIKE ?",
@@ -379,7 +374,6 @@ func (r *MessageRepository) SearchMessages(roomID string, threadID string, keywo
 	return messages, err
 }
 
-// GetMessageStatsByRoom 获取房间消息统计信息
 func (r *MessageRepository) GetMessageStatsByRoom(roomID string, threadID string) (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
 

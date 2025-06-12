@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -20,6 +19,7 @@ import (
 	"github.com/bluesky-social/indigo/xrpc"
 	"github.com/carlmjohnson/versioninfo"
 	"github.com/go-jose/go-jose/v4"
+	"github.com/sirupsen/logrus"
 	"github.com/zhongshangwu/avatarai-social/types"
 )
 
@@ -119,13 +119,27 @@ func (c *XrpcClient) GetSession() *types.OAuthSession {
 }
 
 func (c *XrpcClient) do(ctx context.Context, kind xrpc.XRPCRequestType, encoding, method string, params map[string]any, bodyobj any, out any) error {
-	// 最多重试 2 次（处理 nonce 更新）
-	for attempt := 0; attempt < 2; attempt++ {
+	// 最多重试 3 次（处理 nonce 更新）
+	for attempt := 0; attempt < 3; attempt++ {
 		if err := c.makeRequest(ctx, kind, encoding, method, params, bodyobj, out); err != nil {
+			// 检查是否是 nonce 相关错误
+			isNonceError := false
+
+			// 检查直接的 XRPCError
+			if xrpcErr, ok := err.(*xrpc.XRPCError); ok && xrpcErr.ErrStr == "use_dpop_nonce" {
+				isNonceError = true
+			}
+
+			// 检查包装在 xrpc.Error 中的 XRPCError
+			if xrpcWrapErr, ok := err.(*xrpc.Error); ok {
+				if xrpcErr, ok := xrpcWrapErr.Wrapped.(*xrpc.XRPCError); ok && xrpcErr.ErrStr == "use_dpop_nonce" {
+					isNonceError = true
+				}
+			}
+
 			// 如果是 nonce 相关错误且还有重试机会，继续重试
-			if xrpcErr, ok := err.(*xrpc.XRPCError); ok &&
-				(xrpcErr.ErrStr == "use_dpop_nonce") &&
-				attempt < 1 {
+			if isNonceError && attempt < 2 {
+				logrus.Infof("检测到 nonce 错误，正在重试 (尝试 %d/3)", attempt+1)
 				continue
 			}
 			return err
@@ -138,9 +152,16 @@ func (c *XrpcClient) do(ctx context.Context, kind xrpc.XRPCRequestType, encoding
 func (c *XrpcClient) makeRequest(ctx context.Context, kind xrpc.XRPCRequestType, encoding, method string, params map[string]any, bodyobj any, out any) error {
 	var body io.Reader
 	if bodyobj != nil {
-		if rr, ok := bodyobj.(io.Reader); ok {
-			body = rr
-		} else {
+		switch v := bodyobj.(type) {
+		case []byte:
+			body = bytes.NewReader(v)
+		case io.Reader:
+			bodyBytes, err := io.ReadAll(v)
+			if err != nil {
+				return fmt.Errorf("读取请求体失败: %w", err)
+			}
+			body = bytes.NewReader(bodyBytes)
+		default:
 			b, err := json.Marshal(bodyobj)
 			if err != nil {
 				return fmt.Errorf("序列化请求体失败: %w", err)
@@ -182,6 +203,7 @@ func (c *XrpcClient) makeRequest(ctx context.Context, kind xrpc.XRPCRequestType,
 	if err := c.setAuthHeaders(req, httpMethod, requestURL); err != nil {
 		return fmt.Errorf("设置认证头失败: %w", err)
 	}
+	logrus.Infof("request headers: %+v", req.Header)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -193,6 +215,7 @@ func (c *XrpcClient) makeRequest(ctx context.Context, kind xrpc.XRPCRequestType,
 }
 
 func (c *XrpcClient) setAuthHeaders(req *http.Request, method, url string) error {
+	logrus.Infof("生成 DPoP JWT，当前 nonce: %s", c.session.DpopPdsNonce)
 	dpopJwt, err := c.pdsDpopJWT(
 		method,
 		url,
@@ -221,12 +244,16 @@ func (c *XrpcClient) handleResponse(resp *http.Response, out any) error {
 		if (resp.StatusCode == 400 || resp.StatusCode == 401) && xe.ErrStr == "use_dpop_nonce" {
 			newNonce := resp.Header.Get("DPoP-Nonce")
 			if newNonce != "" {
+				logrus.Infof("更新 DPoP nonce: %s -> %s", c.session.DpopPdsNonce, newNonce)
 				c.session.DpopPdsNonce = newNonce
 				if c.onNonceUpdate != nil {
+					logrus.Infof("nonce 更新回调: %s", c.session.Did)
 					if err := c.onNonceUpdate(c.session.Did, newNonce); err != nil {
-						log.Printf("nonce 更新回调失败: %v", err)
+						logrus.Infof("nonce 更新回调失败: %v", err)
 					}
 				}
+			} else {
+				logrus.Infof("收到 use_dpop_nonce 错误但响应中没有 DPoP-Nonce 头")
 			}
 		}
 
@@ -283,6 +310,9 @@ func (c *XrpcClient) pdsDpopJWT(method string, url string, iss string, accessTok
 
 	if nonce != "" {
 		claims["nonce"] = nonce
+		logrus.Infof("DPoP JWT 包含 nonce: %s", nonce)
+	} else {
+		logrus.Infof("DPoP JWT 不包含 nonce")
 	}
 
 	payload, err := json.Marshal(claims)

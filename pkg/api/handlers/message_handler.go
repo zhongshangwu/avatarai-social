@@ -8,6 +8,7 @@ import (
 	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
 	"github.com/zhongshangwu/avatarai-social/pkg/config"
 	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
+	"github.com/zhongshangwu/avatarai-social/pkg/services"
 	"github.com/zhongshangwu/avatarai-social/types"
 )
 
@@ -27,14 +28,16 @@ type PaginationInfo struct {
 }
 
 type MessageHandler struct {
-	config    *config.SocialConfig
-	metaStore *repositories.MetaStore
+	config         *config.SocialConfig
+	metaStore      *repositories.MetaStore
+	messageService *services.MessageService
 }
 
 func NewMessageHandler(config *config.SocialConfig, metaStore *repositories.MetaStore) *MessageHandler {
 	return &MessageHandler{
-		config:    config,
-		metaStore: metaStore,
+		config:         config,
+		metaStore:      metaStore,
+		messageService: services.NewMessageService(metaStore),
 	}
 }
 
@@ -84,7 +87,7 @@ func (h *MessageHandler) HistoryMessages(c *types.APIContext) error {
 	// 转换数据库消息为API消息格式
 	apiMessages := make([]*messages.Message, 0, len(result.Messages))
 	for _, dbMsg := range result.Messages {
-		apiMsg := messages.DBToMessage(dbMsg)
+		apiMsg := h.messageService.Converter.DBToMessage(dbMsg)
 		if apiMsg != nil {
 			apiMessages = append(apiMessages, apiMsg)
 		}
@@ -175,7 +178,7 @@ func (h *MessageHandler) SearchMessagesHandler(c echo.Context) error {
 	// 转换为API格式
 	apiMessages := make([]*messages.Message, 0, len(dbMessages))
 	for _, dbMsg := range dbMessages {
-		apiMsg := messages.DBToMessage(dbMsg)
+		apiMsg := h.messageService.Converter.DBToMessage(dbMsg)
 		if apiMsg != nil {
 			apiMessages = append(apiMessages, apiMsg)
 		}

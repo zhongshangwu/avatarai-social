@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 )
 
 type APIContext struct {
@@ -77,6 +78,20 @@ func (c *APIContext) AuthToken() string {
 	}
 
 	return token
+}
+
+func (c *APIContext) RefreshToken() string {
+	refreshToken := c.QueryParam("refresh_token")
+	if refreshToken == "" {
+		var request struct {
+			RefreshToken string `json:"refresh_token"`
+		}
+		if err := c.Bind(&request); err != nil {
+			logrus.Errorf("RefreshToken，从请求中获取refresh_token失败: %+v", err)
+		}
+		refreshToken = request.RefreshToken
+	}
+	return refreshToken
 }
 
 type APIResponse struct {

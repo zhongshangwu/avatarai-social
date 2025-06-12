@@ -347,7 +347,7 @@ async def simple_demo(server_url):
 
 if __name__ == "__main__":
     # 设置服务器 URL
-    SERVER_URL = "ws://localhost:8082/api/demo/chat-stream"
+    SERVER_URL = "ws://localhost:8082/api/chat/stream"
 
     try:
         # 使用异步输入选择运行模式

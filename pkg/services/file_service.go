@@ -1,7 +1,6 @@
 package services
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -13,8 +12,13 @@ import (
 
 	indigo "github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/lex/util"
+	lexutil "github.com/bluesky-social/indigo/lex/util"
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/sirupsen/logrus"
 	"github.com/zhongshangwu/avatarai-social/pkg/atproto"
+	"github.com/zhongshangwu/avatarai-social/pkg/atproto/blobs"
+	"github.com/zhongshangwu/avatarai-social/pkg/atproto/vtri"
+	"github.com/zhongshangwu/avatarai-social/pkg/config"
 	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 	"github.com/zhongshangwu/avatarai-social/types"
 )
@@ -46,7 +50,8 @@ var SupportedMimeTypes = map[string]bool{
 }
 
 type FileService struct {
-	metaStore *repositories.MetaStore
+	metaStore    *repositories.MetaStore
+	imageBuilder *blobs.ImageUriBuilder
 }
 
 type UploadFileResponse struct {
@@ -73,9 +78,10 @@ type PaginationInfo struct {
 	Count  int `json:"count"`
 }
 
-func NewFileService(metaStore *repositories.MetaStore) *FileService {
+func NewFileService(config *config.SocialConfig, metaStore *repositories.MetaStore) *FileService {
 	return &FileService{
-		metaStore: metaStore,
+		metaStore:    metaStore,
+		imageBuilder: blobs.NewImageUriBuilder(config.Server.Domain),
 	}
 }
 
@@ -93,6 +99,8 @@ func (s *FileService) UploadFile(
 	if err != nil {
 		return nil, fmt.Errorf("读取文件内容失败: %w", err)
 	}
+
+	logrus.Infof("upload fileBytes: %d", len(fileBytes))
 
 	if s.IsFileSizeLimited(len(fileBytes)) {
 		return nil, fmt.Errorf("文件大小超过限制")
@@ -116,10 +124,12 @@ func (s *FileService) UploadFile(
 
 	var uploadResult indigo.RepoUploadBlob_Output
 	err = xrpcCli.ProcedureWithEncoding(ctx, "com.atproto.repo.uploadBlob", mimeType,
-		nil, bytes.NewReader(fileBytes), &uploadResult)
+		nil, fileBytes, &uploadResult)
 	if err != nil {
 		return nil, fmt.Errorf("上传文件到 PDS 失败: %w", err)
 	}
+
+	logrus.Infof("uploadBlob: %+v, mimeType: %s", uploadResult.Blob, mimeType)
 
 	if uploadResult.Blob.Ref.String() == "" {
 		return nil, fmt.Errorf("PDS 上传结果为空")
@@ -128,22 +138,47 @@ func (s *FileService) UploadFile(
 	cid := uploadResult.Blob.Ref.String()
 
 	fileID := s.GenerateFileID()
+	now := time.Now().Unix()
+	rec := &lexutil.LexiconTypeDecoder{Val: &vtri.EntityFile{
+		LexiconTypeID: "app.vtri.entity.file",
+		Blob:          uploadResult.Blob,
+		CreatedAt:     &now,
+		UpdatedAt:     &now,
+	}}
+	putInput := indigo.RepoPutRecord_Input{
+		Collection: "app.vtri.entity.file",
+		Rkey:       fileID,
+		Repo:       userDid,
+		Record:     rec,
+	}
+	putOutput := indigo.RepoPutRecord_Output{}
+
+	err = xrpcCli.Procedure(ctx, "com.atproto.repo.putRecord", nil, putInput, &putOutput)
+	if err != nil {
+		return nil, fmt.Errorf("上传文件记录失败: %w", err)
+	}
+
 	uploadFile := &repositories.UploadFile{
 		ID:        fileID,
+		CID:       putOutput.Cid,
+		URI:       putOutput.Uri,
+		BlobCID:   uploadResult.Blob.Ref.String(),
 		Size:      int64(len(fileBytes)),
 		Filename:  filename,
 		Extension: extension,
 		MimeType:  mimeType,
-		CID:       cid,
 		CreatedBy: userDid,
+		CreatedAt: now,
 	}
 
 	if err := s.metaStore.FileRepo.CreateUploadFile(uploadFile); err != nil {
 		return nil, fmt.Errorf("保存文件记录失败: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/xrpc/com.atproto.sync.getBlob?did=%s&cid=%s",
-		oauthSession.PdsUrl, oauthSession.Did, cid)
+	url, err := s.imageBuilder.GetPresetUri(blobs.PresetAvatar, userDid, cid)
+	if err != nil {
+		return nil, fmt.Errorf("获取文件URL失败: %w", err)
+	}
 
 	return &types.UploadFile{
 		ID:        fileID,
@@ -158,8 +193,8 @@ func (s *FileService) UploadFile(
 	}, nil
 }
 
-func (s *FileService) GetFile(ctx context.Context, fileID string) (*types.UploadFile, error) {
-	uploadFile, err := s.metaStore.FileRepo.GetUploadFileByID(fileID)
+func (s *FileService) GetFile(ctx context.Context, fileCid string) (*types.UploadFile, error) {
+	uploadFile, err := s.metaStore.FileRepo.GetUploadFileByBlobCID(fileCid)
 	if err != nil {
 		return nil, fmt.Errorf("获取文件失败: %w", err)
 	}
@@ -200,22 +235,14 @@ func (s *FileService) GenerateFileID() string {
 }
 
 func (s *FileService) detectMimeTypeAndExtension(filename string, fileBytes []byte) (string, string) {
-	// 使用 mimetype 库进行更准确的检测
 	mtype := mimetype.Detect(fileBytes)
 	detectedMimeType := mtype.String()
-
-	// 从文件名获取扩展名
 	ext := strings.ToLower(filepath.Ext(filename))
-
-	// 如果没有扩展名，从MIME类型推断
 	if ext == "" {
 		ext = mtype.Extension()
 	}
-
-	// 移除扩展名的点号
 	if ext != "" && ext[0] == '.' {
 		ext = ext[1:]
 	}
-
 	return detectedMimeType, ext
 }

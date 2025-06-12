@@ -12,7 +12,7 @@ import (
 	"github.com/zhongshangwu/avatarai-social/pkg/config"
 	"github.com/zhongshangwu/avatarai-social/pkg/providers/llm"
 	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
-	"gorm.io/gorm"
+	"github.com/zhongshangwu/avatarai-social/pkg/services"
 )
 
 type ChatActor struct {
@@ -21,10 +21,10 @@ type ChatActor struct {
 	User         *repositories.Avatar       // 发送者用户
 	OAuthSession *repositories.OAuthSession // 发送者 OAuth 会话
 
-	DB          *gorm.DB
-	MessageRepo *repositories.MessageRepository // 消息仓库
-	llmManager  *llm.ModelManager
-	config      *config.SocialConfig
+	MetaStore      *repositories.MetaStore
+	MessageService *services.MessageService
+	llmManager     *llm.ModelManager
+	config         *config.SocialConfig
 
 	runner *agents.ChatRunner
 	memory memory.Memory
@@ -33,7 +33,7 @@ type ChatActor struct {
 
 func NewChatActor(
 	id string,
-	db *gorm.DB,
+	metaStore *repositories.MetaStore,
 	config *config.SocialConfig,
 	options ...events.ActorOption[*messages.ChatEvent],
 ) *ChatActor {
@@ -43,10 +43,11 @@ func NewChatActor(
 	llm.RegisterDefaultTools(llmManager)
 
 	actor := &ChatActor{
-		BaseActor:  baseActor,
-		DB:         db,
-		llmManager: llmManager,
-		config:     config,
+		BaseActor:      baseActor,
+		MetaStore:      metaStore,
+		MessageService: services.NewMessageService(metaStore),
+		llmManager:     llmManager,
+		config:         config,
 	}
 	runner := agents.NewChatRunner(
 		actor.llmManager,

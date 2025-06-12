@@ -1,6 +1,9 @@
 package utils
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 func ConvertInt64(val any) int64 {
 	switch v := val.(type) {
@@ -13,6 +16,17 @@ func ConvertInt64(val any) int64 {
 	default:
 		return 0
 	}
+}
+
+func ParseInt(s string) (int, error) {
+	if s == "" {
+		return 0, nil
+	}
+	var i int
+	if _, err := fmt.Sscanf(s, "%d", &i); err != nil {
+		return 0, err
+	}
+	return i, nil
 }
 
 func FormatTime(t int64) string {

@@ -15,6 +15,11 @@ type Feeds struct {
 	Feed   []*FeedCard `json:"feed"`
 }
 
+type MomentThread struct {
+	Moment  *MomentCard     `json:"moment"`
+	Replies []*MomentThread `json:"replies"`
+}
+
 type FeedCard struct {
 	Type FeedCardType `json:"type"`
 	Card Card         `json:"card"`
@@ -25,18 +30,20 @@ type Card interface {
 }
 
 type MomentCard struct {
-	ID        string                        `json:"id"`
-	URI       string                        `json:"uri"`
-	CID       string                        `json:"cid"`
-	Text      string                        `json:"text"`
-	Facets    []*appbskytypes.RichtextFacet `json:"facets,omitempty"`
-	Reply     *MomentRelyRef                `json:"reply,omitempty"`
-	Embed     *EmbedView                    `json:"embed,omitempty"`
-	Langs     []string                      `json:"langs,omitempty"`
-	Tags      []string                      `json:"tags,omitempty"`
-	CreatedAt int64                         `json:"createdAt"`
-	UpdatedAt int64                         `json:"updatedAt"`
-	Author    *SimpleUserView               `json:"author"`
+	ID         string                        `json:"id"`
+	URI        string                        `json:"uri"`
+	CID        string                        `json:"cid"`
+	Text       string                        `json:"text"`
+	Facets     []*appbskytypes.RichtextFacet `json:"facets,omitempty"`
+	Reply      *MomentRelyRef                `json:"reply,omitempty"`
+	Embed      *EmbedView                    `json:"embed,omitempty"`
+	Langs      []string                      `json:"langs,omitempty"`
+	Tags       []string                      `json:"tags,omitempty"`
+	ReplyCount int                           `json:"replyCount"`
+	LikeCount  int                           `json:"likeCount"`
+	CreatedAt  int64                         `json:"createdAt"`
+	UpdatedAt  int64                         `json:"updatedAt"`
+	Author     *SimpleUserView               `json:"author"`
 }
 
 func (c *MomentCard) CardType() FeedCardType {

@@ -151,6 +151,31 @@ func (MomentExternal) TableName() string {
 	return "moment_external"
 }
 
+type Like struct {
+	ID         string `gorm:"primaryKey"`
+	URI        string `gorm:"column:uri"`
+	CID        string `gorm:"column:cid"`
+	Creator    string `gorm:"column:creator"`
+	SubjectURI string `gorm:"column:subject_uri"`
+	SubjectCid string `gorm:"column:subject_cid"`
+	CreatedAt  int64  `gorm:"column:created_at"`
+	IndexedAt  int64  `gorm:"column:indexed_at"`
+}
+
+func (Like) TableName() string {
+	return "likes"
+}
+
+type MomentAgg struct {
+	URI        string `gorm:"column:uri"`
+	LikeCount  int    `gorm:"column:like_count"`
+	ReplyCount int    `gorm:"column:reply_count"`
+}
+
+func (MomentAgg) TableName() string {
+	return "moment_agg"
+}
+
 type Message struct {
 	ID         string `gorm:"primaryKey"`
 	ExternalID string `gorm:"column:external_id"`
@@ -255,12 +280,13 @@ func (AgentMessageItem) TableName() string {
 
 type UploadFile struct {
 	ID        string `gorm:"primaryKey"`
+	CID       string `gorm:"column:cid"`
+	URI       string `gorm:"column:uri"`
+	BlobCID   string `gorm:"column:blob_cid"`
 	Size      int64  `gorm:"column:size"`
 	Filename  string `gorm:"column:filename"`
 	Extension string `gorm:"column:extension"`
 	MimeType  string `gorm:"column:mime_type"`
-	CID       string `gorm:"column:cid"`
-	URL       string `gorm:"-" json:"url,omitempty"` // 不存储在数据库中，仅用于API响应
 	CreatedBy string `gorm:"column:created_by"`
 	CreatedAt int64  `gorm:"column:created_at"`
 }

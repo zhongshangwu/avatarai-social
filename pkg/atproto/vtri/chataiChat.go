@@ -49,6 +49,39 @@ func (t *ChatAiChat_Annotation) UnmarshalJSON(b []byte) error {
 	}
 }
 
+//func (t *ChatAiChat_Annotation) MarshalCBOR(w io.Writer) error {
+//
+//	if t == nil {
+//		_, err := w.Write(cbg.CborNull)
+//		return err
+//	}
+//	if t.ChatAiChat_FileCitationBody != nil {
+//		return t.ChatAiChat_FileCitationBody.MarshalCBOR(w)
+//	}
+//	if t.ChatAiChat_UrlCitationBody != nil {
+//		return t.ChatAiChat_UrlCitationBody.MarshalCBOR(w)
+//	}
+//	return fmt.Errorf("cannot cbor marshal empty enum")
+//}
+//func (t *ChatAiChat_Annotation) UnmarshalCBOR(r io.Reader) error {
+//	typ, b, err := util.CborTypeExtractReader(r)
+//	if err != nil {
+//		return err
+//	}
+//
+//	switch typ {
+//	case "app.vtri.chat.aiChat#FileCitationBody":
+//		t.ChatAiChat_FileCitationBody = new(ChatAiChat_FileCitationBody)
+//		return t.ChatAiChat_FileCitationBody.UnmarshalCBOR(bytes.NewReader(b))
+//	case "app.vtri.chat.aiChat#UrlCitationBody":
+//		t.ChatAiChat_UrlCitationBody = new(ChatAiChat_UrlCitationBody)
+//		return t.ChatAiChat_UrlCitationBody.UnmarshalCBOR(bytes.NewReader(b))
+//
+//	default:
+//		return nil
+//	}
+//}
+
 // ChatAiChat_FileCitationBody is a "FileCitationBody" in the app.vtri.chat.aiChat schema.
 //
 // # A citation to a file

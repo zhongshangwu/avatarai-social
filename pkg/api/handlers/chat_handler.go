@@ -78,7 +78,7 @@ func (h *ChatHandler) ChatStream(c *types.APIContext) error {
 	defer outbox.CloseSend()
 
 	chatActor := chat.NewChatActor("chat",
-		h.metaStore.DB,
+		h.metaStore,
 		h.config,
 		events.ActorWithCustomOutbox[*messages.ChatEvent](outbox),
 	)

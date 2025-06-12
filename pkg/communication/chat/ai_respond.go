@@ -32,7 +32,7 @@ func (actor *ChatActor) AIRespond(actorCtx events.ActorContext[*messages.ChatEve
 
 	ctx, cancel := context.WithTimeout(actorCtx.Context, 5*time.Minute)
 
-	mem := memory.NewSimpleThreadMemory(actor.DB, message.RoomID, message.ThreadID)
+	mem := memory.NewSimpleThreadMemory(actor.MetaStore.DB, message.RoomID, message.ThreadID)
 
 	invokeCtx := agents.NewChatInvokeContext(ctx).
 		WithInputItems(inputItems).
@@ -127,7 +127,7 @@ func (actor *ChatActor) handleAgentMessageCreated(event *messages.ChatEvent) err
 	agentMessage := createdEvent.AgentMessage
 	logrus.Infof("持久化AI消息创建事件: %s", agentMessage.ID)
 
-	return actor.MessageRepo.UpdateAgentMessageStatus(agentMessage.ID, string(agentMessage.Status))
+	return actor.MetaStore.MessageRepo.UpdateAgentMessageStatus(agentMessage.ID, string(agentMessage.Status))
 }
 
 func (actor *ChatActor) handleAgentMessageInProgress(event *messages.ChatEvent) error {
@@ -139,7 +139,7 @@ func (actor *ChatActor) handleAgentMessageInProgress(event *messages.ChatEvent) 
 	agentMessage := inProgressEvent.AgentMessage
 	logrus.Infof("持久化AI消息进行中事件: %s", agentMessage.ID)
 
-	return actor.MessageRepo.UpdateAgentMessageStatus(agentMessage.ID, string(agentMessage.Status))
+	return actor.MetaStore.MessageRepo.UpdateAgentMessageStatus(agentMessage.ID, string(agentMessage.Status))
 }
 
 func (actor *ChatActor) handleAgentMessageCompleted(event *messages.ChatEvent) error {
@@ -151,7 +151,7 @@ func (actor *ChatActor) handleAgentMessageCompleted(event *messages.ChatEvent) e
 	agentMessage := completedEvent.AgentMessage
 	logrus.Infof("持久化AI消息完成事件: %s", agentMessage.ID)
 
-	return actor.MessageRepo.UpdateAgentMessageWithUsage(
+	return actor.MetaStore.MessageRepo.UpdateAgentMessageWithUsage(
 		agentMessage.ID,
 		string(agentMessage.Status),
 		agentMessage.Usage,
@@ -168,7 +168,7 @@ func (actor *ChatActor) handleAgentMessageFailed(event *messages.ChatEvent) erro
 	agentMessage := failedEvent.AgentMessage
 	logrus.Infof("持久化AI消息失败事件: %s", agentMessage.ID)
 
-	return actor.MessageRepo.UpdateAgentMessageWithError(
+	return actor.MetaStore.MessageRepo.UpdateAgentMessageWithError(
 		agentMessage.ID,
 		string(agentMessage.Status),
 		agentMessage.Error,
@@ -184,7 +184,7 @@ func (actor *ChatActor) handleAgentMessageIncomplete(event *messages.ChatEvent) 
 	agentMessage := incompleteEvent.AgentMessage
 	logrus.Infof("持久化AI消息不完整事件: %s", agentMessage.ID)
 
-	return actor.MessageRepo.UpdateAgentMessageIncomplete(
+	return actor.MetaStore.MessageRepo.UpdateAgentMessageIncomplete(
 		agentMessage.ID,
 		agentMessage.InterruptType,
 		agentMessage.Error,
@@ -218,7 +218,7 @@ func (actor *ChatActor) handleOutputItemAdded(event *messages.ChatEvent, agentMe
 		Deleted:        false,
 	}
 
-	return actor.MessageRepo.InsertAgentMessageItem(agentMessageItem)
+	return actor.MetaStore.MessageRepo.InsertAgentMessageItem(agentMessageItem)
 }
 
 func (actor *ChatActor) handleOutputItemDone(event *messages.ChatEvent, agentMessageID string) error {
@@ -240,7 +240,7 @@ func (actor *ChatActor) handleOutputItemDone(event *messages.ChatEvent, agentMes
 		"item": string(itemJSON),
 	}
 
-	return actor.MessageRepo.UpdateAgentMessageItemByPosition(agentMessageID, outputItemEvent.OutputIndex, updates)
+	return actor.MetaStore.MessageRepo.UpdateAgentMessageItemByPosition(agentMessageID, outputItemEvent.OutputIndex, updates)
 }
 
 func (actor *ChatActor) extractTools() []map[string]interface{} {

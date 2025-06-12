@@ -23,6 +23,7 @@ func main() {
 	if err := genCfg.WriteMapEncodersToFile("pkg/atproto/vtri/cbor_gen.go", "vtri",
 		vtri.AvatarProfile{},
 		vtri.AsterProfile{},
+		vtri.EntityFile{},
 		vtri.EntityExternal{},
 		vtri.EntityExternal_External{},
 		vtri.EntityImages{},
@@ -34,6 +35,7 @@ func main() {
 		vtri.EntityDefs_AspectRatio{},
 		vtri.ActivityMoment_Embed{},
 		vtri.ActivityMoment{},
+		vtri.ActivityLike{},
 
 		vtri.ChatEvent{},
 		vtri.ChatEvent_TextMsg{},

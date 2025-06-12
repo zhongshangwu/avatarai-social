@@ -21,8 +21,8 @@ func (actor *ChatActor) SendMsg(sendMsgEvent *messages.SendMsgEvent) (*messages.
 	// 	return nil, errors.New("invalid sender id")
 	// }
 
-	dbMessage := messages.MessageToDB(message)
-	if err := actor.MessageRepo.InsertMessage(dbMessage); err != nil {
+	dbMessage := actor.MessageService.Converter.MessageToDB(message)
+	if err := actor.MetaStore.MessageRepo.InsertMessage(dbMessage); err != nil {
 		return nil, err
 	}
 

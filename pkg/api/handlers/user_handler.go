@@ -7,7 +7,9 @@ import (
 	indigo "github.com/bluesky-social/indigo/api/atproto"
 	lexutil "github.com/bluesky-social/indigo/lex/util"
 	"github.com/ipfs/go-cid"
+	"github.com/sirupsen/logrus"
 	"github.com/zhongshangwu/avatarai-social/pkg/atproto"
+	"github.com/zhongshangwu/avatarai-social/pkg/atproto/blobs"
 	"github.com/zhongshangwu/avatarai-social/pkg/atproto/vtri"
 	"github.com/zhongshangwu/avatarai-social/pkg/config"
 	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
@@ -45,14 +47,16 @@ type UpdateProfileResponse struct {
 }
 
 type UserHandler struct {
-	config    *config.SocialConfig
-	metaStore *repositories.MetaStore
+	config       *config.SocialConfig
+	metaStore    *repositories.MetaStore
+	imageBuilder *blobs.ImageUriBuilder
 }
 
 func NewUserHandler(config *config.SocialConfig, metaStore *repositories.MetaStore) *UserHandler {
 	return &UserHandler{
-		config:    config,
-		metaStore: metaStore,
+		config:       config,
+		metaStore:    metaStore,
+		imageBuilder: blobs.NewImageUriBuilder(config.Server.Domain),
 	}
 }
 
@@ -62,13 +66,15 @@ func (h *UserHandler) CurrentUserProfile(c *types.APIContext) error {
 	}
 	user := c.User
 
+	avatarURL, _ := h.imageBuilder.GetPresetUri(blobs.PresetAvatar, user.Did, user.AvatarCID)
+	bannerURL, _ := h.imageBuilder.GetPresetUri(blobs.PresetBanner, user.Did, user.BannerCID)
 	response := UserProfileView{
 		Did:         user.Did,
 		Handle:      user.Handle,
 		DisplayName: user.DisplayName,
 		Description: user.Description,
-		Avatar:      user.AvatarURL,
-		Banner:      user.BannerURL,
+		Avatar:      avatarURL,
+		Banner:      bannerURL,
 		CreatedAt:   user.CreatedAt,
 	}
 
@@ -124,11 +130,11 @@ func (h *UserHandler) UpdateUserProfile(c *types.APIContext) error {
 	}
 
 	if updateReq.AvatarCID != "" {
-		file, err := h.metaStore.FileRepo.GetUploadFileByCID(updateReq.AvatarCID)
+		file, err := h.metaStore.FileRepo.GetUploadFileByBlobCID(updateReq.AvatarCID)
 		if err != nil {
 			return c.InvalidRequest(string(types.ErrorCodeInvalidRequestParams), "无效的头像文件ID: "+err.Error())
 		}
-		refCid, err := cid.Decode(file.CID)
+		refCid, err := cid.Decode(file.BlobCID)
 		if err != nil {
 			return c.InvalidRequest(string(types.ErrorCodeInvalidRequestParams), "无效的文件CID: "+err.Error())
 		}
@@ -139,18 +145,18 @@ func (h *UserHandler) UpdateUserProfile(c *types.APIContext) error {
 			Size:     file.Size,
 		}
 		profile.Avatar = avatarBlob
-		updates["avatar_cid"] = file.CID
+		updates["avatar_cid"] = file.BlobCID
 	}
 
 	// 处理背景图上传 - 优先使用文件ID，其次使用base64
 	if updateReq.BannerCID != "" {
 		// 通过文件ID获取文件信息
-		file, err := h.metaStore.FileRepo.GetUploadFileByCID(updateReq.BannerCID)
+		file, err := h.metaStore.FileRepo.GetUploadFileByBlobCID(updateReq.BannerCID)
 		if err != nil {
 			return c.InvalidRequest(string(types.ErrorCodeInvalidRequestParams), "无效的背景图文件ID: "+err.Error())
 		}
 
-		refCid, err := cid.Decode(file.CID)
+		refCid, err := cid.Decode(file.BlobCID)
 		if err != nil {
 			return c.InvalidRequest(string(types.ErrorCodeInvalidRequestParams), "无效的文件CID: "+err.Error())
 		}
@@ -161,15 +167,29 @@ func (h *UserHandler) UpdateUserProfile(c *types.APIContext) error {
 			Size:     file.Size,
 		}
 		profile.Banner = bannerBlob
-		updates["banner_cid"] = file.CID
+		updates["banner_cid"] = file.BlobCID
 	}
 
+	params := map[string]interface{}{
+		"cid":        "",
+		"collection": "app.vtri.avatar.profile",
+		"repo":       user.Did,
+		"rkey":       "self",
+	}
+	var ex indigo.RepoGetRecord_Output
+	err = xrpcCli.Query(c.Request().Context(), "com.atproto.repo.getRecord", params, &ex)
+	if err != nil {
+		return c.InternalServerError("获取 PDS 个人资料失败: " + err.Error())
+	}
+	previousCid := ex.Cid
+	logrus.Infof("previousCid: %s", *previousCid)
 	rec := &lexutil.LexiconTypeDecoder{Val: profile}
 	input := indigo.RepoPutRecord_Input{
 		Collection: "app.vtri.avatar.profile",
 		Rkey:       "self",
 		Repo:       user.Did,
 		Record:     rec,
+		SwapRecord: previousCid,
 	}
 	output := indigo.RepoPutRecord_Output{}
 

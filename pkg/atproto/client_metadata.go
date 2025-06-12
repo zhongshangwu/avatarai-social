@@ -115,9 +115,9 @@ func BuildRedirectURL(host string, platform string) string {
 
 func BuildCallbackRedirectURI(host string, platform string) string {
 	if platform == "web" {
-		return fmt.Sprintf("%s/login", host)
+		return fmt.Sprintf("%s", host)
 	}
-	return fmt.Sprintf("https://%s/app-callback", host)
+	return fmt.Sprintf("%sapp-callback", host)
 }
 
 func boolPtr(b bool) *bool {

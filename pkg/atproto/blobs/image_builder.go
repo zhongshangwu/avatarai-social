@@ -1,8 +1,10 @@
-package helper
+package blobs
 
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/sirupsen/logrus"
 )
 
 type ImagePreset string
@@ -14,7 +16,6 @@ const (
 	PresetFeedFullsize  ImagePreset = "feed_fullsize"
 )
 
-// Options 定义图片处理选项
 type Options struct {
 	Format string
 	Fit    string
@@ -23,13 +24,11 @@ type Options struct {
 	Min    bool
 }
 
-// BlobLocation 定义图片位置信息
 type BlobLocation struct {
 	CID string
 	DID string
 }
 
-// ImageUriBuilder 图片URI构建器
 type ImageUriBuilder struct {
 	Endpoint string
 }
@@ -68,30 +67,28 @@ var (
 	}
 )
 
-// NewImageUriBuilder 创建新的URI构建器
 func NewImageUriBuilder(endpoint string) *ImageUriBuilder {
 	return &ImageUriBuilder{
-		Endpoint: endpoint,
+		Endpoint: endpoint + "/img",
 	}
 }
 
-// GetPresetUri 获取预设URI
 func (b *ImageUriBuilder) GetPresetUri(preset ImagePreset, did, cid string) (string, error) {
 	if _, ok := presets[preset]; !ok {
 		return "", fmt.Errorf("未识别的预设类型: %s", preset)
 	}
 
+	logrus.Infof("GetPresetUri: %s, %s, %s, %s", b.Endpoint, preset, did, cid)
+
 	path := GetPath(preset, did, cid)
 	return b.Endpoint + path, nil
 }
 
-// GetPath 获取路径
 func GetPath(preset ImagePreset, did, cid string) string {
 	format := presets[preset].Format
 	return fmt.Sprintf("/%s/plain/%s/%s@%s", preset, did, cid, format)
 }
 
-// GetOptions 从路径解析选项
 func GetOptions(path string) (*Options, *BlobLocation, ImagePreset, error) {
 	matches := pathRegex.FindStringSubmatch(path)
 	if matches == nil {
@@ -119,10 +116,3 @@ func GetOptions(path string) (*Options, *BlobLocation, ImagePreset, error) {
 
 	return &opts, loc, presetStr, nil
 }
-
-// builder := NewImageUriBuilder("https://bsky.avatar.ai")
-// uri, err := builder.GetPresetUri(PresetAvatar, "did:example:123", "cid123")
-// if err != nil {
-//     // 处理错误
-// }
-// fmt.Println(uri)

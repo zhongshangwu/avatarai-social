@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/zhongshangwu/avatarai-social/pkg/atproto/blobs"
 	"github.com/zhongshangwu/avatarai-social/pkg/atproto/helper"
+	"github.com/zhongshangwu/avatarai-social/pkg/config"
 	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 	"github.com/zhongshangwu/avatarai-social/types"
 )
@@ -15,14 +17,16 @@ type FeedService struct {
 	feedGenerator     *FeedGenerator
 	mockFeedGenerator *MockFeedGenerator
 	momentService     *MomentService
+	imageBuilder      *blobs.ImageUriBuilder
 }
 
-func NewFeedService(metaStore *repositories.MetaStore) *FeedService {
+func NewFeedService(config *config.SocialConfig, metaStore *repositories.MetaStore) *FeedService {
 	return &FeedService{
 		metaStore:         metaStore,
 		feedGenerator:     NewFeedGenerator(metaStore),
 		mockFeedGenerator: NewMockFeedGenerator(metaStore),
 		momentService:     NewMomentService(metaStore),
+		imageBuilder:      blobs.NewImageUriBuilder(config.Server.Domain),
 	}
 }
 
@@ -55,6 +59,49 @@ func (s *FeedService) Feeds(ctx context.Context, feedName string, limit int, cur
 	cards := s.presentCards(uris, hydrationState)
 	feeds.Feed = cards
 	return feeds, nil
+}
+
+func (s *FeedService) MomentThread(ctx context.Context, uri string, depth int) (*types.MomentThread, error) {
+	aturi, err := helper.BuildAtURI(uri)
+	if err != nil {
+		return nil, err
+	}
+
+	if aturi.Collection() != "app.vtri.activity.moment" {
+		return nil, fmt.Errorf("只能获取 moment 记录的帖子")
+	}
+
+	momentID := string(aturi.RecordKey())
+
+	if depth <= 0 {
+		depth = 10 // 默认最大深度
+	}
+
+	allMoments, err := s.metaStore.MomentRepo.GetMomentThread(momentID, depth, depth)
+	if err != nil {
+		return nil, fmt.Errorf("获取 thread moments 失败: %w", err)
+	}
+
+	if len(allMoments) == 0 {
+		return nil, fmt.Errorf("未找到指定的 moment")
+	}
+
+	momentURIs := make([]string, len(allMoments))
+	for i, moment := range allMoments {
+		momentURIs[i] = moment.URI
+	}
+
+	hydrationState, err := s.hydrate(ctx, momentURIs)
+	if err != nil {
+		return nil, fmt.Errorf("水合数据失败: %w", err)
+	}
+
+	thread, err := s.buildMomentThread(momentID, allMoments, hydrationState)
+	if err != nil {
+		return nil, fmt.Errorf("构建 thread 结构失败: %w", err)
+	}
+
+	return thread, nil
 }
 
 func (s *FeedService) hydrate(ctx context.Context, uris []string) (map[string]interface{}, error) {
@@ -110,31 +157,35 @@ func (s *FeedService) hydrateMoments(ctx context.Context, uris []string) (map[st
 		}
 		batchURIs := uris[i:end]
 
-		records, err := s.metaStore.MomentRepo.GetMomentsByURIs(batchURIs)
+		moments, err := s.metaStore.MomentRepo.GetMomentsByURIs(batchURIs)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		images, err := s.metaStore.MomentRepo.GetMomentImagesByMomentIDs(batchURIs)
+		momentIDs := make([]string, 0, len(moments))
+		for _, record := range moments {
+			momentIDs = append(momentIDs, record.ID)
+		}
+
+		images, err := s.metaStore.MomentRepo.GetMomentImagesByMomentIDs(momentIDs)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		videos, err := s.metaStore.MomentRepo.GetMomentVideoByMomentIDs(batchURIs)
+		videos, err := s.metaStore.MomentRepo.GetMomentVideoByMomentIDs(momentIDs)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		externals, err := s.metaStore.MomentRepo.GetMomentExternalByMomentIDs(batchURIs)
+		externals, err := s.metaStore.MomentRepo.GetMomentExternalByMomentIDs(momentIDs)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		for _, record := range records {
+		for _, record := range moments {
 			images := images[record.ID]
 			video := videos[record.ID]
 			external := externals[record.ID]
-
 			moment := s.momentService.ConvertDBToMoment(record, images, video, external)
 			hydrationState[record.URI] = moment
 			dids = append(dids, record.Creator)
@@ -198,9 +249,44 @@ func (s *FeedService) presentCards(uris []string, hydrationState map[string]inte
 			if hasProfile {
 				authorView.Handle = authorProfile.Handle
 				authorView.DisplayName = authorProfile.DisplayName
-				avatarURL := fmt.Sprintf("https://bsky.avatar.ai/img/avatar/plain/%s/%s@jpeg", authorProfile.Did, authorProfile.AvatarCID)
+				avatarURL, _ := s.imageBuilder.GetPresetUri(blobs.PresetAvatar, authorDID, authorProfile.AvatarCID)
 				authorView.Avatar = avatarURL
 				authorView.CreatedAt = authorProfile.CreatedAt
+			}
+
+			var embed *types.EmbedView
+			if moment.Embed != nil {
+				embed = &types.EmbedView{}
+
+				if moment.Embed.External != nil {
+					embed.External = &types.ExternalView{
+						URI:         moment.Embed.External.URI,
+						Title:       moment.Embed.External.Title,
+						Description: moment.Embed.External.Description,
+					}
+				}
+
+				if moment.Embed.Images != nil {
+					embed.Images = make([]*types.ImageView, len(moment.Embed.Images))
+					for i, image := range moment.Embed.Images {
+						thumb, _ := s.imageBuilder.GetPresetUri(blobs.PresetFeedThumbnail, authorDID, image.CID)
+						fullsize, _ := s.imageBuilder.GetPresetUri(blobs.PresetFeedFullsize, authorDID, image.CID)
+						embed.Images[i] = &types.ImageView{
+							Thumb:    thumb,
+							Fullsize: fullsize,
+							Alt:      image.Alt,
+						}
+					}
+				}
+
+				if moment.Embed.Video != nil {
+					thumb, _ := s.imageBuilder.GetPresetUri(blobs.PresetFeedThumbnail, authorDID, moment.Embed.Video.CID)
+					embed.Video = &types.VideoView{
+						Thumb: thumb,
+						Video: moment.Embed.Video.URL,
+						Alt:   moment.Embed.Video.Alt,
+					}
+				}
 			}
 
 			momentCard := &types.MomentCard{
@@ -208,6 +294,7 @@ func (s *FeedService) presentCards(uris []string, hydrationState map[string]inte
 				Text:      moment.Text,
 				Facets:    moment.Facets,
 				Reply:     moment.Reply,
+				Embed:     embed,
 				Langs:     moment.Langs,
 				Tags:      moment.Tags,
 				CreatedAt: moment.CreatedAt,
@@ -222,4 +309,131 @@ func (s *FeedService) presentCards(uris []string, hydrationState map[string]inte
 		}
 	}
 	return cards
+}
+
+// buildMomentThread 构建 moment thread 的嵌套结构
+func (s *FeedService) buildMomentThread(targetMomentID string, allMoments []*repositories.Moment, hydrationState map[string]interface{}) (*types.MomentThread, error) {
+	// 创建 moment 索引
+	momentMap := make(map[string]*repositories.Moment)
+	for _, moment := range allMoments {
+		momentMap[moment.ID] = moment
+	}
+
+	// 构建子级映射 (parentID -> children)
+	childrenMap := make(map[string][]*repositories.Moment)
+	for _, moment := range allMoments {
+		if moment.ReplyParentID != "" {
+			childrenMap[moment.ReplyParentID] = append(childrenMap[moment.ReplyParentID], moment)
+		}
+	}
+
+	// 获取目标 moment
+	targetMoment, exists := momentMap[targetMomentID]
+	if !exists {
+		return nil, fmt.Errorf("目标 moment 不存在")
+	}
+
+	// 递归构建 thread
+	return s.buildMomentThreadRecursive(targetMoment, childrenMap, hydrationState), nil
+}
+
+// buildMomentThreadRecursive 递归构建 moment thread
+func (s *FeedService) buildMomentThreadRecursive(moment *repositories.Moment, childrenMap map[string][]*repositories.Moment, hydrationState map[string]interface{}) *types.MomentThread {
+	// 构建当前 moment 的 card
+	momentCard := s.buildMomentCard(moment, hydrationState)
+
+	// 构建回复列表
+	var replies []*types.MomentThread
+	children := childrenMap[moment.ID]
+	for _, child := range children {
+		childThread := s.buildMomentThreadRecursive(child, childrenMap, hydrationState)
+		replies = append(replies, childThread)
+	}
+
+	return &types.MomentThread{
+		Moment:  momentCard,
+		Replies: replies,
+	}
+}
+
+// buildMomentCard 构建 moment card
+func (s *FeedService) buildMomentCard(moment *repositories.Moment, hydrationState map[string]interface{}) *types.MomentCard {
+	// 获取 moment 数据
+	momentData, ok := hydrationState[moment.URI].(*types.Moment)
+	if !ok {
+		// 如果水合数据中没有，创建基本的 moment 数据
+		momentData = &types.Moment{
+			ID:        moment.ID,
+			Text:      moment.Text,
+			CreatedAt: moment.CreatedAt,
+			UpdatedAt: moment.UpdatedAt,
+			CreatedBy: moment.Creator,
+		}
+	}
+
+	// 获取作者信息
+	authorProfile, hasProfile := hydrationState["profile:"+moment.Creator].(*repositories.Avatar)
+
+	authorView := &types.SimpleUserView{
+		Did: moment.Creator,
+	}
+
+	if hasProfile {
+		authorView.Handle = authorProfile.Handle
+		authorView.DisplayName = authorProfile.DisplayName
+		avatarURL := fmt.Sprintf("https://bsky.avatar.ai/img/avatar/plain/%s/%s@jpeg", authorProfile.Did, authorProfile.AvatarCID)
+		authorView.Avatar = avatarURL
+		authorView.CreatedAt = authorProfile.CreatedAt
+	}
+
+	// 构建嵌入内容视图
+	var embed *types.EmbedView
+	if momentData.Embed != nil {
+		embed = &types.EmbedView{}
+
+		if momentData.Embed.External != nil {
+			embed.External = &types.ExternalView{
+				URI:         momentData.Embed.External.URI,
+				Title:       momentData.Embed.External.Title,
+				Description: momentData.Embed.External.Description,
+			}
+		}
+
+		if momentData.Embed.Images != nil {
+			embed.Images = make([]*types.ImageView, len(momentData.Embed.Images))
+			for i, image := range momentData.Embed.Images {
+				thumb, _ := s.imageBuilder.GetPresetUri(blobs.PresetFeedThumbnail, moment.Creator, image.CID)
+				fullsize, _ := s.imageBuilder.GetPresetUri(blobs.PresetFeedFullsize, moment.Creator, image.CID)
+				embed.Images[i] = &types.ImageView{
+					Thumb:    thumb,
+					Fullsize: fullsize,
+					Alt:      image.Alt,
+				}
+			}
+		}
+
+		if momentData.Embed.Video != nil {
+			thumb, _ := s.imageBuilder.GetPresetUri(blobs.PresetFeedThumbnail, moment.Creator, momentData.Embed.Video.CID)
+			embed.Video = &types.VideoView{
+				Thumb: thumb,
+				Video: momentData.Embed.Video.URL,
+				Alt:   momentData.Embed.Video.Alt,
+			}
+		}
+	}
+
+	return &types.MomentCard{
+		ID:        momentData.ID,
+		URI:       moment.URI,
+		CID:       moment.CID,
+		Text:      momentData.Text,
+		Facets:    momentData.Facets,
+		Reply:     momentData.Reply,
+		Embed:     embed,
+		Langs:     momentData.Langs,
+		Tags:      momentData.Tags,
+		CreatedAt: momentData.CreatedAt,
+		UpdatedAt: momentData.UpdatedAt,
+		Author:    authorView,
+	}
 }

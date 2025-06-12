@@ -17,7 +17,6 @@ type BlobHandler struct {
 }
 
 type UploadFileResponse struct {
-	ID        string `json:"id"`
 	Size      int64  `json:"size"`
 	Filename  string `json:"filename"`
 	Extension string `json:"extension"`
@@ -32,7 +31,7 @@ func NewBlobHandler(config *config.SocialConfig, metaStore *repositories.MetaSto
 	return &BlobHandler{
 		config:      config,
 		metaStore:   metaStore,
-		fileService: services.NewFileService(metaStore),
+		fileService: services.NewFileService(config, metaStore),
 	}
 }
 
@@ -60,7 +59,6 @@ func (h *BlobHandler) UploadFile(c *types.APIContext) error {
 	}
 
 	return c.JSON(http.StatusOK, &UploadFileResponse{
-		ID:        uploadFile.ID,
 		Size:      uploadFile.Size,
 		Filename:  uploadFile.Filename,
 		Extension: uploadFile.Extension,
@@ -73,18 +71,17 @@ func (h *BlobHandler) UploadFile(c *types.APIContext) error {
 }
 
 func (h *BlobHandler) GetFile(c *types.APIContext) error {
-	fileID := c.Param("id")
-	if fileID == "" {
-		return c.InvalidRequest("file_id is required", "file_id is required")
+	fileCid := c.Param("cid")
+	if fileCid == "" {
+		return c.InvalidRequest("fileCid is required", "fileCid is required")
 	}
 
-	file, err := h.fileService.GetFile(c.Request().Context(), fileID)
+	file, err := h.fileService.GetFile(c.Request().Context(), fileCid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "文件不存在: "+err.Error())
 	}
 
 	return c.JSON(http.StatusOK, &UploadFileResponse{
-		ID:        file.ID,
 		Size:      file.Size,
 		Filename:  file.Filename,
 		Extension: file.Extension,

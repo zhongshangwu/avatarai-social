@@ -3,8 +3,8 @@ package memory
 import (
 	"fmt"
 
-	"github.com/zhongshangwu/avatarai-social/pkg/communication/messages"
 	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
+	"github.com/zhongshangwu/avatarai-social/pkg/services"
 	"gorm.io/gorm"
 )
 
@@ -12,10 +12,14 @@ type SimpleThreadMemory struct {
 	db       *gorm.DB
 	roomID   string
 	threadID string
+
+	messageService *services.MessageService
 }
 
 func NewSimpleThreadMemory(db *gorm.DB, roomID string, threadID string) *SimpleThreadMemory {
-	return &SimpleThreadMemory{db: db, roomID: roomID, threadID: threadID}
+	metaStore := &repositories.MetaStore{DB: db}
+	messageService := services.NewMessageService(metaStore)
+	return &SimpleThreadMemory{db: db, roomID: roomID, threadID: threadID, messageService: messageService}
 }
 
 func (m *SimpleThreadMemory) Write(chunk Chunk) error {
@@ -40,7 +44,7 @@ func (m *SimpleThreadMemory) Retrieve(query Chunk) ([]Chunk, error) {
 
 	chunks := make([]Chunk, 0, len(dbMessages))
 	for _, dbMsg := range dbMessages {
-		message := messages.DBToMessage(dbMsg)
+		message := m.messageService.Converter.DBToMessage(dbMsg)
 		chunk := &MessageChunk{
 			ID: dbMsg.ID,
 			Metadata: map[string]interface{}{

@@ -2,6 +2,9 @@ from atproto import Client, Request
 from atproto_client import models
 import os
 import fire
+import mimetypes
+import requests
+
 # --- 登录凭据 ---
 # 强烈建议使用环境变量来存储敏感信息，而不是直接硬编码在代码中
 # 你也可以直接替换下面的字符串为你自己的邮箱和应用密码
@@ -68,6 +71,29 @@ def test():
             collection="app.bsky.actor.profile", rkey="self"))
         print(profile_record)
 
+
+        # records = client.com.atproto.repo.list_records(params=models.ComAtprotoRepoListRecords.Params(
+        #     repo=session_info.did,
+        #     collection="app.vtri.avatar.profile",
+        # ))
+        # # print(records)
+        # for record in records:
+        #     print(record)
+        #     # print(record.value)
+        # return
+
+        # # upload local test.png
+        # with open("test.png", "rb") as image_file:
+        #     image_data = image_file.read()
+        #     print(len(image_data), "size")
+        #     # auto detect mime type
+        #     mime_type = mimetypes.guess_type("test.png")[0]
+        #     files = {'file': ('your_image.png', image_data, mime_type)}
+        #     response = client.com.atproto.repo.upload_blob(data=models.ComAtprotoRepoUploadBlob.Data(image_data))
+        #     print(response)
+        # return
+
+
         # 更新 profile record, 修改显示名称
         try:
             # 首先获取现有的 profile record
@@ -79,7 +105,7 @@ def test():
 
             print(profile_record)
 
-            raise Exception("test")
+            # raise Exception("test")
 
             # 准备新的 profile 数据，保留原有字段
             new_profile_data = {
@@ -89,6 +115,7 @@ def test():
                 "avatar": profile_record.avatar,  # 保持原有头像
                 "created_at": profile_record.created_at,  # 保持原有创建时间
             }
+            # profile_record.avatar.cid =
 
             # 如果原记录有其他非空字段，也添加到新数据中
             if profile_record.banner:

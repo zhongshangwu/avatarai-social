@@ -1,0 +1,30 @@
+{
+  "lexicon": 1,
+  "id": "app.vtri.entity.file",
+  "description": "Uploaded file",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Uploaded file",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "properties": {
+          "blob": {
+            "type": "blob",
+            "accept": ["*/*"],
+            "maxSize": 1000000000
+          },
+          "updatedAt": {
+            "type": "integer",
+            "description": "更新时间"
+          },
+          "createdAt": {
+            "type": "integer",
+            "description": "创建时间"
+          }
+        }
+      }
+    }
+  }
+}

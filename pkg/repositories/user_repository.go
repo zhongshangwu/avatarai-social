@@ -17,10 +17,9 @@ func NewUserRepository(metastore *MetaStore) *UserRepository {
 	}
 }
 
-// Avatar 相关操作
 func (r *UserRepository) GetAsterByCreatorDid(did string) (*Avatar, error) {
 	var aster Avatar
-	if err := r.metaStore.DB.Where("creator_did = ? AND is_aster = ?", did, true).First(&aster).Error; err != nil {
+	if err := r.metaStore.DB.Where("creator = ? AND is_aster = ?", did, true).First(&aster).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrAsterNotFound
 		}
@@ -96,7 +95,7 @@ func (r *UserRepository) GetOrCreateAvatar(did string, handle string, pdsURL str
 }
 
 func (r *UserRepository) UpdateAvatar(did string, updates map[string]interface{}) error {
-	updates["updated_at"] = time.Now()
+	updates["updated_at"] = time.Now().Unix()
 	return r.metaStore.DB.Model(&Avatar{}).Where("did = ?", did).Updates(updates).Error
 }
 

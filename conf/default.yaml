@@ -1,4 +1,5 @@
 server:
+  domain: "http://127.0.0.1:8082"
   http:
     address: "127.0.0.1:8082"
     read_timeout: "30s"
@@ -31,7 +32,7 @@ avatar:
     provider: "openai"
     api_url: "https://openrouter.ai/api/v1"
     model: "mistralai/ministral-3b"
-    api_key: "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"
+    api_key: "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"
 
 security:
   rsa_private_key: |
