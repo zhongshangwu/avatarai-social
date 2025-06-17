@@ -176,6 +176,60 @@ func (MomentAgg) TableName() string {
 	return "moment_agg"
 }
 
+type Tag struct {
+	ID        string `gorm:"primaryKey"`
+	URI       string `gorm:"column:uri"`
+	CID       string `gorm:"column:cid"`
+	Tag       string `gorm:"column:tag"` // 索引键 rkey
+	CreatedAt int64  `gorm:"column:created_at"`
+	Creator   string `gorm:"column:creator"`
+	Deleted   bool   `gorm:"column:deleted"`
+}
+
+func (Tag) TableName() string {
+	return "tags"
+}
+
+type ActivityTag struct {
+	ID         string `gorm:"primaryKey"`
+	SubjectURI string `gorm:"column:subject_uri"` // 关联的实体URI(目前只有moment)
+	Tag        string `gorm:"column:tag"`
+	CreatedAt  int64  `gorm:"column:created_at"`
+	Creator    string `gorm:"column:creator"`
+	Deleted    bool   `gorm:"column:deleted"`
+}
+
+func (ActivityTag) TableName() string {
+	return "activity_tags"
+}
+
+type Topic struct {
+	ID        string `gorm:"primaryKey"`
+	URI       string `gorm:"column:uri"`
+	CID       string `gorm:"column:cid"`
+	Topic     string `gorm:"column:topic"` // 索引键 rkey
+	CreatedAt int64  `gorm:"column:created_at"`
+	Creator   string `gorm:"column:creator"`
+	Deleted   bool   `gorm:"column:deleted"`
+}
+
+func (Topic) TableName() string {
+	return "topics"
+}
+
+type ActivityTopic struct {
+	ID         string `gorm:"primaryKey"`
+	SubjectURI string `gorm:"column:subject_uri"` // 关联的实体URI(目前只有moment)
+	Topic      string `gorm:"column:topic"`
+	CreatedAt  int64  `gorm:"column:created_at"`
+	Creator    string `gorm:"column:creator"`
+	Deleted    bool   `gorm:"column:deleted"`
+}
+
+func (ActivityTopic) TableName() string {
+	return "activity_topics"
+}
+
 type Message struct {
 	ID         string `gorm:"primaryKey"`
 	ExternalID string `gorm:"column:external_id"`

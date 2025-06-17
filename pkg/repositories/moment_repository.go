@@ -81,7 +81,6 @@ func (r *MomentRepository) DeleteMoment(uri string) error {
 	return r.metaStore.DB.Where("uri = ?", uri).Delete(&Moment{}).Error
 }
 
-// MomentImage 相关操作
 func (r *MomentRepository) CreateMomentImage(image *MomentImage) error {
 	return r.metaStore.DB.Create(image).Error
 }
@@ -313,4 +312,191 @@ func (r *MomentRepository) CreateLike(like *Like) error {
 
 func (r *MomentRepository) DeleteLike(likeURI string) error {
 	return r.metaStore.DB.Where("uri = ?", likeURI).Delete(&Like{}).Error
+}
+
+func (r *MomentRepository) CreateTag(tag *Tag) error {
+	return r.metaStore.DB.Create(tag).Error
+}
+func (r *MomentRepository) GetTagByTag(tag string) (*Tag, error) {
+	var result Tag
+	if err := r.metaStore.DB.Where("tag = ? AND deleted = ?", tag, false).First(&result).Error; err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (r *MomentRepository) DeleteTag(id string) error {
+	return r.metaStore.DB.Model(&Tag{}).Where("id = ?", id).Update("deleted", true).Error
+}
+
+func (r *MomentRepository) CreateActivityTag(activityTag *ActivityTag) error {
+	return r.metaStore.DB.Create(activityTag).Error
+}
+
+func (r *MomentRepository) GetActivityTagsBySubjectURI(subjectURI string) ([]*ActivityTag, error) {
+	var tags []*ActivityTag
+	if err := r.metaStore.DB.Where("subject_uri = ? AND deleted = ?", subjectURI, false).Find(&tags).Error; err != nil {
+		return nil, err
+	}
+	return tags, nil
+}
+
+func (r *MomentRepository) GetActivityTagsByTag(tag string) ([]*ActivityTag, error) {
+	var tags []*ActivityTag
+	if err := r.metaStore.DB.Where("tag = ? AND deleted = ?", tag, false).Find(&tags).Error; err != nil {
+		return nil, err
+	}
+	return tags, nil
+}
+
+func (r *MomentRepository) DeleteActivityTag(tag string, subjectURI string) error {
+	return r.metaStore.DB.Model(&ActivityTag{}).Where("tag = ? AND subject_uri = ?", tag, subjectURI).Update("deleted", true).Error
+}
+
+func (r *MomentRepository) GetTagActivityCounts(tags []string) (map[string]int, error) {
+	counts := make(map[string]int)
+	query := r.metaStore.DB.Model(&ActivityTag{}).Where("tag IN ? AND deleted = ?", tags, false).
+		Select("tag, COUNT(*) as count").
+		Group("tag")
+	if err := query.Scan(&counts).Error; err != nil {
+		return nil, err
+	}
+	return counts, nil
+}
+
+func (r *MomentRepository) CreateTopic(topic *Topic) error {
+	return r.metaStore.DB.Create(topic).Error
+}
+
+func (r *MomentRepository) GetTopicByID(id string) (*Topic, error) {
+	var topic Topic
+	if err := r.metaStore.DB.Where("id = ?", id).First(&topic).Error; err != nil {
+		return nil, err
+	}
+	return &topic, nil
+}
+
+func (r *MomentRepository) GetTopicByTopic(topic string) (*Topic, error) {
+	var result Topic
+	if err := r.metaStore.DB.Where("topic = ? AND deleted = ?", topic, false).First(&result).Error; err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (r *MomentRepository) DeleteTopic(id string) error {
+	return r.metaStore.DB.Model(&Topic{}).Where("id = ?", id).Update("deleted", true).Error
+}
+
+func (r *MomentRepository) CreateActivityTopic(activityTopic *ActivityTopic) error {
+	return r.metaStore.DB.Create(activityTopic).Error
+}
+
+func (r *MomentRepository) GetActivityTopicsBySubjectURI(subjectURI string) ([]*ActivityTopic, error) {
+	var topics []*ActivityTopic
+	if err := r.metaStore.DB.Where("subject_uri = ? AND deleted = ?", subjectURI, false).Find(&topics).Error; err != nil {
+		return nil, err
+	}
+	return topics, nil
+}
+
+func (r *MomentRepository) GetActivityTopicsByTopic(topic string) ([]*ActivityTopic, error) {
+	var topics []*ActivityTopic
+	if err := r.metaStore.DB.Where("topic = ? AND deleted = ?", topic, false).Find(&topics).Error; err != nil {
+		return nil, err
+	}
+	return topics, nil
+}
+
+func (r *MomentRepository) DeleteActivityTopic(topic string, subjectURI string) error {
+	return r.metaStore.DB.Model(&ActivityTopic{}).Where("topic = ? AND subject_uri = ?", topic, subjectURI).Update("deleted", true).Error
+}
+
+func (r *MomentRepository) GetTopicActivityCounts(topics []string) (map[string]int, error) {
+	counts := make(map[string]int)
+	query := r.metaStore.DB.Model(&ActivityTopic{}).Where("topic IN ? AND deleted = ?", topics, false).
+		Select("topic, COUNT(*) as count").
+		Group("topic")
+	if err := query.Scan(&counts).Error; err != nil {
+		return nil, err
+	}
+	return counts, nil
+}
+
+func (r *MomentRepository) GetMomentsByTag(tag string, limit int, cursor string) ([]*Moment, error) {
+	var moments []*Moment
+	query := r.metaStore.DB.
+		Joins("JOIN activity_tags ON moments.uri = activity_tags.uri").
+		Where("activity_tags.tag = ? AND activity_tags.deleted = ?", tag, false).
+		Order("moments.created_at DESC")
+
+	if cursor != "" {
+		query = query.Where("moments.created_at < ?", cursor)
+	}
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	if err := query.Find(&moments).Error; err != nil {
+		return nil, err
+	}
+	return moments, nil
+}
+
+func (r *MomentRepository) GetMomentsByTopic(topic string, limit int, cursor string) ([]*Moment, error) {
+	var moments []*Moment
+	query := r.metaStore.DB.
+		Joins("JOIN activity_topics ON moments.uri = activity_topics.uri").
+		Where("activity_topics.topic = ? AND activity_topics.deleted = ?", topic, false).
+		Order("moments.created_at DESC")
+
+	if cursor != "" {
+		query = query.Where("moments.created_at < ?", cursor)
+	}
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	if err := query.Find(&moments).Error; err != nil {
+		return nil, err
+	}
+	return moments, nil
+}
+
+func (r *MomentRepository) ListTags(page int, pageSize int) ([]*Tag, error) {
+	var tags []*Tag
+	query := r.metaStore.DB.Where("deleted = ?", false).Order("created_at DESC")
+
+	if page > 0 {
+		query = query.Offset((page - 1) * pageSize)
+	}
+
+	if pageSize > 0 {
+		query = query.Limit(pageSize)
+	}
+
+	if err := query.Find(&tags).Error; err != nil {
+		return nil, err
+	}
+	return tags, nil
+}
+
+func (r *MomentRepository) ListTopics(page int, pageSize int) ([]*Topic, error) {
+	var topics []*Topic
+	query := r.metaStore.DB.Where("deleted = ?", false).Order("created_at DESC")
+
+	if page > 0 {
+		query = query.Offset((page - 1) * pageSize)
+	}
+
+	if pageSize > 0 {
+		query = query.Limit(pageSize)
+	}
+
+	if err := query.Find(&topics).Error; err != nil {
+		return nil, err
+	}
+	return topics, nil
 }

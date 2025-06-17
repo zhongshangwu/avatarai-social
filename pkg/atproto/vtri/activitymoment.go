@@ -20,8 +20,9 @@ func init() {
 type ActivityMoment struct {
 	LexiconTypeID string `json:"$type,const=app.vtri.activity.moment" cborgen:"$type,const=app.vtri.activity.moment"`
 	// createdAt: Client-declared timestamp when this post was originally created.
-	CreatedAt string                `json:"createdAt" cborgen:"createdAt"`
-	Embed     *ActivityMoment_Embed `json:"embed,omitempty" cborgen:"embed,omitempty"`
+	CreatedAt string                         `json:"createdAt" cborgen:"createdAt"`
+	Creator   *comatprototypes.RepoStrongRef `json:"creator,omitempty" cborgen:"creator,omitempty"`
+	Embed     *ActivityMoment_Embed          `json:"embed,omitempty" cborgen:"embed,omitempty"`
 	// facets: Annotations of text (mentions, URLs, hashtags, etc)
 	Facets []*appbskytypes.RichtextFacet `json:"facets,omitempty" cborgen:"facets,omitempty"`
 	// langs: Indicates human language of post primary text content.

@@ -36,6 +36,9 @@ func main() {
 		vtri.ActivityMoment_Embed{},
 		vtri.ActivityMoment{},
 		vtri.ActivityLike{},
+		vtri.ActivityRelationship{},
+		vtri.ActivityTopic{},
+		vtri.ActivityTag{},
 
 		vtri.ChatEvent{},
 		vtri.ChatEvent_TextMsg{},

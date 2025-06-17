@@ -28,6 +28,7 @@ type AvatarAIAPI struct {
 	BlobsHandler    *handlers.BlobHandler
 	MessagesHandler *handlers.MessageHandler
 	ChatHandler     *handlers.ChatHandler
+	ActivityHandler *handlers.ActivityHandler
 	ImageViewer     *blobs.ImageViewer
 }
 
@@ -46,13 +47,9 @@ func NewAvatarAIAPI(config *config.SocialConfig, metaStore *repositories.MetaSto
 	messageHandler := handlers.NewMessageHandler(config, metaStore)
 	chatHandler := handlers.NewChatHandler(config, metaStore)
 	feedHandler := handlers.NewFeedHandler(config, metaStore)
+	activityHandler := handlers.NewActivityHandler(config, metaStore)
 
-	viewerConfig := blobs.DefaultImageViewerConfig()
-	viewerConfig.CacheLocation = "/tmp/avatar-ai-image-cache"
-	viewerConfig.MaxResponseSize = 50 << 20 // 50MB
-	viewerConfig.UserAgent = "AvatarAI-Social/1.0"
-
-	viewer, err := blobs.NewImageViewer(viewerConfig)
+	viewer, err := blobs.NewImageViewer(blobs.DefaultImageViewerConfig())
 	if err != nil {
 		e.Logger.Errorf("创建图片查看器失败: %v", err)
 		panic(err)
@@ -71,6 +68,7 @@ func NewAvatarAIAPI(config *config.SocialConfig, metaStore *repositories.MetaSto
 		MessagesHandler: messageHandler,
 		ChatHandler:     chatHandler,
 		FeedHandler:     feedHandler,
+		ActivityHandler: activityHandler,
 		ImageViewer:     viewer,
 	}
 }
@@ -78,7 +76,6 @@ func NewAvatarAIAPI(config *config.SocialConfig, metaStore *repositories.MetaSto
 func (a *AvatarAIAPI) InstallRoutes() {
 	a.echo.GET("/healthz", a.HealthHandler.Healthz)
 
-	// 静态文件服务 - 提供前端页面
 	a.echo.Static("/", "web")
 
 	api := a.echo.Group("/api")
@@ -113,7 +110,7 @@ func (a *AvatarAIAPI) InstallRoutes() {
 	moment.GET("/detail", withAuth(a.MomentsHandler.GetMoment, true))
 	moment.GET("/thread", withAuth(a.MomentsHandler.GetMomentThread, false))
 	moment.POST("/like", withAuth(a.MomentsHandler.LikeMoment, true))
-	moment.DELETE("/like", withAuth(a.MomentsHandler.UndoLikeMoment, true))
+	moment.DELETE("/like", withAuth(a.MomentsHandler.RemoveLikeMoment, true))
 
 	feed := api.Group("/feeds")
 	feed.GET("", withAuth(a.FeedHandler.Feeds, true))
@@ -124,6 +121,13 @@ func (a *AvatarAIAPI) InstallRoutes() {
 
 	messages := api.Group("/messages")
 	messages.GET("/history", withAuth(a.MessagesHandler.HistoryMessages, true))
+
+	activity := api.Group("/activity")
+	activity.GET("/tags", withAuth(a.ActivityHandler.ListTags, false))
+	activity.POST("/tags", withAuth(a.ActivityHandler.CreateTag, true))
+
+	activity.GET("/topics", withAuth(a.ActivityHandler.ListTopics, false))
+	activity.POST("/topics", withAuth(a.ActivityHandler.CreateTopic, true))
 
 	img := a.echo.Group("/img")
 	img.Use(echo.WrapMiddleware(a.ImageViewer.CreateMiddleware("/img/")))

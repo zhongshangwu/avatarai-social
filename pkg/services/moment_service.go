@@ -38,12 +38,14 @@ type ExternalData struct {
 }
 
 type MomentService struct {
-	metaStore *repositories.MetaStore
+	metaStore  *repositories.MetaStore
+	tagService *TagService
 }
 
 func NewMomentService(metaStore *repositories.MetaStore) *MomentService {
 	return &MomentService{
-		metaStore: metaStore,
+		metaStore:  metaStore,
+		tagService: NewTagService(metaStore),
 	}
 }
 
@@ -159,25 +161,45 @@ func (s *MomentService) CreateMoment(ctx context.Context, creatorDid string, req
 			return nil, fmt.Errorf("保存外部链接记录失败: %w", err)
 		}
 	}
+	// 处理标签逻辑 - 在事务提交前处理
+	var activityTags []*repositories.ActivityTag
+	if len(req.Tags) > 0 {
+		activityTags, err = s.tagService.SyncActivityTags(ctx, dbMoment.URI, req.Tags, creatorDid)
+		if err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("处理标签失败: %w", err)
+		}
+	}
+
 	if err := tx.Commit().Error; err != nil {
 		return nil, fmt.Errorf("提交事务失败: %w", err)
 	}
 
-	return s.ConvertDBToMoment(dbMoment, images, video, external), nil
+	return s.ConvertDBToMoment(dbMoment, images, video, external, activityTags, nil), nil
 }
 
-func (s *MomentService) GetMomentByID(ctx context.Context, id string) (*types.Moment, error) {
-	moment, err := s.metaStore.MomentRepo.GetMomentByID(id)
+func (s *MomentService) GetMomentByID(ctx context.Context, uri string) (*types.Moment, error) {
+	moment, err := s.metaStore.MomentRepo.GetMomentByURI(uri)
 	if err != nil {
 		return nil, fmt.Errorf("获取moment失败: %w", err)
 	}
-	images, video, external, err := s.loadEmbedContent(id)
+	images, video, external, err := s.loadEmbedContent(moment.ID)
 	if err != nil {
 		log.Printf("加载嵌入内容失败: %v", err)
 		return nil, err
 	}
 
-	return s.ConvertDBToMoment(moment, images, video, external), nil
+	activityTags, err := s.metaStore.ActivityRepo.GetActivityTagsBySubjectURI(moment.URI)
+	if err != nil {
+		return nil, fmt.Errorf("获取标签失败: %w", err)
+	}
+
+	activityTopics, err := s.metaStore.ActivityRepo.GetActivityTopicsBySubjectURI(moment.URI)
+	if err != nil {
+		return nil, fmt.Errorf("获取主题失败: %w", err)
+	}
+
+	return s.ConvertDBToMoment(moment, images, video, external, activityTags, activityTopics), nil
 }
 
 func (s *MomentService) LikeMoment(ctx context.Context, uri string, did string) (*repositories.Like, error) {
@@ -214,7 +236,7 @@ func (s *MomentService) LikeMoment(ctx context.Context, uri string, did string) 
 	return like, nil
 }
 
-func (s *MomentService) UndoLikeMoment(ctx context.Context, uri string, did string, likeURI string) error {
+func (s *MomentService) RemoveLikeMoment(ctx context.Context, uri string, did string, likeURI string) error {
 	aturi, err := helper.BuildAtURI(uri)
 	if err != nil {
 		return err
@@ -262,6 +284,8 @@ func (s *MomentService) ConvertDBToMoment(
 	images []*repositories.MomentImage,
 	video *repositories.MomentVideo,
 	external *repositories.MomentExternal,
+	activityTags []*repositories.ActivityTag,
+	activityTopics []*repositories.ActivityTopic,
 ) *types.Moment {
 
 	facets := make([]*appbskytypes.RichtextFacet, 0)
@@ -309,12 +333,27 @@ func (s *MomentService) ConvertDBToMoment(
 		}
 	}
 
+	tags := make([]*types.Tag, 0, len(activityTags))
+	topics := make([]*types.Topic, 0, len(activityTopics))
+
+	for _, tag := range activityTags {
+		tags = append(tags, &types.Tag{
+			Tag: tag.Tag,
+		})
+	}
+	for _, topic := range activityTopics {
+		topics = append(topics, &types.Topic{
+			Topic: topic.Topic,
+		})
+	}
+
 	return &types.Moment{
 		ID:        moment.ID,
 		Text:      moment.Text,
 		Facets:    facets,
 		Langs:     moment.Langs,
-		Tags:      moment.Tags,
+		Tags:      tags,
+		Topics:    topics,
 		Reply:     reply,
 		Embed:     embed,
 		CreatedAt: moment.CreatedAt,
@@ -323,20 +362,6 @@ func (s *MomentService) ConvertDBToMoment(
 		CreatedBy: moment.Creator,
 		Deleted:   moment.Deleted,
 	}
-}
-
-func parseTime(timeStr string) time.Time {
-	if timeStr == "" {
-		return time.Time{}
-	}
-
-	t, err := time.Parse(time.RFC3339, timeStr)
-	if err != nil {
-		log.Printf("解析时间失败: %v", err)
-		return time.Time{}
-	}
-
-	return t
 }
 
 func (s *MomentService) GenerateMomentID() string {
@@ -349,4 +374,75 @@ func (s *MomentService) BuildAtURI(did string, rkey string) string {
 
 func (s *MomentService) BuildLikeURI(did string, rkey string) string {
 	return fmt.Sprintf("at://%s/app.vtri.activity.like/%s", did, rkey)
+}
+
+func (s *MomentService) DeleteMoment(ctx context.Context, momentURI string) error {
+	tx := s.metaStore.DB.Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("开始数据库事务失败: %w", tx.Error)
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 删除标签关联
+	if err := s.tagService.UnbindActivityTags(ctx, momentURI); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("删除标签关联失败: %w", err)
+	}
+
+	// 删除 moment 本身
+	if err := s.metaStore.MomentRepo.DeleteMoment(momentURI); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("删除moment失败: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("提交事务失败: %w", err)
+	}
+
+	return nil
+}
+
+func (s *MomentService) UpdateMomentTags(ctx context.Context, momentURI string, newTags []string, creatorDid string) error {
+	tx := s.metaStore.DB.Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("开始数据库事务失败: %w", tx.Error)
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 删除现有的标签关联
+	if err := s.tagService.UnbindActivityTags(ctx, momentURI); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("删除现有标签关联失败: %w", err)
+	}
+
+	// 添加新的标签关联
+	if len(newTags) > 0 {
+		if _, err := s.tagService.SyncActivityTags(ctx, momentURI, newTags, creatorDid); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("处理新标签失败: %w", err)
+		}
+	}
+
+	// 同时更新 moment 表中的 tags 字段
+	updates := map[string]interface{}{
+		"tags": newTags,
+	}
+	if err := s.metaStore.MomentRepo.UpdateMoment(momentURI, updates); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("更新moment标签字段失败: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("提交事务失败: %w", err)
+	}
+
+	return nil
 }

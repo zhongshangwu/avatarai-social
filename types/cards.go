@@ -4,10 +4,10 @@ import (
 	appbskytypes "github.com/bluesky-social/indigo/api/bsky"
 )
 
-type FeedCardType string
+type ActivityCardType string
 
 const (
-	FeedCardTypeMoment FeedCardType = "moment"
+	ActivityCardTypeMoment ActivityCardType = "moment"
 )
 
 type Feeds struct {
@@ -21,12 +21,12 @@ type MomentThread struct {
 }
 
 type FeedCard struct {
-	Type FeedCardType `json:"type"`
-	Card Card         `json:"card"`
+	Type ActivityCardType `json:"type"`
+	Card Card             `json:"card"`
 }
 
 type Card interface {
-	CardType() FeedCardType
+	CardType() ActivityCardType
 }
 
 type MomentCard struct {
@@ -38,7 +38,8 @@ type MomentCard struct {
 	Reply      *MomentRelyRef                `json:"reply,omitempty"`
 	Embed      *EmbedView                    `json:"embed,omitempty"`
 	Langs      []string                      `json:"langs,omitempty"`
-	Tags       []string                      `json:"tags,omitempty"`
+	Tags       []*TagView                    `json:"tags,omitempty"`
+	Topics     []*TopicView                  `json:"topics,omitempty"`
 	ReplyCount int                           `json:"replyCount"`
 	LikeCount  int                           `json:"likeCount"`
 	CreatedAt  int64                         `json:"createdAt"`
@@ -46,8 +47,8 @@ type MomentCard struct {
 	Author     *SimpleUserView               `json:"author"`
 }
 
-func (c *MomentCard) CardType() FeedCardType {
-	return FeedCardTypeMoment
+func (c *MomentCard) CardType() ActivityCardType {
+	return ActivityCardTypeMoment
 }
 
 type SimpleUserView struct {
@@ -89,4 +90,18 @@ type RecordView struct {
 	CID    string          `json:"cid"`
 	Author *SimpleUserView `json:"author"`
 	Value  interface{}     `json:"value"`
+}
+
+type TagView struct {
+	Tag     string `json:"tag"`
+	Count   int    `json:"count"`
+	Creator string `json:"creator"`
+	IsAster bool   `json:"isAster"`
+}
+
+type TopicView struct {
+	Topic   string `json:"topic"`
+	Count   int    `json:"count"`
+	Creator string `json:"creator"`
+	IsAster bool   `json:"isAster"`
 }

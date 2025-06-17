@@ -20,11 +20,11 @@ type UploadFileResponse struct {
 	Size      int64  `json:"size"`
 	Filename  string `json:"filename"`
 	Extension string `json:"extension"`
-	MimeType  string `json:"mime_type"`
+	MimeType  string `json:"mimeType"`
 	CID       string `json:"cid"`
 	URL       string `json:"url"`
-	CreatedBy string `json:"created_by"`
-	CreatedAt int64  `json:"created_at"`
+	CreatedBy string `json:"createdBy"`
+	CreatedAt int64  `json:"createdAt"`
 }
 
 func NewBlobHandler(config *config.SocialConfig, metaStore *repositories.MetaStore) *BlobHandler {

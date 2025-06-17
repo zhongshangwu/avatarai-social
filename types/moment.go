@@ -9,7 +9,8 @@ type Moment struct {
 	Text       string                        `json:"text"`
 	Facets     []*appbskytypes.RichtextFacet `json:"facets,omitempty"`
 	Langs      []string                      `json:"langs"`
-	Tags       []string                      `json:"tags"`
+	Tags       []*Tag                        `json:"tags"`
+	Topics     []*Topic                      `json:"topics"`
 	Reply      *MomentRelyRef                `json:"reply,omitempty"`
 	Embed      *EmbedContent                 `json:"embed,omitempty"`
 	ReplyCount int64                         `json:"replyCount"`
@@ -60,4 +61,14 @@ type ExternalEmbed struct {
 type RecordEmbed struct {
 	Type     string `json:"type"`
 	RecordID string `json:"recordId"`
+}
+
+type Tag struct {
+	Tag     string `json:"tag"`
+	Creator string `json:"creator"`
+}
+
+type Topic struct {
+	Topic   string `json:"topic"`
+	Creator string `json:"creator"`
 }

@@ -53,12 +53,12 @@ func (h *MomentHandler) CreateMoment(c *types.APIContext) error {
 }
 
 func (h *MomentHandler) GetMoment(c *types.APIContext) error {
-	id := c.Param("id")
-	if id == "" {
+	uri := c.Param("uri")
+	if uri == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "ID参数不能为空")
 	}
 
-	moment, err := h.momentService.GetMomentByID(c.Request().Context(), id)
+	moment, err := h.momentService.GetMomentByID(c.Request().Context(), uri)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "moment不存在: "+err.Error())
 	}
@@ -102,7 +102,7 @@ func (h *MomentHandler) LikeMoment(c *types.APIContext) error {
 	return c.JSON(http.StatusOK, like)
 }
 
-func (h *MomentHandler) UndoLikeMoment(c *types.APIContext) error {
+func (h *MomentHandler) RemoveLikeMoment(c *types.APIContext) error {
 	uri := c.QueryParam("uri")
 	if uri == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "uri参数不能为空")
@@ -113,7 +113,7 @@ func (h *MomentHandler) UndoLikeMoment(c *types.APIContext) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "likeURI参数不能为空")
 	}
 
-	err := h.momentService.UndoLikeMoment(c.Request().Context(), uri, c.User.Did, likeURI)
+	err := h.momentService.RemoveLikeMoment(c.Request().Context(), uri, c.User.Did, likeURI)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "取消点赞失败: "+err.Error())
 	}

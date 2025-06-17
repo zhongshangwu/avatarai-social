@@ -2,7 +2,7 @@
 
 package vtri
 
-// schema: app.vtri.activity.like
+// schema: app.vtri.activity.topic
 
 import (
 	comatprototypes "github.com/bluesky-social/indigo/api/atproto"
@@ -10,12 +10,12 @@ import (
 )
 
 func init() {
-	util.RegisterType("app.vtri.activity.like", &ActivityLike{})
+	util.RegisterType("app.vtri.activity.topic", &ActivityTopic{})
 } //
-// RECORDTYPE: ActivityLike
-type ActivityLike struct {
-	LexiconTypeID string                         `json:"$type,const=app.vtri.activity.like" cborgen:"$type,const=app.vtri.activity.like"`
+// RECORDTYPE: ActivityTopic
+type ActivityTopic struct {
+	LexiconTypeID string                         `json:"$type,const=app.vtri.activity.topic" cborgen:"$type,const=app.vtri.activity.topic"`
 	CreatedAt     string                         `json:"createdAt" cborgen:"createdAt"`
 	Creator       *comatprototypes.RepoStrongRef `json:"creator,omitempty" cborgen:"creator,omitempty"`
-	Subject       *comatprototypes.RepoStrongRef `json:"subject" cborgen:"subject"`
+	Topic         string                         `json:"topic" cborgen:"topic"`
 }

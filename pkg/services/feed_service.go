@@ -163,8 +163,10 @@ func (s *FeedService) hydrateMoments(ctx context.Context, uris []string) (map[st
 		}
 
 		momentIDs := make([]string, 0, len(moments))
+		momentURIs := make([]string, 0, len(moments))
 		for _, record := range moments {
 			momentIDs = append(momentIDs, record.ID)
+			momentURIs = append(momentURIs, record.URI)
 		}
 
 		images, err := s.metaStore.MomentRepo.GetMomentImagesByMomentIDs(momentIDs)
@@ -182,13 +184,32 @@ func (s *FeedService) hydrateMoments(ctx context.Context, uris []string) (map[st
 			return nil, nil, err
 		}
 
+		activityTags, err := s.metaStore.ActivityRepo.GetActivityTagsBySubjectURIs(momentURIs)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		activityTopics, err := s.metaStore.ActivityRepo.GetActivityTopicsBySubjectURIs(momentURIs)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		for _, record := range moments {
 			images := images[record.ID]
 			video := videos[record.ID]
 			external := externals[record.ID]
-			moment := s.momentService.ConvertDBToMoment(record, images, video, external)
+			activityTags := activityTags[record.URI]
+			activityTopics := activityTopics[record.URI]
+			moment := s.momentService.ConvertDBToMoment(record, images, video, external, activityTags, activityTopics)
 			hydrationState[record.URI] = moment
+
 			dids = append(dids, record.Creator)
+			for _, activityTag := range activityTags {
+				dids = append(dids, activityTag.Creator)
+			}
+			for _, activityTopic := range activityTopics {
+				dids = append(dids, activityTopic.Creator)
+			}
 		}
 	}
 
@@ -199,6 +220,7 @@ func (s *FeedService) hydrateProfiles(ctx context.Context, dids []string) (map[s
 	if len(dids) == 0 {
 		return nil, nil
 	}
+	dids = deduplicate(dids)
 
 	hydrationState := make(map[string]interface{})
 
@@ -289,6 +311,34 @@ func (s *FeedService) presentCards(uris []string, hydrationState map[string]inte
 				}
 			}
 
+			tagViews := make([]*types.TagView, 0, len(moment.Tags))
+			for _, tag := range moment.Tags {
+				var isAster bool
+				creatorProfile, hasProfile := hydrationState["profile:"+tag.Creator].(*repositories.Avatar)
+				if hasProfile {
+					isAster = creatorProfile.IsAster
+				}
+				tagViews = append(tagViews, &types.TagView{
+					Tag:     tag.Tag,
+					Creator: tag.Creator,
+					IsAster: isAster,
+				})
+			}
+
+			topicViews := make([]*types.TopicView, 0, len(moment.Topics))
+			for _, topic := range moment.Topics {
+				var isAster bool
+				creatorProfile, hasProfile := hydrationState["profile:"+topic.Creator].(*repositories.Avatar)
+				if hasProfile {
+					isAster = creatorProfile.IsAster
+				}
+				topicViews = append(topicViews, &types.TopicView{
+					Topic:   topic.Topic,
+					Creator: topic.Creator,
+					IsAster: isAster,
+				})
+			}
+
 			momentCard := &types.MomentCard{
 				ID:        moment.ID,
 				Text:      moment.Text,
@@ -296,14 +346,15 @@ func (s *FeedService) presentCards(uris []string, hydrationState map[string]inte
 				Reply:     moment.Reply,
 				Embed:     embed,
 				Langs:     moment.Langs,
-				Tags:      moment.Tags,
+				Tags:      tagViews,
+				Topics:    topicViews,
 				CreatedAt: moment.CreatedAt,
 				UpdatedAt: moment.UpdatedAt,
 				Author:    authorView,
 			}
 
 			cards = append(cards, &types.FeedCard{
-				Type: types.FeedCardTypeMoment,
+				Type: types.ActivityCardTypeMoment,
 				Card: momentCard,
 			})
 		}
@@ -422,6 +473,35 @@ func (s *FeedService) buildMomentCard(moment *repositories.Moment, hydrationStat
 		}
 	}
 
+	tagViews := make([]*types.TagView, 0, len(momentData.Tags))
+
+	for _, tag := range momentData.Tags {
+		var isAster bool
+		creatorProfile, hasProfile := hydrationState["profile:"+tag.Creator].(*repositories.Avatar)
+		if hasProfile {
+			isAster = creatorProfile.IsAster
+		}
+		tagViews = append(tagViews, &types.TagView{
+			Tag:     tag.Tag,
+			Creator: tag.Creator,
+			IsAster: isAster,
+		})
+	}
+
+	topicViews := make([]*types.TopicView, 0, len(momentData.Topics))
+	for _, topic := range momentData.Topics {
+		var isAster bool
+		creatorProfile, hasProfile := hydrationState["profile:"+topic.Creator].(*repositories.Avatar)
+		if hasProfile {
+			isAster = creatorProfile.IsAster
+		}
+		topicViews = append(topicViews, &types.TopicView{
+			Topic:   topic.Topic,
+			Creator: topic.Creator,
+			IsAster: isAster,
+		})
+	}
+
 	return &types.MomentCard{
 		ID:        momentData.ID,
 		URI:       moment.URI,
@@ -431,9 +511,22 @@ func (s *FeedService) buildMomentCard(moment *repositories.Moment, hydrationStat
 		Reply:     momentData.Reply,
 		Embed:     embed,
 		Langs:     momentData.Langs,
-		Tags:      momentData.Tags,
+		Tags:      tagViews,
+		Topics:    topicViews,
 		CreatedAt: momentData.CreatedAt,
 		UpdatedAt: momentData.UpdatedAt,
 		Author:    authorView,
 	}
+}
+
+func deduplicate(dids []string) []string {
+	seen := make(map[string]bool)
+	var ret []string
+	for _, did := range dids {
+		if !seen[did] {
+			seen[did] = true
+			ret = append(ret, did)
+		}
+	}
+	return ret
 }

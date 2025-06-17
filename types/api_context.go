@@ -3,6 +3,7 @@ package types
 import (
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -106,3 +107,20 @@ const (
 	ErrorCodeInternalServerError  ErrorCode = "internal_server_error"
 	ErrorCodeInvalidRequestParams ErrorCode = "invalid_request_params"
 )
+
+func (c *APIContext) GetPageAndPageSize() (int, int) {
+	page := c.QueryParam("page")
+	pageSize := c.QueryParam("pageSize")
+
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		pageInt = 1
+	}
+
+	pageSizeInt, err := strconv.Atoi(pageSize)
+	if err != nil {
+		pageSizeInt = 20
+	}
+
+	return pageInt, pageSizeInt
+}

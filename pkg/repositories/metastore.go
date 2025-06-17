@@ -10,12 +10,13 @@ type MetaStore struct {
 	DB *gorm.DB
 
 	// Repositories
-	UserRepo    *UserRepository
-	OAuthRepo   *OAuthRepository
-	MessageRepo *MessageRepository
-	MomentRepo  *MomentRepository
-	AtpRepo     *AtpRepository
-	FileRepo    *FileRepository
+	UserRepo     *UserRepository
+	OAuthRepo    *OAuthRepository
+	MessageRepo  *MessageRepository
+	MomentRepo   *MomentRepository
+	AtpRepo      *AtpRepository
+	FileRepo     *FileRepository
+	ActivityRepo *ActivityRepository
 }
 
 func NewMetaStore(db *gorm.DB) *MetaStore {
@@ -28,7 +29,7 @@ func NewMetaStore(db *gorm.DB) *MetaStore {
 	metaStore.MomentRepo = NewMomentRepository(metaStore)
 	metaStore.AtpRepo = NewAtpRepository(metaStore)
 	metaStore.FileRepo = NewFileRepository(metaStore)
-
+	metaStore.ActivityRepo = NewActivityRepository(metaStore)
 	return metaStore
 }
 
@@ -48,6 +49,14 @@ func (ms *MetaStore) Init() error {
 		&MomentImage{},
 		&MomentVideo{},
 		&MomentExternal{},
+		&Like{},
+		&MomentAgg{},
+
+		// tags
+		&Tag{},
+		&ActivityTag{},
+		&Topic{},
+		&ActivityTopic{},
 
 		// atp
 		&AtpRecord{},

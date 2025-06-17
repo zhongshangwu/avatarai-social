@@ -47,7 +47,7 @@ type ImageViewerConfig struct {
 
 func DefaultImageViewerConfig() *ImageViewerConfig {
 	return &ImageViewerConfig{
-		CacheLocation:   "/tmp/bsky-processed-images",
+		CacheLocation:   "/tmp/avatarai-images-cache",
 		MaxResponseSize: 50 << 20, // 50MB
 		HeadersTimeout:  30 * time.Second,
 		BodyTimeout:     60 * time.Second,
