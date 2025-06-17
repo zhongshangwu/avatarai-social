@@ -653,6 +653,7 @@ func (c *OAuthClient) sendPARAuthRequest(
 	codeChallenge := c.createS256CodeChallenge(pkceVerifier)
 	codeChallengeMethod := "S256"
 
+	// 统一使用 web 客户端模式，始终添加 client_assertion
 	clientAssertion, err := c.clientAssertionJWT(clientID, authserverURL)
 	if err != nil {
 		return "", "", "", nil, fmt.Errorf("创建客户端断言失败: %w", err)
@@ -810,6 +811,7 @@ func (c *OAuthClient) initialTokenRequest(
 ) (map[string]interface{}, string, error) {
 	authserverURL := authRequest.AuthserverIss
 
+	// 统一使用 web 客户端模式，始终添加 client_assertion
 	clientAssertion, err := c.clientAssertionJWT(clientID, authserverURL)
 	if err != nil {
 		return nil, "", fmt.Errorf("创建客户端断言失败: %w", err)
@@ -841,6 +843,7 @@ func (c *OAuthClient) refreshTokenRequest(
 ) (map[string]interface{}, string, error) {
 	authserverURL := session.AuthserverIss
 
+	// 统一使用 web 客户端模式，始终添加 client_assertion
 	clientAssertion, err := c.clientAssertionJWT(clientID, authserverURL)
 	if err != nil {
 		return nil, "", fmt.Errorf("创建客户端断言失败: %w", err)

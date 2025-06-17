@@ -92,8 +92,9 @@ func GetClientMetadataWithOptions(host string, platform string, appBundleId stri
 		meta.RedirectURIs = []string{fmt.Sprintf("%sapi/oauth/callback", host)}
 		meta.ApplicationType = "web"
 	} else {
-		meta.RedirectURIs = []string{fmt.Sprintf("%sapi/app-return/%s", host, appBundleId)}
-		meta.ApplicationType = "native"
+		meta.RedirectURIs = []string{fmt.Sprintf("%sapi/oauth/callback", host)}
+		// meta.RedirectURIs = []string{fmt.Sprintf("%sapi/app-return/%s", host, appBundleId)}
+		meta.ApplicationType = "web"
 	}
 	return meta
 }

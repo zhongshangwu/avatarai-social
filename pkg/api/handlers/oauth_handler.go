@@ -66,6 +66,9 @@ func (h *OAuthHandler) OAuthClientMetadata(c echo.Context) error {
 	platform := c.Param("platform")
 	clientID := atproto.BuildClientID(appURL, platform)
 
+	// 统一使用 web 客户端模式，因为实际上是服务端作为 OAuth 客户端
+	// 不管是 web 端还是移动端，都是通过服务端进行 OAuth 认证
+	// 服务端可以安全地存储客户端密钥，因此应该使用 private_key_jwt 认证方法
 	options := &atproto.ClientMetadataOptions{
 		ClientName:              "AvatarAI Social",
 		TokenEndpointAuthMethod: "private_key_jwt",
