@@ -74,6 +74,10 @@ func NewImageUriBuilder(endpoint string) *ImageUriBuilder {
 }
 
 func (b *ImageUriBuilder) GetPresetUri(preset ImagePreset, did, cid string) (string, error) {
+	if cid == "" {
+		return "", nil
+	}
+
 	if _, ok := presets[preset]; !ok {
 		return "", fmt.Errorf("未识别的预设类型: %s", preset)
 	}
