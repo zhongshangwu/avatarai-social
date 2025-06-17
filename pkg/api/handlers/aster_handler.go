@@ -79,6 +79,7 @@ func (h *AsterHandler) GetAsterProfile(c *types.APIContext) error {
 		DisplayName: aster.DisplayName,
 		Description: aster.Description,
 		Avatar:      avatarURL,
+		AvatarCID:   aster.AvatarCID,
 		CreatedAt:   aster.CreatedAt,
 	}
 
@@ -321,6 +322,7 @@ func (h *AsterHandler) HandleAsterMint(c *types.APIContext) error {
 		DisplayName: aster.DisplayName,
 		Description: aster.Description,
 		Avatar:      avatarURL,
+		AvatarCID:   aster.AvatarCID,
 		CreatedAt:   aster.CreatedAt,
 	}
 

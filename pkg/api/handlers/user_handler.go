@@ -30,7 +30,9 @@ type UserProfileView struct {
 	DisplayName string `json:"displayName"`
 	Description string `json:"description"`
 	Avatar      string `json:"avatar"`
+	AvatarCID   string `json:"avatarCID,omitempty"`
 	Banner      string `json:"banner,omitempty"`
+	BannerCID   string `json:"bannerCID,omitempty"`
 	CreatedAt   int64  `json:"createdAt,omitempty"`
 }
 
@@ -74,6 +76,8 @@ func (h *UserHandler) CurrentUserProfile(c *types.APIContext) error {
 		DisplayName: user.DisplayName,
 		Description: user.Description,
 		Avatar:      avatarURL,
+		AvatarCID:   user.AvatarCID,
+		BannerCID:   user.BannerCID,
 		Banner:      bannerURL,
 		CreatedAt:   user.CreatedAt,
 	}
