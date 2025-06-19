@@ -341,6 +341,8 @@ func (s *FeedService) presentCards(uris []string, hydrationState map[string]inte
 
 			momentCard := &types.MomentCard{
 				ID:        moment.ID,
+				URI:       moment.URI,
+				CID:       moment.CID,
 				Text:      moment.Text,
 				Facets:    moment.Facets,
 				Reply:     moment.Reply,

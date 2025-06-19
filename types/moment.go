@@ -6,6 +6,8 @@ import (
 
 type Moment struct {
 	ID         string                        `json:"id"`
+	URI        string                        `json:"uri"`
+	CID        string                        `json:"cid"`
 	Text       string                        `json:"text"`
 	Facets     []*appbskytypes.RichtextFacet `json:"facets,omitempty"`
 	Langs      []string                      `json:"langs"`

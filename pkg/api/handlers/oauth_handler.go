@@ -51,7 +51,9 @@ type ExchangeTokenRequest struct {
 }
 
 func NewOAuthHandler(config *config.SocialConfig, metaStore *repositories.MetaStore, appReturnHTML string) *OAuthHandler {
-	appURL := fmt.Sprintf("http://%s/", config.Server.HTTP.Address)
+	// appURL := fmt.Sprintf("http://%s/", config.Server.HTTP.Address)
+	// FIXME: 临时使用，后续需要修改
+	appURL := "https://avatarai.social/"
 	client := atproto.NewOAuthClient(appURL, config.ATP.ClientSecretJWK())
 	return &OAuthHandler{
 		config:        config,

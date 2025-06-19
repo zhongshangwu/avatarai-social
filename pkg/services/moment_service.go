@@ -349,6 +349,8 @@ func (s *MomentService) ConvertDBToMoment(
 
 	return &types.Moment{
 		ID:        moment.ID,
+		URI:       moment.URI,
+		CID:       moment.CID,
 		Text:      moment.Text,
 		Facets:    facets,
 		Langs:     moment.Langs,

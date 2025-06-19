@@ -118,7 +118,7 @@ func BuildCallbackRedirectURI(host string, platform string) string {
 	if platform == "web" {
 		return fmt.Sprintf("%s", host)
 	}
-	return fmt.Sprintf("%sapp-callback", host)
+	return "oxchat://oauth/callback"
 }
 
 func boolPtr(b bool) *bool {
