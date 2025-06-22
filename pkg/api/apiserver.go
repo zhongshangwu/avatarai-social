@@ -16,20 +16,22 @@ import (
 var appReturnHTML string
 
 type AvatarAIAPI struct {
-	Config          *config.SocialConfig
-	echo            *echo.Echo
-	MetaStore       *repositories.MetaStore
-	HealthHandler   *handlers.HealthHandler
-	AuthHandler     *handlers.OAuthHandler
-	UserHandler     *handlers.UserHandler
-	AsterHandler    *handlers.AsterHandler
-	MomentsHandler  *handlers.MomentHandler
-	FeedHandler     *handlers.FeedHandler
-	BlobsHandler    *handlers.BlobHandler
-	MessagesHandler *handlers.MessageHandler
-	ChatHandler     *handlers.ChatHandler
-	ActivityHandler *handlers.ActivityHandler
-	ImageViewer     *blobs.ImageViewer
+	Config                *config.SocialConfig
+	echo                  *echo.Echo
+	MetaStore             *repositories.MetaStore
+	HealthHandler         *handlers.HealthHandler
+	AuthHandler           *handlers.OAuthHandler
+	UserHandler           *handlers.UserHandler
+	AsterHandler          *handlers.AsterHandler
+	MomentsHandler        *handlers.MomentHandler
+	FeedHandler           *handlers.FeedHandler
+	BlobsHandler          *handlers.BlobHandler
+	MessagesHandler       *handlers.MessageHandler
+	ChatHandler           *handlers.ChatHandler
+	ActivityHandler       *handlers.ActivityHandler
+	ImageViewer           *blobs.ImageViewer
+	MCPMarketplaceHandler *handlers.MCPMarketplaceHandler
+	MCPOAuthHandler       *handlers.MCPOAuthHandler
 }
 
 func NewAvatarAIAPI(config *config.SocialConfig, metaStore *repositories.MetaStore) *AvatarAIAPI {
@@ -48,6 +50,8 @@ func NewAvatarAIAPI(config *config.SocialConfig, metaStore *repositories.MetaSto
 	chatHandler := handlers.NewChatHandler(config, metaStore)
 	feedHandler := handlers.NewFeedHandler(config, metaStore)
 	activityHandler := handlers.NewActivityHandler(config, metaStore)
+	mcpMarketplaceHandler := handlers.NewMCPMarketplaceHandler()
+	mcpOAuthHandler := handlers.NewMCPOAuthHandler(config, metaStore)
 
 	viewer, err := blobs.NewImageViewer(blobs.DefaultImageViewerConfig())
 	if err != nil {
@@ -56,20 +60,22 @@ func NewAvatarAIAPI(config *config.SocialConfig, metaStore *repositories.MetaSto
 	}
 
 	return &AvatarAIAPI{
-		Config:          config,
-		echo:            e,
-		MetaStore:       metaStore,
-		HealthHandler:   healthHandler,
-		AuthHandler:     oauthHandler,
-		UserHandler:     userHandler,
-		AsterHandler:    asterHandler,
-		MomentsHandler:  momentHandler,
-		BlobsHandler:    blobHandler,
-		MessagesHandler: messageHandler,
-		ChatHandler:     chatHandler,
-		FeedHandler:     feedHandler,
-		ActivityHandler: activityHandler,
-		ImageViewer:     viewer,
+		Config:                config,
+		echo:                  e,
+		MetaStore:             metaStore,
+		HealthHandler:         healthHandler,
+		AuthHandler:           oauthHandler,
+		UserHandler:           userHandler,
+		AsterHandler:          asterHandler,
+		MomentsHandler:        momentHandler,
+		BlobsHandler:          blobHandler,
+		MessagesHandler:       messageHandler,
+		ChatHandler:           chatHandler,
+		FeedHandler:           feedHandler,
+		ActivityHandler:       activityHandler,
+		ImageViewer:           viewer,
+		MCPMarketplaceHandler: mcpMarketplaceHandler,
+		MCPOAuthHandler:       mcpOAuthHandler,
 	}
 }
 
@@ -131,6 +137,22 @@ func (a *AvatarAIAPI) InstallRoutes() {
 
 	img := a.echo.Group("/img")
 	img.Use(echo.WrapMiddleware(a.ImageViewer.CreateMiddleware("/img/")))
+
+	mcp := api.Group("/mcp")
+	mcp.GET("/servers", withAuth(a.MCPMarketplaceHandler.ListMCPServers, true))
+	mcp.GET("/servers/:mcpId", withAuth(a.MCPMarketplaceHandler.MCPServerDetail, true))
+	mcp.POST("/servers/install", withAuth(a.MCPMarketplaceHandler.InstallMCPServer, true))
+	mcp.DELETE("/servers/uninstall", withAuth(a.MCPMarketplaceHandler.UninstallMCPServer, true))
+
+	// MCP OAuth 客户端路由
+	mcpOAuth := mcp.Group("/oauth")
+	mcpOAuth.GET("/discover-resource", a.MCPOAuthHandler.DiscoverResource)
+	mcpOAuth.GET("/discover-auth-server", a.MCPOAuthHandler.DiscoverAuthServer)
+	mcpOAuth.POST("/register-client", a.MCPOAuthHandler.RegisterClient)
+	mcpOAuth.GET("/start-authorization", a.MCPOAuthHandler.StartAuthorization)
+	mcpOAuth.GET("/callback", a.MCPOAuthHandler.HandleCallback)
+	mcpOAuth.POST("/refresh-token", a.MCPOAuthHandler.RefreshToken)
+	mcpOAuth.GET("/access-resource", a.MCPOAuthHandler.AccessResource)
 }
 
 func (a *AvatarAIAPI) InstallMiddleware() {
