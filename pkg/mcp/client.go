@@ -1,67 +1,168 @@
 package mcp
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strings"
+	"sync"
+	"time"
+
 	mcpclient "github.com/mark3labs/mcp-go/client"
+	mcpclienttransport "github.com/mark3labs/mcp-go/client/transport"
 	"github.com/sirupsen/logrus"
-	"github.com/zhongshangwu/avatarai-social/types"
+	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 )
 
+type DBTokenStore struct {
+	mcpId      string
+	userDid    string
+	serverInfo *MCPServerInfo
+
+	metaStore *repositories.MetaStore
+
+	token *mcpclient.Token
+	mu    sync.RWMutex
+}
+
+func NewDBTokenStore(metaStore *repositories.MetaStore, serverInfo *MCPServerInfo) *DBTokenStore {
+	if serverInfo.Authorization.Method != MCPServerAuthorizationMethodOAuth2 {
+		return nil
+	}
+
+	var token *mcpclient.Token
+	if serverInfo.Authorization.Status == repositories.AuthStatusActive {
+		token = &mcpclient.Token{
+			AccessToken:  serverInfo.Authorization.Credentials["access_token"],
+			RefreshToken: serverInfo.Authorization.Credentials["refresh_token"],
+			Scope:        serverInfo.Authorization.Scopes,
+			TokenType:    "Bearer",
+			ExpiresAt:    time.Unix(serverInfo.Authorization.ExpireAt, 0),
+		}
+	}
+
+	return &DBTokenStore{
+		metaStore:  metaStore,
+		token:      token,
+		mu:         sync.RWMutex{},
+		mcpId:      serverInfo.McpId,
+		userDid:    serverInfo.UserID,
+		serverInfo: serverInfo,
+	}
+}
+
+func (s *DBTokenStore) GetToken() (*mcpclient.Token, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.token == nil {
+		return nil, errors.New("no token available")
+	}
+	return s.token, nil
+}
+
+func (s *DBTokenStore) SaveToken(token *mcpclient.Token) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.token = token
+
+	credentials, _ := json.Marshal(token)
+	config, _ := json.Marshal(s.serverInfo.Authorization.Config)
+
+	auth := &repositories.MCPServerAuth{
+		McpId:       s.mcpId,
+		UserDid:     s.userDid,
+		Scope:       token.Scope,
+		Status:      repositories.AuthStatusActive,
+		AuthConfig:  string(config),
+		AuthMethod:  string(MCPServerAuthorizationMethodOAuth2),
+		Credentials: string(credentials),
+		ExpiresAt:   token.ExpiresAt.Unix(),
+		UpdatedAt:   time.Now().Unix(),
+		CreatedAt:   time.Now().Unix(),
+	}
+	return s.metaStore.MCPRepo.CreateOrUpdateMCPServerAuth(auth)
+}
+
 type MCPClient struct {
-	ServerInfo types.MCPServerInfo
-	client     *mcpclient.Client
+	ServerInfo *MCPServerInfo
+
+	client       *mcpclient.Client
+	oauthHandler *mcpclienttransport.OAuthHandler
 }
 
-func NewMCPClient(serverInfo types.MCPServerInfo) *MCPClient {
+func NewMCPClient(metaStore *repositories.MetaStore, serverInfo *MCPServerInfo) (*MCPClient, error) {
 	var client *mcpclient.Client
+	var oauthHandler *mcpclienttransport.OAuthHandler
 	var err error
-	switch serverInfo.Endpoint.Type {
-	case types.MCPServerEndpointTypeStdio:
-		client = nil
-	case types.MCPServerEndpointTypeSSE:
-		client = nil
-	case types.MCPServerEndpointTypeStreamableHttp:
+
+	if serverInfo.Authorization.Method != MCPServerAuthorizationMethodOAuth2 {
+		return nil, fmt.Errorf("invalid authorization method: %s", serverInfo.Authorization.Method)
+	} else {
+		tokenStore := NewDBTokenStore(metaStore, serverInfo)
 		oAuthConfig := mcpclient.OAuthConfig{
-			// ClientID:     serverInfo.ClientID,
-			// ClientSecret: serverInfo.ClientSecret,
-			// RedirectURI:  serverInfo.RedirectURI,
-			// Scopes:       serverInfo.Scopes,
+			ClientID:              serverInfo.Authorization.Config["client_id"],
+			ClientSecret:          serverInfo.Authorization.Config["client_secret"],
+			RedirectURI:           serverInfo.Authorization.Config["redirect_uri"],
+			Scopes:                strings.Split(serverInfo.Authorization.Scopes, " "),
+			PKCEEnabled:           true,
+			TokenStore:            tokenStore,
+			AuthServerMetadataURL: "https://github.com/login/oauth/authorize",
 		}
-		client, err = mcpclient.NewOAuthStreamableHttpClient(serverInfo.Endpoint.Url, oAuthConfig)
-	default:
-		return nil
+		oauthHandler = mcpclienttransport.NewOAuthHandler(oAuthConfig)
+
+		switch serverInfo.Endpoint.Type {
+		default:
+			return nil, fmt.Errorf("invalid endpoint type: %s", serverInfo.Endpoint.Type)
+		case MCPServerEndpointTypeStdio:
+			client = nil
+		case MCPServerEndpointTypeSSE:
+			client, err = mcpclient.NewOAuthSSEClient(serverInfo.Endpoint.Url, oAuthConfig)
+		case MCPServerEndpointTypeStreamableHttp:
+			client, err = mcpclient.NewOAuthStreamableHttpClient(serverInfo.Endpoint.Url, oAuthConfig)
+		}
 	}
+
 	if err != nil {
 		logrus.WithError(err).Errorf("Failed to create OAuth Streamable Http Client: %v", err)
+		return nil, err
 	}
-	return &MCPClient{ServerInfo: serverInfo, client: client}
+	return &MCPClient{ServerInfo: serverInfo, client: client, oauthHandler: oauthHandler}, nil
 }
 
-type TwitterMCPClient struct {
-	ServerInfo types.MCPServerInfo
-	client     *mcpclient.Client
-}
-
-func NewTwitterMCPClient(serverInfo types.MCPServerInfo) *TwitterMCPClient {
-	var client *mcpclient.Client
-	var err error
-	switch serverInfo.Endpoint.Type {
-	case types.MCPServerEndpointTypeStdio:
-		client = nil
-	case types.MCPServerEndpointTypeSSE:
-		client = nil
-	case types.MCPServerEndpointTypeStreamableHttp:
-		oAuthConfig := mcpclient.OAuthConfig{
-			ClientID:     "VC1yaFhoWktuVzhEdGxTUjF6VEI6MTpjaQ",
-			ClientSecret: "XfwfAPzjsgPiGQ_ZYneJwADcOyXAIXBxZlO6rt0pD8Duih9MBN",
-			RedirectURI:  "https://avatarai.social/api/mcp/oauth-callback",
-			Scopes:       []string{"tweet.read", "tweet.write", "users.read", "offline.access", "follows.read", "follows.write"},
-		}
-		client, err = mcpclient.NewOAuthStreamableHttpClient(serverInfo.Endpoint.Url, oAuthConfig)
-	default:
-		return nil
-	}
+func (c *MCPClient) GenerateCodeChallenge() (string, string, error) {
+	codeVerifier, err := mcpclient.GenerateCodeVerifier()
 	if err != nil {
-		logrus.WithError(err).Errorf("Failed to create OAuth Streamable Http Client: %v", err)
+		logrus.WithError(err).Errorf("Failed to generate code verifier: %v", err)
+		return "", "", err
 	}
-	return &TwitterMCPClient{ServerInfo: serverInfo, client: client}
+	codeChallenge := mcpclient.GenerateCodeChallenge(codeVerifier)
+	return codeVerifier, codeChallenge, nil
+}
+
+func (c *MCPClient) GenerateState() (string, error) {
+	state, err := mcpclient.GenerateState()
+	if err != nil {
+		logrus.WithError(err).Errorf("Failed to generate state: %v", err)
+		return "", err
+	}
+	return state, nil
+}
+
+func (c *MCPClient) GetAuthorizationURL(ctx context.Context, state string, codeChallenge string) (authURL string, err error) {
+	authURL, err = c.oauthHandler.GetAuthorizationURL(ctx, state, codeChallenge)
+	if err != nil {
+		logrus.WithError(err).Errorf("Failed to get authorization URL: %v", err)
+		return "", err
+	}
+	return authURL, nil
+}
+
+func (c *MCPClient) ExchangeCode(ctx context.Context, code string, state string, codeVerifier string) error {
+	err := c.oauthHandler.ProcessAuthorizationResponse(ctx, code, state, codeVerifier)
+	if err != nil {
+		logrus.WithError(err).Errorf("Failed to exchange code: %v", err)
+		return err
+	}
+	return nil
 }

@@ -28,6 +28,8 @@ Thumbs.db
 *.sqlite
 *.db
 
+# 任意子目录的 python
+**/__pycache__/
 data/
 
 tmp/

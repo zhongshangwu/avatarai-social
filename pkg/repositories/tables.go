@@ -4,6 +4,35 @@ import (
 	"time"
 )
 
+// 认证方法常量
+const (
+	AuthMethodNone      = "none"       // 无认证
+	AuthMethodOAuth2    = "oauth2"     // OAuth2认证
+	AuthMethodAPIKey    = "api_key"    // API Key认证
+	AuthMethodBasicAuth = "basic_auth" // HTTP Basic认证
+)
+
+// 认证状态常量
+const (
+	AuthStatusActive   = "active"   // 激活状态
+	AuthStatusExpired  = "expired"  // 已过期
+	AuthStatusDisabled = "disabled" // 已禁用
+	AuthStatusRevoked  = "revoked"  // 已撤销
+)
+
+// Token类型常量
+const (
+	TokenTypeBearer = "bearer"  // Bearer token
+	TokenTypeBasic  = "basic"   // Basic token
+	TokenTypeAPIKey = "api_key" // API Key
+)
+
+// PKCE Challenge方法常量
+const (
+	PKCEMethodPlain = "plain" // plain方法
+	PKCEMethodS256  = "S256"  // SHA256方法（推荐）
+)
+
 type OAuthAuthRequest struct {
 	ID                  uint   `gorm:"primaryKey;autoIncrement:true"`
 	State               string `gorm:"column:state"`
@@ -395,3 +424,173 @@ type AtpRecord struct {
 func (AtpRecord) TableName() string {
 	return "atp_records"
 }
+
+type MCPServer struct {
+	ID                  uint   `gorm:"primaryKey;autoIncrement:true"`
+	McpID               string `gorm:"column:mcp_id;uniqueIndex:idx_user_mcp"`   // MCP服务器唯一标识
+	UserDid             string `gorm:"column:user_did;uniqueIndex:idx_user_mcp"` // 用户DID，组合唯一索引
+	Name                string `gorm:"column:name;not null"`                     // 服务器名称
+	Description         string `gorm:"column:description"`                       // 服务器描述
+	About               string `gorm:"column:about"`                             // 关于信息
+	Icon                string `gorm:"column:icon"`                              // 图标URL
+	Author              string `gorm:"column:author"`                            // 作者
+	Version             string `gorm:"column:version"`                           // 服务器版本
+	ProtocolVersion     string `gorm:"column:protocol_version"`                  // MCP协议版本
+	Instructions        string `gorm:"column:instructions"`                      // 使用说明
+	Capabilities        string `gorm:"column:capabilities"`                      // 服务器能力
+	Enabled             bool   `gorm:"column:enabled;default:false"`             // 是否开启
+	SyncResources       bool   `gorm:"column:sync_resources;default:false"`      // 是否同步资源到PDS
+	UpdatedAt           int64  `gorm:"column:updated_at;not null"`
+	CreatedAt           int64  `gorm:"column:created_at;not null"`
+	LastSyncResourcesAt int64  `gorm:"column:last_sync_resources_at"`
+}
+
+func (MCPServer) TableName() string {
+	return "mcp_servers"
+}
+
+type MCPServerEndpoint struct {
+	ID        uint   `gorm:"primaryKey;autoIncrement:true"`
+	McpID     string `gorm:"column:mcp_id;not null"`   // 关联MCPServer
+	Type      string `gorm:"column:type;not null"`     // stdio, sse, streamableHttp
+	Command   string `gorm:"column:command"`           // 命令（stdio类型）
+	Args      string `gorm:"type:text;column:args"`    // 参数列表JSON字符串
+	Env       string `gorm:"type:text;column:env"`     // 环境变量JSON字符串
+	URL       string `gorm:"column:url"`               // URL（HTTP类型）
+	Headers   string `gorm:"type:text;column:headers"` // HTTP头JSON字符串
+	CreatedAt int64  `gorm:"column:created_at;not null"`
+	UpdatedAt int64  `gorm:"column:updated_at;not null"`
+}
+
+func (MCPServerEndpoint) TableName() string {
+	return "mcp_server_endpoints"
+}
+
+type MCPServerOAuthCode struct {
+	ID              uint   `gorm:"primaryKey;autoIncrement:true"`
+	McpID           string `gorm:"column:mcp_id;not null;index"`                  // 关联MCPServer，统一使用mcp_server_id
+	UserDid         string `gorm:"column:user_did;not null;index"`                // 关联用户DID
+	Issuer          string `gorm:"column:issuer;not null;index"`                  // OAuth2 issuer
+	State           string `gorm:"column:state;not null;uniqueIndex"`             // OAuth2 state参数
+	CodeVerifier    string `gorm:"column:code_verifier;not null"`                 // PKCE code verifier
+	CodeChallenge   string `gorm:"column:code_challenge;not null"`                // PKCE code challenge
+	ChallengeMethod string `gorm:"column:challenge_method;not null;default:S256"` // code challenge方法
+	RedirectURI     string `gorm:"column:redirect_uri;not null"`                  // OAuth2重定向URI
+	Scope           string `gorm:"column:scope"`                                  // OAuth2 scope
+	ExpiresAt       int64  `gorm:"column:expires_at;not null"`                    // 过期时间（统一使用expires_at）
+	CreatedAt       int64  `gorm:"column:created_at;not null"`
+	UpdatedAt       int64  `gorm:"column:updated_at;not null"`
+}
+
+func (MCPServerOAuthCode) TableName() string {
+	return "mcp_server_oauth_codes"
+}
+
+type MCPServerAuth struct {
+	ID          uint   `gorm:"primaryKey;autoIncrement:true"`
+	McpId       string `gorm:"column:mcp_id;not null;index:idx_mcp_server_user"`   // 关联MCPServer，统一命名
+	UserDid     string `gorm:"column:user_did;not null;index:idx_mcp_server_user"` // 关联用户DID
+	AuthMethod  string `gorm:"column:auth_method;not null;index"`                  // 认证方式: none, oauth2, api_key, basic_auth
+	AuthConfig  string `gorm:"type:text;column:auth_config"`                       // 认证配置JSON（非敏感信息）
+	Credentials string `gorm:"type:text;column:credentials"`                       // 敏感凭据JSON（加密存储）
+	Scope       string `gorm:"column:scope"`                                       // 授权范围
+	Status      string `gorm:"column:status;default:active;index"`                 // 状态: active, expired, disabled
+	ExpiresAt   int64  `gorm:"column:expires_at;index"`                            // 凭据过期时间
+	LastUsedAt  int64  `gorm:"column:last_used_at"`                                // 最后使用时间
+	CreatedAt   int64  `gorm:"column:created_at;not null"`
+	UpdatedAt   int64  `gorm:"column:updated_at;not null"`
+}
+
+func (MCPServerAuth) TableName() string {
+	return "mcp_server_auth"
+}
+
+func (auth *MCPServerAuth) IsExpired() bool {
+	if auth.ExpiresAt == 0 {
+		return false // 永不过期
+	}
+	return time.Now().Unix() > auth.ExpiresAt
+}
+
+func (auth *MCPServerAuth) IsActive() bool {
+	return auth.Status == AuthStatusActive && !auth.IsExpired()
+}
+
+func (auth *MCPServerAuth) UpdateLastUsed() {
+	auth.LastUsedAt = time.Now().Unix()
+}
+
+func (code *MCPServerOAuthCode) IsExpired() bool {
+	return time.Now().Unix() > code.ExpiresAt
+}
+
+func (code *MCPServerOAuthCode) VerifyPKCE(verifier string) bool {
+	if code.ChallengeMethod == PKCEMethodPlain {
+		return code.CodeChallenge == verifier
+	}
+	// TODO: 实现SHA256验证逻辑
+	return false
+}
+
+// Resource ,  Tool, Prompt 暂时不需要考虑
+// // MCP服务器资源缓存
+// type MCPServerResource struct {
+// 	ID          uint   `gorm:"primaryKey;autoIncrement:true"`
+// 	McpID       uint   `gorm:"column:mcp_id;not null"`       // 关联MCPServer
+// 	URI         string `gorm:"column:uri;not null"`          // 资源URI
+// 	Name        string `gorm:"column:name;not null"`         // 资源名称
+// 	Description string `gorm:"column:description"`           // 资源描述
+// 	MimeType    string `gorm:"column:mime_type"`             // MIME类型
+// 	Annotations string `gorm:"type:text;column:annotations"` // 注解信息JSON字符串
+// 	CachedAt    int64  `gorm:"column:cached_at;not null"`    // 缓存时间
+// 	ExpireAt    int64  `gorm:"column:expire_at"`             // 缓存过期时间
+// }
+
+// func (MCPServerResource) TableName() string {
+// 	return "mcp_server_resources"
+// }
+
+// // MCP服务器工具缓存
+// type MCPServerTool struct {
+// 	ID          uint   `gorm:"primaryKey;autoIncrement:true"`
+// 	McpID       uint   `gorm:"column:mcp_id;not null"`        // 关联MCPServer
+// 	Name        string `gorm:"column:name;not null"`          // 工具名称
+// 	Description string `gorm:"column:description"`            // 工具描述
+// 	InputSchema string `gorm:"type:text;column:input_schema"` // 输入参数schema JSON字符串
+// 	CachedAt    int64  `gorm:"column:cached_at;not null"`     // 缓存时间
+// 	ExpireAt    int64  `gorm:"column:expire_at"`              // 缓存过期时间
+// }
+
+// func (MCPServerTool) TableName() string {
+// 	return "mcp_server_tools"
+// }
+
+// // MCP服务器状态日志（用于监控和调试）
+// type MCPServerStatusLog struct {
+// 	ID        uint   `gorm:"primaryKey;autoIncrement:true"`
+// 	McpID     uint   `gorm:"column:mcp_id;not null"`    // 关联MCPServer
+// 	Status    string `gorm:"column:status;not null"`    // connected, disconnected, connecting, error
+// 	Error     string `gorm:"column:error"`              // 错误信息
+// 	Metadata  string `gorm:"type:text;column:metadata"` // 额外元数据JSON字符串
+// 	CreatedAt int64  `gorm:"column:created_at;not null"`
+// }
+
+// func (MCPServerStatusLog) TableName() string {
+// 	return "mcp_server_status_logs"
+// }
+
+// // MCP服务器使用统计
+// type MCPServerUsage struct {
+// 	ID               uint  `gorm:"primaryKey;autoIncrement:true"`
+// 	McpID            uint  `gorm:"column:mcp_id;not null"`              // 关联MCPServer
+// 	Date             int64 `gorm:"column:date;not null"`                // 统计日期（YYYYMMDD格式的时间戳）
+// 	ToolCallCount    int64 `gorm:"column:tool_call_count;default:0"`    // 工具调用次数
+// 	ResourceGetCount int64 `gorm:"column:resource_get_count;default:0"` // 资源获取次数
+// 	ErrorCount       int64 `gorm:"column:error_count;default:0"`        // 错误次数
+// 	CreatedAt        int64 `gorm:"column:created_at;not null"`
+// 	UpdatedAt        int64 `gorm:"column:updated_at;not null"`
+// }
+
+// func (MCPServerUsage) TableName() string {
+// 	return "mcp_server_usage"
+// }

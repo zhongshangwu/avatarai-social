@@ -1,42 +1,51 @@
 package mcp
 
 import (
-	"time"
-
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
 type MCPServerInfo struct {
-	ID                  string
-	Name                string
-	Description         string
-	About               string
-	Icon                string
-	Schema              string
-	SchemaKind          string
-	Endpoint            *MCPServerEndpoint
-	Version             string
-	ProtocolVersion     string
-	Capabilities        mcp.ServerCapabilities // json string
-	Instructions        *string
-	Author              string
-	AuthorzationMethod  MCPServerAuthorizationMethod
-	Disabled            bool
-	Status              MCPServerStatus
-	Error               *string
-	UserID              string
-	CreatedAt           int64
-	UpdatedAt           int64
-	LastSyncResourcesAt int64
+	McpId               string                 `json:"mcp_id"`
+	UserID              string                 `json:"user_id"`
+	IsBuiltin           bool                   `json:"is_builtin"`
+	Name                string                 `json:"name"`
+	Description         string                 `json:"description"`
+	About               string                 `json:"about"`
+	Icon                string                 `json:"icon"`
+	Schema              string                 `json:"schema"`
+	SchemaKind          string                 `json:"schema_kind"`
+	Endpoint            *MCPServerEndpoint     `json:"endpoint"`
+	Version             string                 `json:"version"`
+	ProtocolVersion     string                 `json:"protocol_version"`
+	Capabilities        mcp.ServerCapabilities `json:"capabilities"`
+	Instructions        *string                `json:"instructions"`
+	Author              string                 `json:"author"`
+	Authorization       MCPServerAuthorization `json:"authorization"` // 授权信息
+	Status              MCPServerStatus        `json:"status"`        // 连接状态, 现在没有 local mcp server， 所以这里连接状态只要启用都是 connected
+	Error               *string                `json:"error"`
+	Enabled             bool                   `json:"enabled"`        // 是否开启
+	SyncResources       bool                   `json:"sync_resources"` // 是否开启同步资源到 PDS
+	CreatedAt           int64                  `json:"created_at"`
+	UpdatedAt           int64                  `json:"updated_at"`
+	LastSyncResourcesAt int64                  `json:"last_sync_resources_at"`
+}
+
+type MCPServerAuthorization struct {
+	Method      MCPServerAuthorizationMethod `json:"method"`
+	Status      MCPServerAuthorizationStatus `json:"status"`
+	Scopes      string                       `json:"scopes"`
+	Config      map[string]string            `json:"config"`      // 配置: client_id, client_secret, scopes, etc.
+	Credentials map[string]string            `json:"credentials"` // 凭证: access_token, refresh_token, expires_in, etc.
+	ExpireAt    int64                        `json:"expire_at"`
 }
 
 type MCPServerEndpoint struct {
-	Type    MCPServerEndpointType
-	Command string
-	Args    []string
-	Env     map[string]string
-	Url     string
-	Headers map[string]string
+	Type    MCPServerEndpointType `json:"type"`
+	Command string                `json:"command"`
+	Args    []string              `json:"args"`
+	Env     map[string]string     `json:"env"`
+	Url     string                `json:"url"`
+	Headers map[string]string     `json:"headers"`
 }
 
 type MCPServerEndpointType string
@@ -62,29 +71,10 @@ const (
 	MCPServerStatusConnecting   MCPServerStatus = "connecting"
 )
 
-func NewTwitterServerInfo() *MCPServerInfo {
-	return &MCPServerInfo{
-		ID:          "twitter",
-		Name:        "Twitter",
-		Description: "Twitter MCP Server",
-		About:       "Twitter MCP Server",
-		Icon:        "https://twitter.com/favicon.ico",
-		Schema:      "https://twitter.com/schema.json",
-		Endpoint: &MCPServerEndpoint{
-			Type:    MCPServerEndpointTypeStreamableHttp,
-			Url:     "https://api.twitter.com/2/mcp",
-			Headers: map[string]string{},
-		},
-		AuthorzationMethod:  MCPServerAuthorizationMethodOAuth2,
-		Disabled:            false,
-		Status:              MCPServerStatusConnected,
-		Error:               nil,
-		Capabilities:        mcp.ServerCapabilities{},
-		Instructions:        nil,
-		Author:              "AvatarAI",
-		UserID:              "1234567890",
-		CreatedAt:           time.Now().Unix(),
-		UpdatedAt:           time.Now().Unix(),
-		LastSyncResourcesAt: time.Now().Unix(),
-	}
-}
+type MCPServerAuthorizationStatus string
+
+const (
+	MCPServerAuthorizationStatusActive   MCPServerAuthorizationStatus = "active"
+	MCPServerAuthorizationStatusExpired  MCPServerAuthorizationStatus = "expired"
+	MCPServerAuthorizationStatusDisabled MCPServerAuthorizationStatus = "disabled"
+)

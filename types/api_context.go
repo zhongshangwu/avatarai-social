@@ -62,6 +62,14 @@ func (c *APIContext) InternalServerError(message string) error {
 	})
 }
 
+func (c *APIContext) NotFound(message string) error {
+	return c.JSON(http.StatusNotFound, &APIResponse{
+		Code:    string(ErrorCodeNotFound),
+		Message: message,
+		Data:    nil,
+	})
+}
+
 func (c *APIContext) AuthToken() string {
 	var token string
 	jwtCookie, err := c.Cookie("avatarai_token")
@@ -106,6 +114,7 @@ type ErrorCode string
 const (
 	ErrorCodeInternalServerError  ErrorCode = "internal_server_error"
 	ErrorCodeInvalidRequestParams ErrorCode = "invalid_request_params"
+	ErrorCodeNotFound             ErrorCode = "not_found"
 )
 
 func (c *APIContext) GetPageAndPageSize() (int, int) {

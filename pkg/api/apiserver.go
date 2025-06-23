@@ -50,7 +50,7 @@ func NewAvatarAIAPI(config *config.SocialConfig, metaStore *repositories.MetaSto
 	chatHandler := handlers.NewChatHandler(config, metaStore)
 	feedHandler := handlers.NewFeedHandler(config, metaStore)
 	activityHandler := handlers.NewActivityHandler(config, metaStore)
-	mcpMarketplaceHandler := handlers.NewMCPMarketplaceHandler()
+	mcpMarketplaceHandler := handlers.NewMCPMarketplaceHandler(config, metaStore)
 	mcpOAuthHandler := handlers.NewMCPOAuthHandler(config, metaStore)
 
 	viewer, err := blobs.NewImageViewer(blobs.DefaultImageViewerConfig())
@@ -143,16 +143,9 @@ func (a *AvatarAIAPI) InstallRoutes() {
 	mcp.GET("/servers/:mcpId", withAuth(a.MCPMarketplaceHandler.MCPServerDetail, true))
 	mcp.POST("/servers/install", withAuth(a.MCPMarketplaceHandler.InstallMCPServer, true))
 	mcp.DELETE("/servers/uninstall", withAuth(a.MCPMarketplaceHandler.UninstallMCPServer, true))
-
-	// MCP OAuth 客户端路由
 	mcpOAuth := mcp.Group("/oauth")
-	mcpOAuth.GET("/discover-resource", a.MCPOAuthHandler.DiscoverResource)
-	mcpOAuth.GET("/discover-auth-server", a.MCPOAuthHandler.DiscoverAuthServer)
-	mcpOAuth.POST("/register-client", a.MCPOAuthHandler.RegisterClient)
-	mcpOAuth.GET("/start-authorization", a.MCPOAuthHandler.StartAuthorization)
-	mcpOAuth.GET("/callback", a.MCPOAuthHandler.HandleCallback)
-	mcpOAuth.POST("/refresh-token", a.MCPOAuthHandler.RefreshToken)
-	mcpOAuth.GET("/access-resource", a.MCPOAuthHandler.AccessResource)
+	mcpOAuth.GET("/authorize", withAuth(a.MCPOAuthHandler.Authorize, true))
+	mcpOAuth.GET("/callback", withAuth(a.MCPOAuthHandler.OAuthCallback, false))
 }
 
 func (a *AvatarAIAPI) InstallMiddleware() {

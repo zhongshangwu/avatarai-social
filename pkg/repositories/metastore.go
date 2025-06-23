@@ -17,6 +17,7 @@ type MetaStore struct {
 	AtpRepo      *AtpRepository
 	FileRepo     *FileRepository
 	ActivityRepo *ActivityRepository
+	MCPRepo      *MCPRepository
 }
 
 func NewMetaStore(db *gorm.DB) *MetaStore {
@@ -30,6 +31,7 @@ func NewMetaStore(db *gorm.DB) *MetaStore {
 	metaStore.AtpRepo = NewAtpRepository(metaStore)
 	metaStore.FileRepo = NewFileRepository(metaStore)
 	metaStore.ActivityRepo = NewActivityRepository(metaStore)
+	metaStore.MCPRepo = NewMCPRepository(metaStore)
 	return metaStore
 }
 
@@ -71,6 +73,12 @@ func (ms *MetaStore) Init() error {
 
 		// files
 		&UploadFile{},
+
+		// mcp
+		&MCPServer{},
+		&MCPServerEndpoint{},
+		&MCPServerOAuthCode{},
+		&MCPServerAuth{},
 	)
 }
 

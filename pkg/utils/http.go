@@ -155,7 +155,7 @@ func Do(client *http.Client, req *http.Request, config *HardenedHTTPClientConfig
 func GetAPPURL(c echo.Context) string {
 	scheme := "https"
 	if c.Request().TLS == nil {
-		scheme = "http"
+		scheme = "https"
 	}
 	return scheme + "://" + c.Request().Host + "/"
 }
