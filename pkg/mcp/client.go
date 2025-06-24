@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -34,8 +35,8 @@ func NewDBTokenStore(metaStore *repositories.MetaStore, serverInfo *MCPServerInf
 	var token *mcpclient.Token
 	if serverInfo.Authorization.Status == repositories.AuthStatusActive {
 		token = &mcpclient.Token{
-			AccessToken:  serverInfo.Authorization.Credentials["access_token"],
-			RefreshToken: serverInfo.Authorization.Credentials["refresh_token"],
+			AccessToken:  GetString(serverInfo.Authorization.Credentials, "access_token"),
+			RefreshToken: GetString(serverInfo.Authorization.Credentials, "refresh_token"),
 			Scope:        serverInfo.Authorization.Scopes,
 			TokenType:    "Bearer",
 			ExpiresAt:    time.Unix(serverInfo.Authorization.ExpireAt, 0),
@@ -91,6 +92,8 @@ type MCPClient struct {
 	oauthHandler *mcpclienttransport.OAuthHandler
 }
 
+// 使用本地修改版本的库后，这些函数就不再需要了
+
 func NewMCPClient(metaStore *repositories.MetaStore, serverInfo *MCPServerInfo) (*MCPClient, error) {
 	var client *mcpclient.Client
 	var oauthHandler *mcpclienttransport.OAuthHandler
@@ -101,16 +104,21 @@ func NewMCPClient(metaStore *repositories.MetaStore, serverInfo *MCPServerInfo) 
 	} else {
 		tokenStore := NewDBTokenStore(metaStore, serverInfo)
 		oAuthConfig := mcpclient.OAuthConfig{
-			ClientID:              serverInfo.Authorization.Config["client_id"],
-			ClientSecret:          serverInfo.Authorization.Config["client_secret"],
-			RedirectURI:           serverInfo.Authorization.Config["redirect_uri"],
-			Scopes:                strings.Split(serverInfo.Authorization.Scopes, " "),
-			PKCEEnabled:           true,
-			TokenStore:            tokenStore,
-			AuthServerMetadataURL: "https://github.com/login/oauth/authorize",
+			ClientID:     GetString(serverInfo.Authorization.Config, "client_id"),
+			ClientSecret: GetString(serverInfo.Authorization.Config, "client_secret"),
+			RedirectURI:  GetString(serverInfo.Authorization.Config, "redirect_uri"),
+			Scopes:       strings.Split(serverInfo.Authorization.Scopes, " "),
+			PKCEEnabled:  true,
+			TokenStore:   tokenStore,
 		}
 		oauthHandler = mcpclienttransport.NewOAuthHandler(oAuthConfig)
-
+		baseURL, err := extractBaseURL(serverInfo.Endpoint.Url)
+		if err != nil {
+			logrus.WithError(err).Errorf("Failed to extract base URL: %v", err)
+			return nil, err
+		}
+		oauthHandler.SetBaseURL(baseURL)
+		oauthHandler.SetHTTPClient(mcpclienttransport.CreateDebugHTTPClientWithProxy("172.26.128.1", "7890"))
 		switch serverInfo.Endpoint.Type {
 		default:
 			return nil, fmt.Errorf("invalid endpoint type: %s", serverInfo.Endpoint.Type)
@@ -151,6 +159,7 @@ func (c *MCPClient) GenerateState() (string, error) {
 
 func (c *MCPClient) GetAuthorizationURL(ctx context.Context, state string, codeChallenge string) (authURL string, err error) {
 	authURL, err = c.oauthHandler.GetAuthorizationURL(ctx, state, codeChallenge)
+	logrus.Infof("Authorization URL: %s", authURL)
 	if err != nil {
 		logrus.WithError(err).Errorf("Failed to get authorization URL: %v", err)
 		return "", err
@@ -158,11 +167,27 @@ func (c *MCPClient) GetAuthorizationURL(ctx context.Context, state string, codeC
 	return authURL, nil
 }
 
-func (c *MCPClient) ExchangeCode(ctx context.Context, code string, state string, codeVerifier string) error {
+func (c *MCPClient) ExchangeCode(ctx context.Context, expectedState string, code string, state string, codeVerifier string) error {
+	c.oauthHandler.SetExpectedState(expectedState)
 	err := c.oauthHandler.ProcessAuthorizationResponse(ctx, code, state, codeVerifier)
 	if err != nil {
 		logrus.WithError(err).Errorf("Failed to exchange code: %v", err)
 		return err
 	}
 	return nil
+}
+
+func extractBaseURL(mcpServerURL string) (string, error) {
+	parsedURL, err := url.Parse(mcpServerURL)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s://%s", parsedURL.Scheme, parsedURL.Host), nil
+}
+
+func GetString(m map[string]any, key string) string {
+	if v, ok := m[key]; ok {
+		return v.(string)
+	}
+	return ""
 }

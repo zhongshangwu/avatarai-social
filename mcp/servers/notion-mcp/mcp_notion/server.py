@@ -135,19 +135,12 @@ def create_resource_server(settings: ResourceServerSettings) -> FastMCP:
         这是一个固定内容的端点，为客户端提供授权服务器的配置信息。
         """
         metadata = {
-            "issuer": "https://x.com",
-            "authorization_endpoint": "https://x.com/i/oauth2/authorize",
-            "token_endpoint": "https://api.x.com/2/oauth2/token",
+            "issuer": "https://api.notion.com",
+            "authorization_endpoint": "https://api.notion.com/v1/oauth/authorize",
+            "token_endpoint": "https://api.notion.com/v1/oauth/token",
             "registration_endpoint": "",
             "scopes_supported": [
-                "offline.access",
-                "tweet.read",
-                "tweet.write",
-                "follows.read",
-                "follows.write",
-                "like.read",
-                "like.write",
-                "media.write"
+                "user"
             ],
             "response_types_supported": [
                 "code"

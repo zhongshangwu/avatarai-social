@@ -46,6 +46,12 @@ func (h *MCPOAuthHandler) Authorize(c *types.APIContext) error {
 		})
 	}
 
+	if serverInfo.IsBuiltin {
+		if err := h.mcpService.InstallBuiltinIfNotExists(serverInfo, userDid); err != nil {
+			return c.InternalServerError(err.Error())
+		}
+	}
+
 	if serverInfo.Authorization.Method != mcp.MCPServerAuthorizationMethodOAuth2 {
 		return c.InvalidRequest("invalid_request", "MCP 服务器不支持 OAuth2 认证")
 	}
@@ -150,7 +156,7 @@ func (h *MCPOAuthHandler) OAuthCallback(c *types.APIContext) error {
 		return c.InternalServerError(err.Error())
 	}
 
-	if err = client.ExchangeCode(c.Request().Context(), code, state, oauthCode.CodeVerifier); err != nil {
+	if err = client.ExchangeCode(c.Request().Context(), oauthCode.State, code, state, oauthCode.CodeVerifier); err != nil {
 		logrus.WithError(err).Error("交换授权码失败")
 		return c.InternalServerError(err.Error())
 	}

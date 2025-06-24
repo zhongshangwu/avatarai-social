@@ -254,13 +254,154 @@ sequenceDiagram
     Note over C,M: MCP communication continues with valid token
 ```
 
-github oauth apps
-Ov23liXZ68YbB4ILHsyg
-a7c79cea7177603c833e8b310736a81a8d033f6b
-
-
-twitter oauth
-
+https://api.notion.com/v1/oauth/authorize?client_id=15ed872b-594c-817b-a08c-0037362900ad&response_type=code&owner=user&redirect_uri=https%3A%2F%2Favatarai.social%2Fapi%2Fmcp%2Foauth%2Fcallback
 
 export MCP_GITHUB_GITHUB_CLIENT_ID="Ov23liXZ68YbB4ILHsyg"
 export MCP_GITHUB_GITHUB_CLIENT_SECRET="a7c79cea7177603c833e8b310736a81a8d033f6b"
+
+
+
+
+
+
+{
+    "servers": [
+        {
+            "mcpId": "notion-mcp",
+            "userId": "did:plc:mop7aiqx3dgxciovzmx7o6xe",
+            "isBuiltin": false,
+            "name": "Notion MCP Server",
+            "description": "Notion MCP 允许您使用Notion API 和第三方客户端（如Cursor）进行交互。要使用Notion MCP，您需要在Notion中创建集成，获取内部集成令牌，并在MCP客户端中配置这些信息，以便客户端可以访问和操作您的Notion页面和数据库。",
+            "about": "",
+            "icon": "",
+            "schema": "",
+            "schemaKind": "",
+            "endpoint": {
+                "type": "streamableHttp",
+                "command": "",
+                "args": null,
+                "env": null,
+                "url": "http://localhost:8091/mcp",
+                "headers": {}
+            },
+            "version": "1.0.0",
+            "protocolVersion": "1.0.0",
+            "capabilities": {},
+            "instructions": null,
+            "author": "AvatarAI",
+            "authorization": {
+                "method": "none",
+                "status": "inactive",
+                "scopes": "",
+                "config": null,
+                "credentials": null,
+                "expireAt": 0
+            },
+            "status": "disconnected",
+            "error": null,
+            "enabled": false,
+            "syncResources": false,
+            "createdAt": 1750774000,
+            "updatedAt": 1750774000,
+            "lastSyncResourcesAt": 0
+        },
+        {
+            "mcpId": "github-mcp",
+            "userId": "did:plc:mop7aiqx3dgxciovzmx7o6xe",
+            "isBuiltin": false,
+            "name": "GitHub MCP Server",
+            "description": "GitHub MCP Server 允许您使用GitHub API 和第三方客户端（如Cursor）进行交互。要使用GitHub MCP，您需要在GitHub中创建集成，获取内部集成令牌，并在MCP客户端中配置这些信息，以便客户端可以访问和操作您的GitHub仓库。",
+            "about": "",
+            "icon": "",
+            "schema": "",
+            "schemaKind": "",
+            "endpoint": {
+                "type": "streamableHttp",
+                "command": "",
+                "args": null,
+                "env": null,
+                "url": "http://localhost:8089/mcp",
+                "headers": {}
+            },
+            "version": "1.2.0",
+            "protocolVersion": "1.0.0",
+            "capabilities": {},
+            "instructions": null,
+            "author": "AvatarAI",
+            "authorization": {
+                "method": "oauth2",
+                "status": "active",
+                "scopes": "repo",
+                "config": {
+                    "client_id": "Ov23liXZ68YbB4ILHsyg",
+                    "client_secret": "a7c79cea7177603c833e8b310736a81a8d033f6b",
+                    "redirect_uri": "https://avatarai.social/api/mcp/oauth/callback"
+                },
+                "credentials": {
+                    "access_token": "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",
+                    "expires_at": "0001-01-01T00:00:00Z",
+                    "scope": "repo",
+                    "token_type": "bearer"
+                },
+                "expireAt": -62135596800
+            },
+            "status": "disconnected",
+            "error": null,
+            "enabled": false,
+            "syncResources": false,
+            "createdAt": 1750772013,
+            "updatedAt": 1750772013,
+            "lastSyncResourcesAt": 0
+        },
+        {
+            "mcpId": "twitter-mcp",
+            "userId": "did:plc:mop7aiqx3dgxciovzmx7o6xe",
+            "isBuiltin": false,
+            "name": "Twitter MCP Server",
+            "description": "Twitter MCP Server 允许您使用Twitter API 和第三方客户端（如Cursor）进行交互。要使用Twitter MCP，您需要在Twitter中创建集成，获取内部集成令牌，并在MCP客户端中配置这些信息，以便客户端可以访问和操作您的Twitter账号。",
+            "about": "",
+            "icon": "",
+            "schema": "",
+            "schemaKind": "",
+            "endpoint": {
+                "type": "streamableHttp",
+                "command": "",
+                "args": null,
+                "env": null,
+                "url": "http://localhost:8090/mcp",
+                "headers": {}
+            },
+            "version": "1.0.0",
+            "protocolVersion": "1.0.0",
+            "capabilities": {},
+            "instructions": null,
+            "author": "AvatarAI",
+            "authorization": {
+                "method": "oauth2",
+                "status": "active",
+                "scopes": "follows.read offline.access tweet.write media.write like.write like.read users.read tweet.read follows.write",
+                "config": {
+                    "client_id": "VC1yaFhoWktuVzhEdGxTUjF6VEI6MTpjaQ",
+                    "client_secret": "EjdsctDBgUAaKOYmtTrKtlawGxtBYYQA5qk29XCnwSJfFhHFJH",
+                    "redirect_uri": "https://avatarai.social/api/mcp/oauth/callback"
+                },
+                "credentials": {
+                    "access_token": "S3AtQWZiOWt5OFVON2xmWUN5ajVsc1JXdDNJbzlOQk04Q3FnUVFORVgxWDNyOjE3NTA3NzI1NTk2OTM6MTowOmF0OjE",
+                    "expires_at": "2025-06-24T23:42:39.898818343+08:00",
+                    "expires_in": 7200,
+                    "refresh_token": "S3pNUnBneElVeW1KSThLREtBeVFXTjVjOE5hV3BhdGMyYmhHcDlaaU9zRkJKOjE3NTA3NzI1NTk2OTM6MTowOnJ0OjE",
+                    "scope": "follows.read offline.access tweet.write media.write like.write like.read users.read tweet.read follows.write",
+                    "token_type": "bearer"
+                },
+                "expireAt": 1750779759
+            },
+            "status": "connected",
+            "error": null,
+            "enabled": true,
+            "syncResources": false,
+            "createdAt": 1750771409,
+            "updatedAt": 1750772959,
+            "lastSyncResourcesAt": 0
+        }
+    ]
+}

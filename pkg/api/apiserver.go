@@ -143,6 +143,8 @@ func (a *AvatarAIAPI) InstallRoutes() {
 	mcp.GET("/servers/:mcpId", withAuth(a.MCPMarketplaceHandler.MCPServerDetail, true))
 	mcp.POST("/servers/install", withAuth(a.MCPMarketplaceHandler.InstallMCPServer, true))
 	mcp.DELETE("/servers/uninstall", withAuth(a.MCPMarketplaceHandler.UninstallMCPServer, true))
+	mcp.POST("/servers/:mcpId/toggle-sync-resources", withAuth(a.MCPMarketplaceHandler.ToggleSyncResourcesStatus, true))
+	mcp.POST("/servers/:mcpId/toggle-enabled", withAuth(a.MCPMarketplaceHandler.ToggleEnabled, true))
 	mcpOAuth := mcp.Group("/oauth")
 	mcpOAuth.GET("/authorize", withAuth(a.MCPOAuthHandler.Authorize, true))
 	mcpOAuth.GET("/callback", withAuth(a.MCPOAuthHandler.OAuthCallback, false))
@@ -158,7 +160,27 @@ func (a *AvatarAIAPI) InstallMiddleware() {
 func (a *AvatarAIAPI) Start() error {
 	a.InstallMiddleware()
 	a.InstallRoutes()
+
+	// 如果启用了 HTTPS，则启动 HTTPS 服务器
+	if a.Config.Server.HTTPS.Enabled {
+		return a.StartTLS()
+	}
+
+	// 否则启动 HTTP 服务器
 	return a.echo.Start(a.Config.Server.HTTP.Address)
+}
+
+func (a *AvatarAIAPI) StartTLS() error {
+	// 配置服务器超时
+	a.echo.Server.ReadTimeout = a.Config.Server.HTTPS.ReadTimeout
+	a.echo.Server.WriteTimeout = a.Config.Server.HTTPS.WriteTimeout
+	a.echo.Server.IdleTimeout = a.Config.Server.HTTPS.IdleTimeout
+
+	return a.echo.StartTLS(
+		a.Config.Server.HTTPS.Address,
+		a.Config.Server.HTTPS.CertFile,
+		a.Config.Server.HTTPS.KeyFile,
+	)
 }
 
 // func (a *AvatarAIAPI) handleATProtoBlob(c *types.APIContext) error {

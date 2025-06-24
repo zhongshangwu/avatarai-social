@@ -29,6 +29,9 @@ const App = {
         // 初始化Feed组件
         FeedComponent.init();
 
+        // 初始化MCP组件
+        MCPComponent.init();
+
         // 初始化模态框组件
         ModalsComponent.init();
     },
@@ -65,7 +68,8 @@ function initializeApp() {
         { name: 'Storage', obj: Storage },
         { name: 'ApiService', obj: ApiService },
         { name: 'WebSocketService', obj: WebSocketService },
-        { name: 'AuthComponent', obj: AuthComponent }
+        { name: 'AuthComponent', obj: AuthComponent },
+        { name: 'MCPComponent', obj: MCPComponent }
     ];
 
     const missingComponents = requiredComponents.filter(comp => typeof comp.obj === 'undefined');

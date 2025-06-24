@@ -12,7 +12,7 @@ from mcp.server.fastmcp.server import FastMCP
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from .token_verifier import DummyTokenVerifier
+from .token_verifier import IntrospectionTokenVerifier
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class ResourceServerSettings(BaseSettings):
     """Settings for the MCP Resource Server."""
 
-    model_config = SettingsConfigDict(env_prefix="MCP_RESOURCE_")
+    model_config = SettingsConfigDict(env_prefix="MCP_GITHUB_")
 
     # Server settings
     host: str = "localhost"
@@ -53,7 +53,11 @@ def create_resource_server(settings: ResourceServerSettings) -> FastMCP:
     3. Serves MCP tools and resources
     """
     # Create token verifier for introspection with RFC 8707 resource validation
-    token_verifier = DummyTokenVerifier()
+    token_verifier = IntrospectionTokenVerifier(
+        introspection_endpoint=settings.auth_server_introspection_endpoint,
+        server_url=str(settings.server_url),
+        validate_resource=settings.oauth_strict,  # Only validate when --oauth-strict is set
+    )
 
     # Create FastMCP server as a Resource Server
     app = FastMCP(
@@ -135,19 +139,12 @@ def create_resource_server(settings: ResourceServerSettings) -> FastMCP:
         这是一个固定内容的端点，为客户端提供授权服务器的配置信息。
         """
         metadata = {
-            "issuer": "https://x.com",
-            "authorization_endpoint": "https://x.com/i/oauth2/authorize",
-            "token_endpoint": "https://api.x.com/2/oauth2/token",
+            "issuer": "https://github.com",
+            "authorization_endpoint": "https://github.com/login/oauth/authorize",
+            "token_endpoint": "https://github.com/login/oauth/access_token",
             "registration_endpoint": "",
             "scopes_supported": [
-                "offline.access",
-                "tweet.read",
-                "tweet.write",
-                "follows.read",
-                "follows.write",
-                "like.read",
-                "like.write",
-                "media.write"
+                "user"
             ],
             "response_types_supported": [
                 "code"

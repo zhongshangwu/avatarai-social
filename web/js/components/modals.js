@@ -1,5 +1,7 @@
 // 模态框组件
 const ModalsComponent = {
+    currentModal: null,
+
     // 初始化
     init() {
         // 确保模态框容器存在
@@ -8,6 +10,117 @@ const ModalsComponent = {
             container.id = 'modals-container';
             document.body.appendChild(container);
         }
+    },
+
+    // 显示通用模态框
+    showModal(title, content, options = {}) {
+        // 默认选项
+        const defaultOptions = {
+            size: 'medium', // small, medium, large
+            showFooter: true,
+            confirmText: '确认',
+            cancelText: '取消',
+            onConfirm: null,
+            onCancel: null
+        };
+
+        const opts = { ...defaultOptions, ...options };
+
+        // 创建模态框
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+
+        const sizeClass = opts.size === 'large' ? 'modal-large' :
+                         opts.size === 'small' ? 'modal-small' : 'modal-medium';
+
+        modal.innerHTML = `
+            <div class="modal-content ${sizeClass}">
+                <div class="modal-header">
+                    <h3>${title}</h3>
+                    <button class="modal-close" onclick="ModalsComponent.hideModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    ${content}
+                </div>
+                ${opts.showFooter ? `
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="ModalsComponent.hideModal()">${opts.cancelText}</button>
+                        ${opts.onConfirm ? `<button class="btn btn-primary" onclick="ModalsComponent.handleConfirm()">${opts.confirmText}</button>` : ''}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+
+        // 存储当前模态框和回调
+        this.currentModal = modal;
+        this.currentOptions = opts;
+
+        // 添加到容器
+        document.getElementById('modals-container').appendChild(modal);
+
+        // 点击模态框外部关闭
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.hideModal();
+            }
+        });
+
+        // ESC键关闭
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                this.hideModal();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+
+        return modal;
+    },
+
+    // 隐藏模态框
+    hideModal() {
+        if (this.currentModal) {
+            this.currentModal.remove();
+            this.currentModal = null;
+
+            // 执行取消回调
+            if (this.currentOptions?.onCancel) {
+                this.currentOptions.onCancel();
+            }
+
+            this.currentOptions = null;
+        }
+    },
+
+    // 处理确认
+    async handleConfirm() {
+        if (this.currentOptions?.onConfirm) {
+            const result = await this.currentOptions.onConfirm();
+            // 只有当回调返回 true 或 undefined 时才关闭模态框
+            if (result !== false) {
+                this.hideModal();
+            }
+        } else {
+            this.hideModal();
+        }
+    },
+
+    // 显示确认对话框
+    showConfirm(title, message, options = {}) {
+        return new Promise((resolve) => {
+            const opts = {
+                ...options,
+                onConfirm: () => {
+                    resolve(true);
+                    return true;
+                },
+                onCancel: () => {
+                    resolve(false);
+                }
+            };
+
+            this.showModal(title, `<p>${message}</p>`, opts);
+        });
     },
 
     // 显示Thread模态框

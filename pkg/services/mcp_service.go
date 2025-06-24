@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"slices"
 	"time"
 
 	mcptypes "github.com/mark3labs/mcp-go/mcp"
@@ -42,19 +41,21 @@ func (s *MCPService) ListMCPServers(userDid string) ([]*mcp.MCPServerInfo, error
 		servers = append(servers, serverInfo)
 	}
 
-	allServers := s.OverrideMCPServers(builtinServers, servers)
+	allServers := s.OverrideInstalled(builtinServers, servers)
 	return allServers, nil
 }
 
-func (s *MCPService) OverrideMCPServers(builtinServers []*mcp.MCPServerInfo, dbServers []*mcp.MCPServerInfo) []*mcp.MCPServerInfo {
+func (s *MCPService) OverrideInstalled(builtinServers []*mcp.MCPServerInfo, dbServers []*mcp.MCPServerInfo) []*mcp.MCPServerInfo {
 	allServers := make([]*mcp.MCPServerInfo, 0)
-	installed := make([]string, 0)
+	intalled := make(map[string]*mcp.MCPServerInfo)
 	for _, dbServer := range dbServers {
-		installed = append(installed, dbServer.McpId)
+		intalled[dbServer.McpId] = dbServer
 	}
 	for _, builtinServer := range builtinServers {
-		if !slices.Contains(installed, builtinServer.McpId) {
+		if _, ok := intalled[builtinServer.McpId]; !ok {
 			allServers = append(allServers, builtinServer)
+		} else {
+			allServers = append(allServers, intalled[builtinServer.McpId])
 		}
 	}
 	return allServers
@@ -80,7 +81,7 @@ func (s *MCPService) GetMCPServerDetail(mcpID string, userDid string) (*mcp.MCPS
 	if err != nil {
 		return nil, err
 	}
-	return s.OverrideMCPServers([]*mcp.MCPServerInfo{builtinServer}, []*mcp.MCPServerInfo{dbServerInfo})[0], nil
+	return s.OverrideInstalled([]*mcp.MCPServerInfo{builtinServer}, []*mcp.MCPServerInfo{dbServerInfo})[0], nil
 }
 
 func (s *MCPService) GetMCPServerAuth(mcpID string, userDid string) (*repositories.MCPServerAuth, error) {
@@ -130,7 +131,7 @@ func (s *MCPService) UpdateSyncResourcesStatus(mcpID string, userDid string, syn
 	return s.metaStore.MCPRepo.UpdateSyncResourcesStatus(mcpID, userDid, syncResources)
 }
 
-func (s *MCPService) EnforceToDB(serverInfo *mcp.MCPServerInfo, userDid string) error {
+func (s *MCPService) InstallBuiltinIfNotExists(serverInfo *mcp.MCPServerInfo, userDid string) error {
 	dbServer, err := s.metaStore.MCPRepo.GetMCPServerByIDAndUser(serverInfo.McpId, userDid)
 	if err != nil {
 		return err
@@ -194,8 +195,10 @@ func (s *MCPService) GetMCPServerOAuthCode(issuer string, state string) (*reposi
 
 func (s *MCPService) convertDBServerToAPIServer(dbServer *repositories.MCPServer) (*mcp.MCPServerInfo, error) {
 	capabilities := mcptypes.ServerCapabilities{}
-	if err := json.Unmarshal([]byte(dbServer.Capabilities), &capabilities); err != nil {
-		return nil, err
+	if dbServer.Capabilities != "" {
+		if err := json.Unmarshal([]byte(dbServer.Capabilities), &capabilities); err != nil {
+			return nil, err
+		}
 	}
 	serverInfo := &mcp.MCPServerInfo{
 		McpId:           dbServer.McpID,
@@ -209,8 +212,8 @@ func (s *MCPService) convertDBServerToAPIServer(dbServer *repositories.MCPServer
 		ProtocolVersion: dbServer.ProtocolVersion,
 		Capabilities:    capabilities,
 		Authorization: mcp.MCPServerAuthorization{
-			Method: mcp.MCPServerAuthorizationMethodNone,
-			Status: mcp.MCPServerAuthorizationStatusActive,
+			Method: mcp.MCPServerAuthorizationMethodOAuth2,
+			Status: mcp.MCPServerAuthorizationStatusInactive,
 		},
 		Enabled:             dbServer.Enabled,
 		SyncResources:       dbServer.SyncResources,
@@ -228,7 +231,7 @@ func (s *MCPService) convertDBServerToAPIServer(dbServer *repositories.MCPServer
 		serverInfo.Status = mcp.MCPServerStatusConnected
 	}
 
-	endpoint, err := s.metaStore.MCPRepo.GetMCPServerEndpoint(dbServer.ID)
+	endpoint, err := s.metaStore.MCPRepo.GetMCPServerEndpoint(dbServer.McpID)
 	if err != nil {
 		return nil, err
 	}
@@ -239,17 +242,19 @@ func (s *MCPService) convertDBServerToAPIServer(dbServer *repositories.MCPServer
 		}
 	}
 
-	auth, err := s.metaStore.MCPRepo.GetMCPServerAuth(dbServer.ID)
+	auth, err := s.metaStore.MCPRepo.GetMCPServerAuth(dbServer.McpID)
 	if err != nil {
 		return nil, err
 	}
 	if auth != nil {
-		config := map[string]string{}
+		config := map[string]any{}
 		if err := json.Unmarshal([]byte(auth.AuthConfig), &config); err != nil {
+			logrus.WithError(err).Error("unmarshal auth config failed")
 			return nil, err
 		}
-		credentials := map[string]string{}
+		credentials := map[string]any{}
 		if err := json.Unmarshal([]byte(auth.Credentials), &credentials); err != nil {
+			logrus.WithError(err).Error("unmarshal auth credentials failed")
 			return nil, err
 		}
 		serverInfo.Authorization = mcp.MCPServerAuthorization{
@@ -367,13 +372,13 @@ func (s *MCPService) getBuiltinMCPServers() []*mcp.MCPServerInfo {
 			McpId:       "notion-mcp",
 			IsBuiltin:   true,
 			Name:        "Notion MCP Server",
-			Description: "Notion MCP 允许您使用Notion API 和第三方客户端（如Cursor）进行交互。要使用Notion MCP，您需要在Notion中创建集成，获取内部集成令牌，并在MCP客户端中配置这些信息，以便客户端可以访问和操作您的Notion页面和数据库。",
+			Description: "通过 Notion MCP Server 访问和同步您的 Notion 页面和数据库，支持页面读取、数据库查询、内容搜索等功能",
 			Version:     "1.0.0",
 			Author:      "AvatarAI",
 			Status:      mcp.MCPServerStatusDisconnected,
 			Endpoint: &mcp.MCPServerEndpoint{
 				Type:    mcp.MCPServerEndpointTypeStreamableHttp,
-				Url:     "https://api.notion.com/mcp",
+				Url:     "http://localhost:8091/mcp",
 				Headers: map[string]string{},
 			},
 			ProtocolVersion: "1.0.0",
@@ -382,13 +387,15 @@ func (s *MCPService) getBuiltinMCPServers() []*mcp.MCPServerInfo {
 			Authorization: mcp.MCPServerAuthorization{
 				Method: mcp.MCPServerAuthorizationMethodOAuth2,
 				Status: mcp.MCPServerAuthorizationStatusDisabled,
-				Scopes: "notion.api",
-				Config: map[string]string{
-					"client_id":     "notion-mcp",
-					"client_secret": "notion-mcp",
-					"redirect_uri":  "https://avatarai.social/api/mcp/oauth-callback",
+				Scopes: "user",
+				Config: map[string]any{
+					"client_id":     "15ed872b-594c-817b-a08c-0037362900ad",
+					"client_secret": "secret_jW7WOpp8VtximCQIgPeZmvzLLoH2gZpnt7Pu8WdYDcq",
+					"redirect_uri":  "https://avatarai.social/api/mcp/oauth/callback",
+					// 客户端类型
+					"client_type": "confidential", // public, confidential
 				},
-				Credentials: map[string]string{},
+				Credentials: map[string]any{},
 			},
 			Enabled:             false,
 			SyncResources:       false,
@@ -406,7 +413,7 @@ func (s *MCPService) getBuiltinMCPServers() []*mcp.MCPServerInfo {
 			Status:      mcp.MCPServerStatusDisconnected,
 			Endpoint: &mcp.MCPServerEndpoint{
 				Type:    mcp.MCPServerEndpointTypeStreamableHttp,
-				Url:     "https://api.github.com/mcp",
+				Url:     "http://localhost:8089/mcp",
 				Headers: map[string]string{},
 			},
 			ProtocolVersion: "1.0.0",
@@ -416,12 +423,14 @@ func (s *MCPService) getBuiltinMCPServers() []*mcp.MCPServerInfo {
 				Method: mcp.MCPServerAuthorizationMethodOAuth2,
 				Status: mcp.MCPServerAuthorizationStatusDisabled,
 				Scopes: "repo",
-				Config: map[string]string{
-					"client_id":     "github-mcp",
-					"client_secret": "github-mcp",
-					"redirect_uri":  "https://avatarai.social/api/mcp/oauth-callback",
+				Config: map[string]any{
+					"client_id":     "Ov23liXZ68YbB4ILHsyg",
+					"client_secret": "a7c79cea7177603c833e8b310736a81a8d033f6b",
+					"redirect_uri":  "https://avatarai.social/api/mcp/oauth/callback",
+					// 客户端类型
+					"client_type": "public", // public, confidential
 				},
-				Credentials: map[string]string{},
+				Credentials: map[string]any{},
 			},
 			Enabled:             false,
 			SyncResources:       false,
@@ -433,13 +442,13 @@ func (s *MCPService) getBuiltinMCPServers() []*mcp.MCPServerInfo {
 			McpId:       "twitter-mcp",
 			IsBuiltin:   true,
 			Name:        "Twitter MCP Server",
-			Description: "Twitter MCP Server 允许您使用Twitter API 和第三方客户端（如Cursor）进行交互。要使用Twitter MCP，您需要在Twitter中创建集成，获取内部集成令牌，并在MCP客户端中配置这些信息，以便客户端可以访问和操作您的Twitter账号。",
+			Description: "通过 X MCP Server 访问您的推文、时间线和社交互动数据，支持发布推文、获取时间线、分析互动等功能",
 			Version:     "1.0.0",
 			Author:      "AvatarAI",
-			Status:      mcp.MCPServerStatusConnected,
+			Status:      mcp.MCPServerStatusDisconnected,
 			Endpoint: &mcp.MCPServerEndpoint{
 				Type:    mcp.MCPServerEndpointTypeStreamableHttp,
-				Url:     "https://api.twitter.com/2/mcp",
+				Url:     "http://localhost:8090/mcp",
 				Headers: map[string]string{},
 			},
 			ProtocolVersion: "1.0.0",
@@ -448,13 +457,15 @@ func (s *MCPService) getBuiltinMCPServers() []*mcp.MCPServerInfo {
 			Authorization: mcp.MCPServerAuthorization{
 				Method: mcp.MCPServerAuthorizationMethodOAuth2,
 				Status: mcp.MCPServerAuthorizationStatusDisabled,
-				Scopes: "tweet.read tweet.write users.read offline.access follows.read follows.write",
-				Config: map[string]string{
-					"client_id":     "twitter-mcp",
-					"client_secret": "twitter-mcp",
-					"redirect_uri":  "https://avatarai.social/api/mcp/oauth-callback",
+				Scopes: "tweet.read tweet.write users.read offline.access follows.read follows.write like.read like.write media.write",
+				Config: map[string]any{
+					"client_id":     "VC1yaFhoWktuVzhEdGxTUjF6VEI6MTpjaQ",
+					"client_secret": "EjdsctDBgUAaKOYmtTrKtlawGxtBYYQA5qk29XCnwSJfFhHFJH",
+					"redirect_uri":  "https://avatarai.social/api/mcp/oauth/callback",
+					// 客户端类型
+					"client_type": "public", // public, confidential
 				},
-				Credentials: map[string]string{},
+				Credentials: map[string]any{},
 			},
 			Enabled:             false,
 			SyncResources:       false,
@@ -465,7 +476,7 @@ func (s *MCPService) getBuiltinMCPServers() []*mcp.MCPServerInfo {
 	}
 }
 
-func marshalMap(m map[string]string) string {
+func marshalMap(m any) string {
 	bytes, err := json.Marshal(m)
 	if err != nil {
 		return ""

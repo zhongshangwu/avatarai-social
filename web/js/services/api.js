@@ -7,7 +7,10 @@ const ApiService = {
 
     // 通用请求方法
     async request(url, options = {}) {
+        console.log('ApiService: 发起请求', url, options);
         const token = this.getAccessToken();
+        console.log('ApiService: 使用访问令牌', token ? '存在' : '不存在');
+
         const defaultOptions = {
             headers: {
                 'Content-Type': 'application/json',
@@ -24,23 +27,57 @@ const ApiService = {
             }
         };
 
+        console.log('ApiService: 最终请求选项', finalOptions);
         const response = await fetch(url, finalOptions);
+        console.log('ApiService: 收到响应', response.status, response.statusText);
 
         if (!response.ok) {
             const error = await response.text();
+            console.error('ApiService: 请求失败', response.status, error);
             throw new Error(error || `请求失败: ${response.status}`);
         }
 
+        return response;
+    },
+
+    // HTTP 方法便捷函数
+    async get(url, options = {}) {
+        return this.request(url, { ...options, method: 'GET' });
+    },
+
+    async post(url, data, options = {}) {
+        return this.request(url, {
+            ...options,
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    },
+
+    async put(url, data, options = {}) {
+        return this.request(url, {
+            ...options,
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    },
+
+    async delete(url, options = {}) {
+        return this.request(url, { ...options, method: 'DELETE' });
+    },
+
+    // 兼容旧版本的 request 方法，返回 JSON 数据
+    async requestJson(url, options = {}) {
+        const response = await this.request(url, options);
         return response.json();
     },
 
     // 用户相关API
     async getCurrentUser() {
-        return this.request('/api/avatar/profile');
+        return this.requestJson('/api/avatar/profile');
     },
 
     async updateProfile(profileData) {
-        return this.request('/api/avatar/profile', {
+        return this.requestJson('/api/avatar/profile', {
             method: 'POST',
             body: JSON.stringify(profileData)
         });
@@ -70,7 +107,7 @@ const ApiService = {
 
     // 帖子相关API
     async createMoment(momentData) {
-        return this.request('/api/moments', {
+        return this.requestJson('/api/moments', {
             method: 'POST',
             body: JSON.stringify(momentData)
         });
@@ -83,7 +120,7 @@ const ApiService = {
             params.set('cursor', cursor);
         }
 
-        return this.request(`/api/feeds?${params}`);
+        return this.requestJson(`/api/feeds?${params}`);
     },
 
     async getThread(momentUri, depth = 10) {
@@ -91,7 +128,7 @@ const ApiService = {
         params.set('uri', momentUri);
         params.set('depth', depth.toString());
 
-        return this.request(`/api/moments/thread?${params}`);
+        return this.requestJson(`/api/moments/thread?${params}`);
     },
 
     // 聊天历史API
@@ -101,12 +138,12 @@ const ApiService = {
         params.set('threadId', threadId);
         params.set('limit', limit.toString());
 
-        return this.request(`/api/messages/history?${params}`);
+        return this.requestJson(`/api/messages/history?${params}`);
     },
 
     // OAuth相关API
     async refreshToken(refreshToken) {
-        return this.request('/api/oauth/refresh', {
+        return this.requestJson('/api/oauth/refresh', {
             method: 'POST',
             body: JSON.stringify({
                 refresh_token: refreshToken
@@ -115,7 +152,7 @@ const ApiService = {
     },
 
     async logout() {
-        return this.request('/api/oauth/logout', {
+        return this.requestJson('/api/oauth/logout', {
             method: 'GET'
         });
     }

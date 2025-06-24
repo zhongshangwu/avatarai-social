@@ -45,7 +45,7 @@ func (r *MCPRepository) DeleteMCPServer(mcpID string, userDid string) error {
 	return r.metaStore.DB.Where("mcp_id = ? AND user_did = ?", mcpID, userDid).Delete(&MCPServer{}).Error
 }
 
-func (r *MCPRepository) GetMCPServerEndpoint(mcpID uint) (*MCPServerEndpoint, error) {
+func (r *MCPRepository) GetMCPServerEndpoint(mcpID string) (*MCPServerEndpoint, error) {
 	var endpoint MCPServerEndpoint
 	if err := r.metaStore.DB.Where("mcp_id = ?", mcpID).First(&endpoint).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -77,7 +77,7 @@ func (r *MCPRepository) CreateOrUpdateMCPServerEndpoint(endpoint *MCPServerEndpo
 	return r.metaStore.DB.Save(endpoint).Error
 }
 
-func (r *MCPRepository) GetMCPServerAuth(mcpID uint) (*MCPServerAuth, error) {
+func (r *MCPRepository) GetMCPServerAuth(mcpID string) (*MCPServerAuth, error) {
 	var auth MCPServerAuth
 	if err := r.metaStore.DB.Where("mcp_id = ?", mcpID).First(&auth).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

@@ -43,6 +43,15 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("server.http.read_timeout", "30s")
 	v.SetDefault("server.http.write_timeout", "30s")
 	v.SetDefault("server.http.idle_timeout", "60s")
+
+	v.SetDefault("server.https.enabled", false)
+	v.SetDefault("server.https.address", ":8443")
+	v.SetDefault("server.https.cert_file", "certs/server.crt")
+	v.SetDefault("server.https.key_file", "certs/server.key")
+	v.SetDefault("server.https.read_timeout", "30s")
+	v.SetDefault("server.https.write_timeout", "30s")
+	v.SetDefault("server.https.idle_timeout", "60s")
+
 	v.SetDefault("server.metrics.address", ":8081")
 
 	v.SetDefault("database.driver", "sqlite")

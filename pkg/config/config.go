@@ -27,6 +27,7 @@ type SecurityConfig struct {
 
 type ServerConfig struct {
 	HTTP     HTTPConfig    `mapstructure:"http"`
+	HTTPS    HTTPSConfig   `mapstructure:"https"`
 	Metrics  MetricsConfig `mapstructure:"metrics"`
 	AdminKey string        `mapstructure:"admin_key"`
 	Domain   string        `mapstructure:"domain"`
@@ -34,6 +35,16 @@ type ServerConfig struct {
 
 type HTTPConfig struct {
 	Address      string        `mapstructure:"address"`
+	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
+	WriteTimeout time.Duration `mapstructure:"write_timeout"`
+	IdleTimeout  time.Duration `mapstructure:"idle_timeout"`
+}
+
+type HTTPSConfig struct {
+	Enabled      bool          `mapstructure:"enabled"`
+	Address      string        `mapstructure:"address"`
+	CertFile     string        `mapstructure:"cert_file"`
+	KeyFile      string        `mapstructure:"key_file"`
 	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
 	WriteTimeout time.Duration `mapstructure:"write_timeout"`
 	IdleTimeout  time.Duration `mapstructure:"idle_timeout"`

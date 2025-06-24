@@ -1,0 +1,697 @@
+/* MCP 管理样式 */
+
+/* MCP 容器 */
+.mcp-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* MCP 头部 */
+.mcp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: var(--background-color);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.mcp-title h4 {
+    margin: 0 0 8px 0;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.mcp-title p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.mcp-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.mcp-actions .btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.mcp-actions .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 服务器列表 */
+.mcp-servers-list {
+    min-height: 400px;
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+.loading-state .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+/* 空状态 */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-text h4 {
+    margin: 0 0 12px 0;
+    font-size: 1.3rem;
+    color: var(--text-color);
+}
+
+.empty-text p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* 服务器网格 */
+.servers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+}
+
+@media (max-width: 1200px) {
+    .servers-grid {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 18px;
+    }
+}
+
+@media (max-width: 900px) {
+    .servers-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 16px;
+    }
+}
+
+/* 服务器卡片 */
+.server-card {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.server-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.server-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border-color: var(--primary-color);
+}
+
+.server-card:hover::before {
+    opacity: 1;
+}
+
+/* 服务器头部 */
+.server-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    gap: 12px;
+}
+
+.server-info {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.server-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.server-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.server-details {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.server-name {
+    margin: 0 0 6px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    line-height: 1.3;
+}
+
+.server-description {
+    margin: 0 0 6px 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.server-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.server-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.builtin-badge {
+    background: var(--success-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+/* 服务器状态 */
+.server-status {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+.status-indicator,
+.auth-indicator {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    white-space: nowrap;
+    max-width: 85px;
+    overflow: hidden;
+    text-align: center;
+}
+
+.status-indicator span,
+.auth-indicator span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.status-indicator i,
+.auth-indicator i {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+}
+
+.status-connected {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success-color);
+}
+
+.status-disconnected {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+}
+
+.auth-active {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+}
+
+.auth-inactive {
+    background: rgba(156, 163, 175, 0.1);
+    color: var(--text-muted);
+}
+
+/* 服务器主体 */
+.server-body {
+    margin-bottom: 20px;
+}
+
+.server-about {
+    margin: 0 0 16px 0;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    line-height: 1.5;
+    padding: 12px;
+    background: rgba(var(--primary-color-rgb), 0.05);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+}
+
+/* 服务器配置 */
+.server-config {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.config-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.config-label {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+/* 开关样式 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* 服务器操作 */
+.server-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.server-actions .btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.server-actions .btn:hover {
+    transform: translateY(-1px);
+}
+
+/* 服务器详情模态框 */
+.server-detail-modal {
+    max-width: 800px;
+    width: 100%;
+}
+
+.server-detail-header {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-radius: 12px;
+}
+
+.server-icon-large {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.server-icon-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
+}
+
+.server-detail-header .server-info {
+    flex: 1;
+}
+
+.server-detail-header h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.server-detail-header .server-description {
+    margin: 0;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+.server-detail-body {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.detail-section {
+    padding: 20px;
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.detail-section h4 {
+    margin: 0 0 16px 0;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-item label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.detail-item span {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.about-text {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--text-color);
+}
+
+.config-info,
+.auth-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.url-text,
+.command-text {
+    font-family: 'Monaco', 'Menlo', monospace;
+    background: rgba(var(--primary-color-rgb), 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.auth-method,
+.auth-scopes {
+    font-weight: 500;
+}
+
+.auth-status.active {
+    color: var(--success-color);
+}
+
+.auth-status.inactive,
+.auth-status.disabled {
+    color: var(--text-muted);
+}
+
+.auth-status.expired {
+    color: var(--error-color);
+}
+
+.capabilities-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.capability-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(var(--success-color-rgb), 0.1);
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.capability-item i {
+    color: var(--success-color);
+}
+
+/* 安装服务器表单 */
+.install-server-form {
+    max-width: 600px;
+    width: 100%;
+}
+
+.install-server-form .form-group {
+    margin-bottom: 20px;
+}
+
+.install-server-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.install-server-form input,
+.install-server-form select,
+.install-server-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+}
+
+.install-server-form input:focus,
+.install-server-form select:focus,
+.install-server-form textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+}
+
+.endpoint-config {
+    margin-top: 16px;
+    padding: 16px;
+    background: rgba(var(--primary-color-rgb), 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(var(--primary-color-rgb), 0.1);
+}
+
+.endpoint-config.hidden {
+    display: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .mcp-container {
+        padding: 16px;
+    }
+
+    .mcp-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .mcp-actions {
+        justify-content: center;
+    }
+
+    .servers-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .server-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .server-status {
+        flex-direction: row;
+        align-items: center;
+        align-self: stretch;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .status-indicator,
+    .auth-indicator {
+        max-width: none;
+        flex: 1;
+        min-width: 80px;
+        justify-content: center;
+        font-size: 0.7rem;
+        padding: 2px 4px;
+    }
+
+    .server-actions {
+        flex-direction: column;
+    }
+
+    .server-actions .btn {
+        flex: none;
+    }
+
+    .server-detail-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 动画 */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.server-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.server-card:nth-child(even) {
+    animation-delay: 0.1s;
+}
+
+.server-card:nth-child(odd) {
+    animation-delay: 0.2s;
+}

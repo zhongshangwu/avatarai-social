@@ -1,29 +1,23 @@
-# # server.py
-# from mcp.server.fastmcp import FastMCP
+"""
+Shared GitHub OAuth provider for MCP servers.
 
-# # Create an MCP server
-# mcp = FastMCP("Demo")
+This module contains the common GitHub OAuth functionality used by both
+the standalone authorization server and the legacy combined server.
 
-# mcp.settings.debug = True
-# mcp.settings.host = "0.0.0.0"
-# mcp.settings.port = 8089
+NOTE: this is a simplified example for demonstration purposes.
+This is not a production-ready implementation.
 
-# """Simple MCP Server with GitHub OAuth Authentication."""
-"""Simple MCP Server with GitHub OAuth Authentication."""
+"""
 
 import logging
 import secrets
 import time
-from typing import Any, Literal
+from typing import Any
 
-import click
 from pydantic import AnyHttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.exceptions import HTTPException
-from starlette.requests import Request
-from starlette.responses import JSONResponse, RedirectResponse, Response
 
-from mcp.server.auth.middleware.auth_context import get_access_token
 from mcp.server.auth.provider import (
     AccessToken,
     AuthorizationCode,
@@ -32,28 +26,20 @@ from mcp.server.auth.provider import (
     RefreshToken,
     construct_redirect_uri,
 )
-from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions
-from mcp.server.fastmcp.server import FastMCP
 from mcp.shared._httpx_utils import create_mcp_http_client
 from mcp.shared.auth import OAuthClientInformationFull, OAuthToken
 
 logger = logging.getLogger(__name__)
 
 
-class ServerSettings(BaseSettings):
-    """Settings for the simple GitHub MCP server."""
+class GitHubOAuthSettings(BaseSettings):
+    """Common GitHub OAuth settings."""
 
-    model_config = SettingsConfigDict(env_prefix="MCP_GITHUB_")
-
-    # Server settings
-    host: str = "localhost"
-    port: int = 8089
-    server_url: AnyHttpUrl = AnyHttpUrl("http://localhost:8089")
+    model_config = SettingsConfigDict(env_prefix="MCP_")
 
     # GitHub OAuth settings - MUST be provided via environment variables
-    github_client_id: str  # Type: MCP_GITHUB_GITHUB_CLIENT_ID env var
-    github_client_secret: str  # Type: MCP_GITHUB_GITHUB_CLIENT_SECRET env var
-    github_callback_path: str = "http://localhost:8089/github/callback"
+    github_client_id: str | None = None
+    github_client_secret: str | None = None
 
     # GitHub OAuth URLs
     github_auth_url: str = "https://github.com/login/oauth/authorize"
@@ -62,29 +48,25 @@ class ServerSettings(BaseSettings):
     mcp_scope: str = "user"
     github_scope: str = "read:user"
 
-    debug: bool = True
 
-    def __init__(self, **data):
-        """Initialize settings with values from environment variables.
+class GitHubOAuthProvider(OAuthAuthorizationServerProvider):
+    """
+    OAuth provider that uses GitHub as the identity provider.
 
-        Note: github_client_id and github_client_secret are required but can be
-        loaded automatically from environment variables (MCP_GITHUB_GITHUB_CLIENT_ID
-        and MCP_GITHUB_GITHUB_CLIENT_SECRET) and don't need to be passed explicitly.
-        """
-        super().__init__(**data)
+    This provider handles the OAuth flow by:
+    1. Redirecting users to GitHub for authentication
+    2. Exchanging GitHub tokens for MCP tokens
+    3. Maintaining token mappings for API access
+    """
 
-
-class SimpleGitHubOAuthProvider(OAuthAuthorizationServerProvider):
-    """Simple GitHub OAuth provider with essential functionality."""
-
-    def __init__(self, settings: ServerSettings):
+    def __init__(self, settings: GitHubOAuthSettings, github_callback_url: str):
         self.settings = settings
+        self.github_callback_url = github_callback_url
         self.clients: dict[str, OAuthClientInformationFull] = {}
         self.auth_codes: dict[str, AuthorizationCode] = {}
         self.tokens: dict[str, AccessToken] = {}
-        self.state_mapping: dict[str, dict[str, str]] = {}
-        # Store GitHub tokens with MCP tokens using the format:
-        # {"mcp_token": "github_token"}
+        self.state_mapping: dict[str, dict[str, str | None]] = {}
+        # Maps MCP tokens to GitHub tokens
         self.token_mapping: dict[str, str] = {}
 
     async def get_client(self, client_id: str) -> OAuthClientInformationFull | None:
@@ -99,19 +81,20 @@ class SimpleGitHubOAuthProvider(OAuthAuthorizationServerProvider):
         """Generate an authorization URL for GitHub OAuth flow."""
         state = params.state or secrets.token_hex(16)
 
-        # Store the state mapping
+        # Store state mapping for callback
         self.state_mapping[state] = {
             "redirect_uri": str(params.redirect_uri),
             "code_challenge": params.code_challenge,
             "redirect_uri_provided_explicitly": str(params.redirect_uri_provided_explicitly),
             "client_id": client.client_id,
+            "resource": params.resource,  # RFC 8707
         }
 
         # Build GitHub authorization URL
         auth_url = (
             f"{self.settings.github_auth_url}"
             f"?client_id={self.settings.github_client_id}"
-            f"&redirect_uri={self.settings.github_callback_path}"
+            f"&redirect_uri={self.github_callback_url}"
             f"&scope={self.settings.github_scope}"
             f"&state={state}"
         )
@@ -119,7 +102,7 @@ class SimpleGitHubOAuthProvider(OAuthAuthorizationServerProvider):
         return auth_url
 
     async def handle_github_callback(self, code: str, state: str) -> str:
-        """Handle GitHub OAuth callback."""
+        """Handle GitHub OAuth callback and return redirect URI."""
         state_data = self.state_mapping.get(state)
         if not state_data:
             raise HTTPException(400, "Invalid state parameter")
@@ -128,6 +111,12 @@ class SimpleGitHubOAuthProvider(OAuthAuthorizationServerProvider):
         code_challenge = state_data["code_challenge"]
         redirect_uri_provided_explicitly = state_data["redirect_uri_provided_explicitly"] == "True"
         client_id = state_data["client_id"]
+        resource = state_data.get("resource")  # RFC 8707
+
+        # These are required values from our own state mapping
+        assert redirect_uri is not None
+        assert code_challenge is not None
+        assert client_id is not None
 
         # Exchange code for token with GitHub
         async with create_mcp_http_client() as client:
@@ -137,7 +126,7 @@ class SimpleGitHubOAuthProvider(OAuthAuthorizationServerProvider):
                     "client_id": self.settings.github_client_id,
                     "client_secret": self.settings.github_client_secret,
                     "code": code,
-                    "redirect_uri": self.settings.github_callback_path,
+                    "redirect_uri": self.github_callback_url,
                 },
                 headers={"Accept": "application/json"},
             )
@@ -162,10 +151,11 @@ class SimpleGitHubOAuthProvider(OAuthAuthorizationServerProvider):
                 expires_at=time.time() + 300,
                 scopes=[self.settings.mcp_scope],
                 code_challenge=code_challenge,
+                resource=resource,  # RFC 8707
             )
             self.auth_codes[new_code] = auth_code
 
-            # Store GitHub token - we'll map the MCP token to this later
+            # Store GitHub token with MCP client_id
             self.tokens[github_token] = AccessToken(
                 token=github_token,
                 client_id=client_id,
@@ -198,6 +188,7 @@ class SimpleGitHubOAuthProvider(OAuthAuthorizationServerProvider):
             client_id=client.client_id,
             scopes=authorization_code.scopes,
             expires_at=int(time.time()) + 3600,
+            resource=authorization_code.resource,  # RFC 8707
         )
 
         # Find GitHub token for this client
@@ -205,8 +196,6 @@ class SimpleGitHubOAuthProvider(OAuthAuthorizationServerProvider):
             (
                 token
                 for token, data in self.tokens.items()
-                # see https://github.blog/engineering/platform-security/behind-githubs-new-authentication-token-formats/
-                # which you get depends on your GH app setup.
                 if (token.startswith("ghu_") or token.startswith("gho_")) and data.client_id == client.client_id
             ),
             None,
@@ -239,7 +228,7 @@ class SimpleGitHubOAuthProvider(OAuthAuthorizationServerProvider):
         return access_token
 
     async def load_refresh_token(self, client: OAuthClientInformationFull, refresh_token: str) -> RefreshToken | None:
-        """Load a refresh token - not supported."""
+        """Load a refresh token - not supported in this example."""
         return None
 
     async def exchange_refresh_token(
@@ -248,84 +237,19 @@ class SimpleGitHubOAuthProvider(OAuthAuthorizationServerProvider):
         refresh_token: RefreshToken,
         scopes: list[str],
     ) -> OAuthToken:
-        """Exchange refresh token"""
-        raise NotImplementedError("Not supported")
+        """Exchange refresh token - not supported in this example."""
+        raise NotImplementedError("Refresh tokens not supported")
 
     async def revoke_token(self, token: str, token_type_hint: str | None = None) -> None:
         """Revoke a token."""
         if token in self.tokens:
             del self.tokens[token]
 
-
-def create_simple_mcp_server(settings: ServerSettings) -> FastMCP:
-    """Create a simple FastMCP server with GitHub OAuth."""
-    oauth_provider = SimpleGitHubOAuthProvider(settings)
-
-    auth_settings = AuthSettings(
-        issuer_url=settings.server_url,
-        client_registration_options=ClientRegistrationOptions(
-            enabled=True,
-            valid_scopes=[settings.mcp_scope],
-            default_scopes=[settings.mcp_scope],
-        ),
-        required_scopes=[settings.mcp_scope],
-    )
-
-    app = FastMCP(
-        name="Simple GitHub MCP Server",
-        instructions="A simple MCP server with GitHub OAuth authentication",
-        auth_server_provider=oauth_provider,
-        host=settings.host,
-        port=settings.port,
-        debug=True,
-        auth=auth_settings,
-    )
-
-    @app.custom_route("/github/callback", methods=["GET"])
-    async def github_callback_handler(request: Request) -> Response:
-        """Handle GitHub OAuth callback."""
-        code = request.query_params.get("code")
-        state = request.query_params.get("state")
-
-        if not code or not state:
-            raise HTTPException(400, "Missing code or state parameter")
-
-        try:
-            redirect_uri = await oauth_provider.handle_github_callback(code, state)
-            return RedirectResponse(status_code=302, url=redirect_uri)
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error("Unexpected error", exc_info=e)
-            return JSONResponse(
-                status_code=500,
-                content={
-                    "error": "server_error",
-                    "error_description": "Unexpected error",
-                },
-            )
-
-    def get_github_token() -> str:
-        """Get the GitHub token for the authenticated user."""
-        access_token = get_access_token()
-        if not access_token:
-            raise ValueError("Not authenticated")
-
-        # Get GitHub token from mapping
-        github_token = oauth_provider.token_mapping.get(access_token.token)
-
+    async def get_github_user_info(self, mcp_token: str) -> dict[str, Any]:
+        """Get GitHub user info using MCP token."""
+        github_token = self.token_mapping.get(mcp_token)
         if not github_token:
-            raise ValueError("No GitHub token found for user")
-
-        return github_token
-
-    @app.tool()
-    async def get_user_profile() -> dict[str, Any]:
-        """Get the authenticated user's GitHub profile information.
-
-        This is the only tool in our simple example. It requires the 'user' scope.
-        """
-        github_token = get_github_token()
+            raise ValueError("No GitHub token found for MCP token")
 
         async with create_mcp_http_client() as client:
             response = await client.get(
@@ -337,50 +261,6 @@ def create_simple_mcp_server(settings: ServerSettings) -> FastMCP:
             )
 
             if response.status_code != 200:
-                raise ValueError(f"GitHub API error: {response.status_code} - {response.text}")
+                raise ValueError(f"GitHub API error: {response.status_code}")
 
             return response.json()
-
-    return app
-
-
-@click.command()
-@click.option("--port", default=8089, help="Port to listen on")
-@click.option("--host", default="localhost", help="Host to bind to")
-@click.option(
-    "--transport",
-    default="sse",
-    type=click.Choice(["sse", "streamable-http"]),
-    help="Transport protocol to use ('sse' or 'streamable-http')",
-)
-def main(port: int, host: str, transport: Literal["sse", "streamable-http"]) -> int:
-    """Run the simple GitHub MCP server."""
-    logging.basicConfig(level=logging.INFO)
-    print("Starting MCP server...")
-
-    try:
-        # No hardcoded credentials - all from environment variables
-        settings = ServerSettings(host=host, port=port)
-    except ValueError as e:
-        logger.error("Failed to load settings. Make sure environment variables are set:")
-        logger.error("  MCP_GITHUB_GITHUB_CLIENT_ID=<your-client-id>")
-        logger.error("  MCP_GITHUB_GITHUB_CLIENT_SECRET=<your-client-secret>")
-        logger.error(f"Error: {e}")
-        return 1
-
-    mcp_server = create_simple_mcp_server(settings)
-    logger.info(f"Starting server with {transport} transport")
-    mcp_server.run(transport=transport)
-    return 0
-
-mcp = FastMCP("Demo")
-
-if __name__ == "__main__":
-    main()
-
-# uv run main --port 8089 --host 0.0.0.0 --transport sse
-# if __name__ == "__main__":
-#     print("Starting MCP server...")
-#     mcp.run(
-#         transport="sse",
-#     )

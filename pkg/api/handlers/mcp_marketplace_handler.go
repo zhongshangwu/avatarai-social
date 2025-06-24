@@ -16,7 +16,7 @@ type ListMCPServersResponse struct {
 
 type InstallMCPServerRequest struct {
 	Name     string                `json:"name"`
-	Endpoint mcp.MCPServerEndpoint `json:"mcpServerEndpoint"`
+	Endpoint mcp.MCPServerEndpoint `json:"endpoint"`
 }
 
 type MCPMarketplaceHandler struct {
@@ -70,7 +70,7 @@ func (h *MCPMarketplaceHandler) InstallMCPServer(c *types.APIContext) error {
 }
 
 func (h *MCPMarketplaceHandler) UninstallMCPServer(c *types.APIContext) error {
-	mcpId := c.Param("mcpId")
+	mcpId := c.QueryParam("mcpId")
 
 	userDid := c.User.Did
 
@@ -123,8 +123,10 @@ func (h *MCPMarketplaceHandler) ToggleEnabled(c *types.APIContext) error {
 		return c.NotFound("MCP服务器不存在")
 	}
 
-	if err := h.mcpService.EnforceToDB(serverInfo, userDid); err != nil {
-		return c.InternalServerError("更新启用状态失败")
+	if serverInfo.IsBuiltin {
+		if err := h.mcpService.InstallBuiltinIfNotExists(serverInfo, userDid); err != nil {
+			return c.InternalServerError("更新启用状态失败")
+		}
 	}
 
 	if err := h.mcpService.UpdateEnabledStatus(mcpId, userDid, req.Enabled); err != nil {

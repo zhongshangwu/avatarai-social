@@ -101,7 +101,11 @@ func runAvatarEngine(cctx *cli.Context) error {
 
 	// 启动 API 服务器
 	go func() {
-		log.Info("启动 API 服务器", "地址", cfg.Server.HTTP.Address)
+		if cfg.Server.HTTPS.Enabled {
+			log.Info("启动 HTTPS API 服务器", "地址", cfg.Server.HTTPS.Address)
+		} else {
+			log.Info("启动 HTTP API 服务器", "地址", cfg.Server.HTTP.Address)
+		}
 		err := apiServer.Start()
 		apiErr <- err
 	}()
