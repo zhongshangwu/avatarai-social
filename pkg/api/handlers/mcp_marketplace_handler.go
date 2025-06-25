@@ -25,7 +25,7 @@ type MCPMarketplaceHandler struct {
 
 func NewMCPMarketplaceHandler(config *config.SocialConfig, metaStore *repositories.MetaStore) *MCPMarketplaceHandler {
 	return &MCPMarketplaceHandler{
-		mcpService: services.NewMCPService(metaStore),
+		mcpService: services.NewMCPService(metaStore, config),
 	}
 }
 

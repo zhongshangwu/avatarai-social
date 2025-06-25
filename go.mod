@@ -121,4 +121,4 @@ require (
 	lukechampine.com/blake3 v1.2.1 // indirect
 )
 
-replace github.com/mark3labs/mcp-go => ../mcp-go
+replace github.com/mark3labs/mcp-go => github.com/avatarai-social/mcp-go v0.0.0-20250625023436-a0a63b885ef6

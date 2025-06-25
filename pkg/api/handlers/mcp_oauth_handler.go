@@ -24,7 +24,7 @@ func NewMCPOAuthHandler(config *config.SocialConfig, metaStore *repositories.Met
 	return &MCPOAuthHandler{
 		config:     config,
 		metaStore:  metaStore,
-		mcpService: services.NewMCPService(metaStore),
+		mcpService: services.NewMCPService(metaStore, config),
 	}
 }
 

@@ -19,6 +19,7 @@ type SocialConfig struct {
 	ATP      ATPConfig      `mapstructure:"atp"`
 	Avatar   AvatarConfig   `mapstructure:"avatar"`
 	Security SecurityConfig `mapstructure:"security"` // 新增 security
+	MCP      MCPConfig      `mapstructure:"mcp"`      // 新增 mcp
 }
 
 type SecurityConfig struct {
@@ -90,6 +91,35 @@ type LLMConfig struct {
 
 type ToolConfig struct {
 	ID string `mapstructure:"id"`
+}
+
+type MCPConfig struct {
+	Servers []MCPServerConfig `mapstructure:"servers"`
+}
+
+type MCPServerConfig struct {
+	McpId         string                       `mapstructure:"mcpId"`
+	Name          string                       `mapstructure:"name"`
+	Description   string                       `mapstructure:"description"`
+	Version       string                       `mapstructure:"version"`
+	Author        string                       `mapstructure:"author"`
+	Endpoint      MCPServerEndpointConfig      `mapstructure:"endpoint"`
+	Authorization MCPServerAuthorizationConfig `mapstructure:"authorization"`
+}
+
+type MCPServerEndpointConfig struct {
+	Type    string            `mapstructure:"type"`
+	URL     string            `mapstructure:"url"`
+	Headers map[string]string `mapstructure:"headers"`
+}
+
+type MCPServerAuthorizationConfig struct {
+	Method       string `mapstructure:"method"`
+	Scopes       string `mapstructure:"scopes"`
+	ClientID     string `mapstructure:"client_id"`
+	ClientSecret string `mapstructure:"client_secret"`
+	RedirectURI  string `mapstructure:"redirect_uri"`
+	ClientType   string `mapstructure:"client_type"`
 }
 
 func (atp *ATPConfig) ClientPubJWKMap() map[string]interface{} {

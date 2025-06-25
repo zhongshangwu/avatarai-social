@@ -118,7 +118,8 @@ func NewMCPClient(metaStore *repositories.MetaStore, serverInfo *MCPServerInfo) 
 			return nil, err
 		}
 		oauthHandler.SetBaseURL(baseURL)
-		oauthHandler.SetHTTPClient(mcpclienttransport.CreateDebugHTTPClientWithProxy("172.26.128.1", "7890"))
+		oauthHandler.SetHTTPClient(mcpclienttransport.CreateDebugHTTPClientWithProxy("", ""))
+		// oauthHandler.SetHTTPClient(mcpclienttransport.CreateDebugHTTPClientWithProxy("172.26.128.1", "7890"))
 		switch serverInfo.Endpoint.Type {
 		default:
 			return nil, fmt.Errorf("invalid endpoint type: %s", serverInfo.Endpoint.Type)

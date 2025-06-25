@@ -74,3 +74,55 @@ security:
     YjrqUrJpbd0jBJadp/ZDOXanLXSydmfR9acngRusuSlwLi7lP/yk5M3TabqAYF/T
     kOGkhUvntYvLpBrQs98PiQk=
     -----END PRIVATE KEY-----
+mcp:
+  servers:
+    - mcpId: "notion-mcp"
+      name: "Notion MCP Server"
+      description: "通过 Notion MCP Server 访问和同步您的 Notion 页面和数据库，支持页面读取、数据库查询、内容搜索等功能"
+      version: "1.0.0"
+      author: "AvatarAI"
+      endpoint:
+        type: "streamableHttp"
+        url: "https://notion.mcp.avatarai.social/mcp"
+        headers: {}
+      authorization:
+        method: "oauth2"
+        scopes: "user"
+        client_id: "15ed872b-594c-817b-a08c-0037362900ad"
+        client_secret: "secret_jW7WOpp8VtximCQIgPeZmvzLLoH2gZpnt7Pu8WdYDcq"
+        redirect_uri: "https://avatarai.social/api/mcp/oauth/callback"
+        client_type: "confidential"
+
+    - mcpId: "github-mcp"
+      name: "GitHub MCP Server"
+      description: "GitHub MCP Server 允许您使用GitHub API 和第三方客户端（如Cursor）进行交互。要使用GitHub MCP，您需要在GitHub中创建集成，获取内部集成令牌，并在MCP客户端中配置这些信息，以便客户端可以访问和操作您的GitHub仓库。"
+      version: "1.2.0"
+      author: "AvatarAI"
+      endpoint:
+        type: "streamableHttp"
+        url: "https://github.mcp.avatarai.social/mcp"
+        headers: {}
+      authorization:
+        method: "oauth2"
+        scopes: "repo"
+        client_id: "Ov23liXZ68YbB4ILHsyg"
+        client_secret: "a7c79cea7177603c833e8b310736a81a8d033f6b"
+        redirect_uri: "https://avatarai.social/api/mcp/oauth/callback"
+        client_type: "public"
+
+    - mcpId: "twitter-mcp"
+      name: "Twitter MCP Server"
+      description: "通过 X MCP Server 访问您的推文、时间线和社交互动数据，支持发布推文、获取时间线、分析互动等功能"
+      version: "1.0.0"
+      author: "AvatarAI"
+      endpoint:
+        type: "streamableHttp"
+        url: "https://x.mcp.avatarai.social/mcp"
+        headers: {}
+      authorization:
+        method: "oauth2"
+        scopes: "tweet.read tweet.write users.read offline.access follows.read follows.write like.read like.write media.write"
+        client_id: "VC1yaFhoWktuVzhEdGxTUjF6VEI6MTpjaQ"
+        client_secret: "EjdsctDBgUAaKOYmtTrKtlawGxtBYYQA5qk29XCnwSJfFhHFJH"
+        redirect_uri: "https://avatarai.social/api/mcp/oauth/callback"
+        client_type: "public"

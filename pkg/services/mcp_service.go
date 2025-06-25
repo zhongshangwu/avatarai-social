@@ -9,17 +9,20 @@ import (
 
 	mcptypes "github.com/mark3labs/mcp-go/mcp"
 	"github.com/sirupsen/logrus"
+	"github.com/zhongshangwu/avatarai-social/pkg/config"
 	"github.com/zhongshangwu/avatarai-social/pkg/mcp"
 	"github.com/zhongshangwu/avatarai-social/pkg/repositories"
 )
 
 type MCPService struct {
 	metaStore *repositories.MetaStore
+	config    *config.SocialConfig
 }
 
-func NewMCPService(metaStore *repositories.MetaStore) *MCPService {
+func NewMCPService(metaStore *repositories.MetaStore, cfg *config.SocialConfig) *MCPService {
 	return &MCPService{
 		metaStore: metaStore,
+		config:    cfg,
 	}
 }
 
@@ -362,38 +365,45 @@ func (s *MCPService) GenerateMcpId() string {
 }
 
 func (s *MCPService) getBuiltinMCPServers() []*mcp.MCPServerInfo {
-	// 内置 mcp servers 的配置信息
+	// 从配置文件中读取内置 mcp servers 的配置信息
 	// 开关顺序: 授权 -> 是否启用 -> 是否同步资源
 	// 将内置 mcp server 的配置信息存储到个人数据库的时机:
 	// 1. 授权
 	// 2. 启用
-	return []*mcp.MCPServerInfo{
-		{
-			McpId:       "notion-mcp",
+
+	servers := make([]*mcp.MCPServerInfo, 0, len(s.config.MCP.Servers))
+
+	for _, serverConfig := range s.config.MCP.Servers {
+		headers := serverConfig.Endpoint.Headers
+		if headers == nil {
+			headers = map[string]string{}
+		}
+
+		serverInfo := &mcp.MCPServerInfo{
+			McpId:       serverConfig.McpId,
 			IsBuiltin:   true,
-			Name:        "Notion MCP Server",
-			Description: "通过 Notion MCP Server 访问和同步您的 Notion 页面和数据库，支持页面读取、数据库查询、内容搜索等功能",
-			Version:     "1.0.0",
-			Author:      "AvatarAI",
+			Name:        serverConfig.Name,
+			Description: serverConfig.Description,
+			Version:     serverConfig.Version,
+			Author:      serverConfig.Author,
 			Status:      mcp.MCPServerStatusDisconnected,
 			Endpoint: &mcp.MCPServerEndpoint{
-				Type:    mcp.MCPServerEndpointTypeStreamableHttp,
-				Url:     "http://localhost:8091/mcp",
-				Headers: map[string]string{},
+				Type:    mcp.MCPServerEndpointType(serverConfig.Endpoint.Type),
+				Url:     serverConfig.Endpoint.URL,
+				Headers: headers,
 			},
 			ProtocolVersion: "1.0.0",
 			Capabilities:    mcptypes.ServerCapabilities{},
 			Instructions:    nil,
 			Authorization: mcp.MCPServerAuthorization{
-				Method: mcp.MCPServerAuthorizationMethodOAuth2,
+				Method: mcp.MCPServerAuthorizationMethod(serverConfig.Authorization.Method),
 				Status: mcp.MCPServerAuthorizationStatusDisabled,
-				Scopes: "user",
+				Scopes: serverConfig.Authorization.Scopes,
 				Config: map[string]any{
-					"client_id":     "15ed872b-594c-817b-a08c-0037362900ad",
-					"client_secret": "secret_jW7WOpp8VtximCQIgPeZmvzLLoH2gZpnt7Pu8WdYDcq",
-					"redirect_uri":  "https://avatarai.social/api/mcp/oauth/callback",
-					// 客户端类型
-					"client_type": "confidential", // public, confidential
+					"client_id":     serverConfig.Authorization.ClientID,
+					"client_secret": serverConfig.Authorization.ClientSecret,
+					"redirect_uri":  serverConfig.Authorization.RedirectURI,
+					"client_type":   serverConfig.Authorization.ClientType,
 				},
 				Credentials: map[string]any{},
 			},
@@ -402,78 +412,22 @@ func (s *MCPService) getBuiltinMCPServers() []*mcp.MCPServerInfo {
 			UpdatedAt:           time.Now().Unix(),
 			CreatedAt:           time.Now().Unix(),
 			LastSyncResourcesAt: time.Now().Unix(),
-		},
-		{
-			McpId:       "github-mcp",
-			IsBuiltin:   true,
-			Name:        "GitHub MCP Server",
-			Description: "GitHub MCP Server 允许您使用GitHub API 和第三方客户端（如Cursor）进行交互。要使用GitHub MCP，您需要在GitHub中创建集成，获取内部集成令牌，并在MCP客户端中配置这些信息，以便客户端可以访问和操作您的GitHub仓库。",
-			Version:     "1.2.0",
-			Author:      "AvatarAI",
-			Status:      mcp.MCPServerStatusDisconnected,
-			Endpoint: &mcp.MCPServerEndpoint{
-				Type:    mcp.MCPServerEndpointTypeStreamableHttp,
-				Url:     "http://localhost:8089/mcp",
-				Headers: map[string]string{},
-			},
-			ProtocolVersion: "1.0.0",
-			Capabilities:    mcptypes.ServerCapabilities{},
-			Instructions:    nil,
-			Authorization: mcp.MCPServerAuthorization{
-				Method: mcp.MCPServerAuthorizationMethodOAuth2,
-				Status: mcp.MCPServerAuthorizationStatusDisabled,
-				Scopes: "repo",
-				Config: map[string]any{
-					"client_id":     "Ov23liXZ68YbB4ILHsyg",
-					"client_secret": "a7c79cea7177603c833e8b310736a81a8d033f6b",
-					"redirect_uri":  "https://avatarai.social/api/mcp/oauth/callback",
-					// 客户端类型
-					"client_type": "public", // public, confidential
-				},
-				Credentials: map[string]any{},
-			},
-			Enabled:             false,
-			SyncResources:       false,
-			UpdatedAt:           time.Now().Unix(),
-			CreatedAt:           time.Now().Unix(),
-			LastSyncResourcesAt: time.Now().Unix(),
-		},
-		{
-			McpId:       "twitter-mcp",
-			IsBuiltin:   true,
-			Name:        "Twitter MCP Server",
-			Description: "通过 X MCP Server 访问您的推文、时间线和社交互动数据，支持发布推文、获取时间线、分析互动等功能",
-			Version:     "1.0.0",
-			Author:      "AvatarAI",
-			Status:      mcp.MCPServerStatusDisconnected,
-			Endpoint: &mcp.MCPServerEndpoint{
-				Type:    mcp.MCPServerEndpointTypeStreamableHttp,
-				Url:     "http://localhost:8090/mcp",
-				Headers: map[string]string{},
-			},
-			ProtocolVersion: "1.0.0",
-			Capabilities:    mcptypes.ServerCapabilities{},
-			Instructions:    nil,
-			Authorization: mcp.MCPServerAuthorization{
-				Method: mcp.MCPServerAuthorizationMethodOAuth2,
-				Status: mcp.MCPServerAuthorizationStatusDisabled,
-				Scopes: "tweet.read tweet.write users.read offline.access follows.read follows.write like.read like.write media.write",
-				Config: map[string]any{
-					"client_id":     "VC1yaFhoWktuVzhEdGxTUjF6VEI6MTpjaQ",
-					"client_secret": "EjdsctDBgUAaKOYmtTrKtlawGxtBYYQA5qk29XCnwSJfFhHFJH",
-					"redirect_uri":  "https://avatarai.social/api/mcp/oauth/callback",
-					// 客户端类型
-					"client_type": "public", // public, confidential
-				},
-				Credentials: map[string]any{},
-			},
-			Enabled:             false,
-			SyncResources:       false,
-			UpdatedAt:           time.Now().Unix(),
-			CreatedAt:           time.Now().Unix(),
-			LastSyncResourcesAt: time.Now().Unix(),
-		},
+		}
+
+		servers = append(servers, serverInfo)
 	}
+
+	return servers
+}
+
+// GetBuiltinServerConfig 根据 mcpId 获取内置服务器配置
+func (s *MCPService) GetBuiltinServerConfig(mcpId string) *config.MCPServerConfig {
+	for _, serverConfig := range s.config.MCP.Servers {
+		if serverConfig.McpId == mcpId {
+			return &serverConfig
+		}
+	}
+	return nil
 }
 
 func marshalMap(m any) string {
